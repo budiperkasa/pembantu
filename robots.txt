@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /Administrator
+Disallow: /Administrator/login/auth
+Disallow: /Administrator/login
+Disallow: /Frontend-Login
+Disallow: /Members-Login
+Disallow: /modules/Administrator
+Disallow: /modules/Members

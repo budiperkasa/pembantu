@@ -1,0 +1,185 @@
+############################################
+# SERVER WISE SETTINGS
+############################################
+## uncomment these lines for CGI mode
+## make sure to specify the correct cgi php binary file name
+## it might be /cgi-bin/php-cgi
+
+#    Action php5-cgi /cgi-bin/php5-cgi
+#    AddHandler php5-cgi .php
+
+############################################
+## GoDaddy specific options
+
+#   Options -MultiViews
+
+## you might also need to add this line to php.ini
+
+##  cgi.fix_pathinfo = 1
+##  RewriteBase /
+##  AddHandler x-httpd-php5 .php
+## if it still doesn't work, rename php.ini to php5.ini
+
+############################################
+## this line is specific for 1and1 hosting
+
+    #AddType x-mapp-php5 .php
+    #AddHandler x-mapp-php5 .php
+
+
+############################################
+# CUSTOM SEO FRIENDLY URL REWRITING
+############################################
+
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [NC,L]
+RewriteRule ^.*$ index.php [NC,L]
+
+</IfModule>
+
+############################################
+## default index file
+
+    DirectoryIndex index.php
+
+############################################
+## The code below should help against Local and Remote File Inclusion attacks.
+
+
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{QUERY_STRING} (.*)(http|https|ftp):\/\/(.*)
+RewriteCond %{QUERY_STRING} ^.*=(ht|f)tp\://.*$ [NC]
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http:// [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=(\.\.//?)+ [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2}) 
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=/([a-z0-9_.]//?)+ [NC]
+RewriteRule .* - [F]
+RewriteRule ^(.*)$ index.php [F,L]
+
+############################################
+## use URL encoding in the http:// part
+
+    RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http%3A%2F%2F [OR]
+
+
+############################################
+## Adding the following directive should give you an additional layer of security 
+## against this type of attacks using the proc/self/environ method.
+
+ RewriteCond %{QUERY_STRING} proc\/self\/environ [NC,OR] 
+
+
+###########################################
+# disable user agent verification to not break multiple image upload
+
+    #php_flag suhosin.session.cryptua off
+    
+
+############################################
+# PASS THE DEFAULT CHARACTER SET
+############################################
+
+AddDefaultCharset utf-8
+
+############################################
+# DISABLE THE SERVER SIGNATURE
+############################################
+
+ServerSignature Off
+
+############################################
+# SECURE HTACCESS FILE
+############################################
+
+<Files .htaccess>
+ order allow,deny
+ deny from all
+</Files>
+
+################################
+# UPDATING TEMPLATES, JAVASCRIPT OR CSS FILE WITHOUT HITTING MOD_SECURITY.
+# THIS SETTING MOSTLY HANDY WHEN YOU ARE MODIFYING TEMPLATES FROM ADMIN AREA.
+################################
+
+<IfModule mod_security.c>
+SecFilterEngine Off
+SecFilterScanPOST Off
+</IfModule>
+
+################################
+# Disable directory browsing
+################################
+
+Options -Indexes
+Options +FollowSymLinks
+RewriteEngine on
+IndexIgnore *
+
+################################
+# PROTECT .htaccess and .htpasswd FILES
+################################
+
+<FilesMatch "^\.ht">
+  Order allow,deny
+  Deny from all
+  Satisfy all
+</FilesMatch>
+
+################################
+# PREVENT FILE VIEWING WITH HTACCESS
+################################
+
+<Files ~ "\.(pl|jsp|cgi|py|sh|cgi|exe|dll|lo|shtml|phtml)$">
+  order deny,allow
+  deny from all
+</Files>
+
+################################
+# PPROTECT CONFIG.* FILES
+################################
+
+<FilesMatch "^(.*)\.(inc|txt|dat|shtml|exe|dll|pl|cgi|jsp|asp|aspx|ini|sh|zip)$">
+  AddDefaultCharset UTF-8
+  Order deny,allow
+  Deny from all
+</FilesMatch>
+
+
+############################################
+# DISABLING EXECUTING OF FOLLOWING FILES.
+############################################
+
+AddHandler cgi-script .pl .py .jsp .asp .jsp  .shtml .sh .cgi .pl .aspx .zip .phtml
+Options -ExecCGI
+
+############################################
+## workaround for HTTP authorization
+## in CGI environment
+
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    
+<IfModule mod_expires.c>
+
+############################################
+## Add default Expires header
+## http://developer.yahoo.com/performance/rules.html#expires
+
+    ExpiresDefault "access plus 1 year"
+
+</IfModule>
+
+
+############################################
+## If running in cluster environment, uncomment this
+## http://developer.yahoo.com/performance/rules.html#etags
+
+    #FileETag none
+    
