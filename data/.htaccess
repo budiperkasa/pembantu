@@ -1,0 +1,118 @@
+############################################
+
+## use URL encoding in the http:// part
+
+
+    RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http%3A%2F%2F [OR]
+    
+
+## Deny executable file uploads
+RewriteCond %{REQUEST_METHOD} ^PUT$ [OR]
+RewriteCond %{REQUEST_METHOD} ^MOVE$
+RewriteRule (.*)\.(php|pl|py|jsp|htm|html|shtml|sh|phtml|asp|aspx|)$ [F,NS,L]
+
+############################################
+
+## Adding the following directive should give you an additional layer of security 
+## against this type of attacks using the proc/self/environ method.
+
+
+ RewriteCond %{QUERY_STRING} proc\/self\/environ [NC,OR] 
+
+
+
+############################################
+
+# PASS THE DEFAULT CHARACTER SET
+
+############################################
+
+
+AddDefaultCharset utf-8
+
+
+
+############################################
+
+# DISABLE THE SERVER SIGNATURE
+
+############################################
+
+
+
+ServerSignature Off
+
+
+
+################################
+
+# Disable directory browsing
+
+################################
+Options -Indexes
+Options +FollowSymLinks
+RewriteEngine on
+IndexIgnore *
+
+
+
+################################
+
+# PROTECT .htaccess and .htpasswd FILES
+
+################################
+
+<FilesMatch "^\.ht">
+  Order allow,deny
+  Deny from all
+  Satisfy all
+</FilesMatch>
+
+
+
+################################
+
+# PREVENT FILE VIEWING WITH HTACCESS
+
+################################
+
+<Files ~ "\.(pl|jsp|php3|php4|php5|cgi|py|sh|cgi|php5|shtml|pjpg|php|cgi|zip|gz|tar|phtml)$">
+  order deny,allow
+  deny from all
+</Files>
+
+
+
+################################
+
+# PPROTECT CONFIG.* FILES
+
+################################
+
+<FilesMatch "^(.*)\.(inc|config\.php|tpl\.php|txt|dat|shtml|exe|dll|pl|cgi|jsp|asp|aspx|phtml|ini|sh|pjpg|php|cgi|zip|gz|tar)$">
+
+  AddDefaultCharset UTF-8
+  Order deny,allow
+  Deny from all
+
+</FilesMatch>
+
+
+############################################
+
+# DISABLING EXECUTING OF FOLLOWING FILES.
+
+############################################
+
+AddHandler cgi-script .php3 .php4 .phtml .pl .py .jsp .asp  .shtml .sh .cgi .pl .jsp .aspx .pjpg .php .cgi .zip .gz .tar
+
+
+
+############################################
+
+## workaround for HTTP authorization
+
+## in CGI environment
+
+
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
