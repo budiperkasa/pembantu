@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nav>
+  <item name="Home" url="index/index/:menu_id"   isrouter="true" display="true" controller="index" action="index"> 	
+    <subitems>
+	  <item name="AirlineFlightSchedules" url="AirlineFlightSchedules" isrouter="true" display="true" module="Flight" controller="frontend" action="airlineflightschedules" />
+	  <item name="AirlineFlightSchedulesBooking" url="Flight-Itinerary-List" isrouter="true" display="true" module="Flight" controller="frontend" action="itinerarylist" />
+	  <item name="AirlineFlightSchedulesDetails" url="Flight-Details/:flight_title" isrouter="true" display="true" module="Flight" controller="frontend" action="flightdetails" />
+	  <item name="AirlineFlightSchedulesApiDetails" url="Flight-Details-Api/:instanceId/:itineraryId/:outboundDate" isrouter="true" display="true" module="Flight" controller="frontend" action="flightdetails" />
+	  <item name="AirlineFlightSchedulesApiDetails" url="Flight-Details-Api/:instanceId/:itineraryId/:outboundDate/:inboundDate" isrouter="true" display="true" module="Flight" controller="frontend" action="flightdetails" />
+	  <item name="AirlineFlightSchedulesSubmitQuote" url="Submit-Quote" isrouter="true" display="true" module="Flight" controller="invoice" action="submitquote" />
+	  <item name="AirlineFlightSchedulesQuoting" url="FlightQuoting" isrouter="true" display="true" module="Flight" controller="invoice" action="quote" />
+	  <item name="AirlineFlightSchedulesQuoting" url="FlightQuoting/:id" isrouter="true" display="true" module="Flight" controller="invoice" action="quote" />
+	  <item name="AirlineFlightSchedulesBooking" url="FlightBooking" isrouter="true" display="true" module="Flight" controller="invoice" action="book" />
+	  <item name="AirlineFlightSchedulesBooking" url="FlightBooking/:id" isrouter="true" display="true" module="Flight" controller="invoice" action="book" />	  
+	  
+	  <item name="CreateInvoice" url="Create-Invoice" isrouter="true" display="true" module="Invoice" controller="invoice" action="create" />
+	  <item name="InvoiceServices" url="Invoice-Services" isrouter="true" display="true" module="Invoice" controller="invoice" action="services" />
+	  <item name="InvoiceServicesSubmitQuote" url="Quote-Submit-Result" isrouter="true" display="true" module="Invoice" controller="invoice" action="quote" />
+	  
+	  <item name="Packages" url="Packages" isrouter="true" display="true" module="Members" controller="packages" action="list" />
+		
+	  <item name="Poll" url="All-Poll" isrouter="true" display="true" module="Poll" controller="poll" action="view" />
+	  <item name="Poll" url="All-Poll/:group_id" isrouter="true" display="true" module="Poll" controller="poll" action="view" />
+		
+	  <item name="Forget-Password" url="Forget-Password" isrouter="true" display="true" module="Password" controller="view" action="send" />
+	  <item name="Frontend-Login" url="Frontend-Login" isrouter="true" display="true" module="Members" controller="frontend" action="login" />
+	  <item name="Members-Login" url="Members-Login" isrouter="true" display="true" module="Administrator" controller="login" action="index" />
+	  <item name="Dashboard" url="Dashboard" isrouter="true" display="true" module="Administrator" controller="login" action="index" />
+	
+	  <item name="AutosGroup" url="Autos-Group/:menu_id/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="group" />
+	  <item name="AutosList" url="Autos-list/:menu_id/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="view" />
+	  <item name="AutosBrand" url="Autos-Brand/:menu_id/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="brand" />
+	  <item name="AutosBrandListByBrand" url="Autos-Brand/:brand_id" isrouter="true" display="true" module="Autos" controller="frontend" action="brand" />
+	  <item name="AutosBrandByBrand" url="Autos-Brand/:brand_id/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="brand" />	  
+	  <item name="AutosListByCategory" url="Autos-Category-list/:menu_id/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="category" />
+	  <item name="AutosListByCategories" url="Autos-Category/:category_title" isrouter="true" display="true" module="Autos" controller="frontend" action="category" />
+	  <item name="AutosListByCategoriesPage" url="Autos-Category/:category_title/:page" isrouter="true" display="true" module="Autos" controller="frontend" action="category" />
+	  <item name="AutosDetails" url="Autos-details/:autos_model_title" isrouter="true" display="true" module="Autos" controller="frontend" action="details" />
+	  <item name="AutosDetailsTab" url="Autos-details/:autos_model_title/:tab" isrouter="true" display="true" module="Autos" controller="frontend" action="details" />
+	  <item name="AutosPrint" url="Autos-print/:autos_model_title" isrouter="true" display="true" module="Autos" controller="frontend" action="print" />
+	  <item name="AutosEmailToFriend" url="Autos-Email-Your-Friend/:autos_model_title/:form_id" isrouter="true" display="true" module="Autos" controller="emails" action="friend" />
+	  <item name="AutosContactOwner" url="Autos-Contact-Agent/:autos_model_title/:form_id" isrouter="true" display="true" module="Autos" controller="emails" action="owner" />
+	  <item name="AutosAppointment" url="Autos-Appointment/:autos_model_title/:form_id" isrouter="true" display="true" module="Autos" controller="emails" action="appointment" />
+	  <item name="AutosAdvancedSearch" url="Search-Autos" isrouter="true" display="true" module="Autos" controller="search" action="items" />
+	  <item name="AutosDetails" url="Autos-details/:autos_model_title" isrouter="true" display="true" module="Autos" controller="frontend" action="details" />
+	  <item name="AutosDetailsTab" url="Autos-details/:autos_model_title/:tab" isrouter="true" display="true" module="Autos" controller="frontend" action="details" />
+	  <item name="AutosBooking" url="Book-Autos/:autos_model_title" isrouter="true" display="true" module="Autos" controller="book" action="booking" />
+	  <item name="AutosInvoice" url="Autos-Invoice" isrouter="true" display="true" module="Autos" controller="book" action="invoice" />	
+	  <item name="AutosBooking" url="Autos-Invoice-Confirm" isrouter="true" display="true" module="Autos" controller="book" action="confirm" />	
+	  <item name="AutosItenerary" url="Autos-Itinerary-List" isrouter="true" display="true" module="Autos" controller="frontend" action="itinerarylist" /> 
+	  
+	  <item name="HotelsGroup" url="Hotels-Group/:menu_id/:page" isrouter="true" display="true" module="Hotels" controller="frontend" action="group" />
+	  <item name="HotelsGroup" url="All-Hotels/:group_id" isrouter="true" display="true" module="Hotels" controller="frontend" action="group" />
+	  <item name="HotelsGroup" url="All-Hotels/:group_id/:page" isrouter="true" display="true" module="Hotels" controller="frontend" action="group" />
+	  <item name="HotelsList" url="Hotels-list/:menu_id/:page" isrouter="true" display="true" module="Hotels" controller="frontend" action="view" />
+	  <item name="HotelsListByCategory" url="Hotels-Category-list/:menu_id/:page" isrouter="true" display="true" module="Hotels" controller="frontend" action="category" />
+	  <item name="HotelsListByCategories" url="Hotels-Category/:category_title" isrouter="true" display="true" module="Hotels" controller="frontend" action="category" />
+	  <item name="HotelsListByCategoriesPage" url="Hotels-Category/:category_title/:page" isrouter="true" display="true" module="Hotels" controller="frontend" action="category" />
+	  <item name="HotelsDetails" url="Hotels-details/:hotels_title" isrouter="true" display="true" module="Hotels" controller="frontend" action="details" />
+	  <item name="HotelsDetailsTab" url="Hotels-details/:hotels_title/:tab" isrouter="true" display="true" module="Hotels" controller="frontend" action="details" />
+	  <item name="HotelsPrint" url="Hotels-print/:hotels_title" isrouter="true" display="true" module="Hotels" controller="frontend" action="print" />
+	  <item name="HotelsEmailToFriend" url="Email-Your-Friend/:hotels_title/:form_id" isrouter="true" display="true" module="Hotels" controller="emails" action="friend" />
+	  <item name="HotelsContactOwner" url="Contact-Agent/:hotels_title/:form_id" isrouter="true" display="true" module="Hotels" controller="emails" action="owner" />
+	  <item name="HotelsAppointment" url="Hotels-Appointment/:hotels_title/:form_id" isrouter="true" display="true" module="Hotels" controller="emails" action="appointment" />
+	  <item name="HotelsAdvancedSearch" url="Search-Hotels" isrouter="true" display="true" module="Hotels" controller="search" action="items" />
+	  <item name="HotelsBooking" url="Book-Hotel/:hotels_title" isrouter="true" display="true" module="Hotels" controller="book" action="booking" />
+	  <item name="HotelsBooking" url="Hotel-Invoice" isrouter="true" display="true" module="Hotels" controller="book" action="invoice" />
+	  <item name="HotelsBooking" url="Hotel-Invoice-Confirm" isrouter="true" display="true" module="Hotels" controller="book" action="confirm" />	
+	  <item name="HotelItenerary" url="Hotel-Itinerary-List" isrouter="true" display="true" module="Hotels" controller="frontend" action="itinerarylist" /> 
+	  <item name="HotelWegoSearch" url="Search-Wego-Hotels" isrouter="true" display="true" module="Hotels" controller="wego" action="items" /> 
+	  <item name="HotelWegoDetails" url="Details-Wego-Hotels/:search_id/:hotel_id" isrouter="true" display="true" module="Hotels" controller="wego" action="details" /> 
+	  <item name="HotelWegoDetails" url="Details-Wego-Hotels/:search_id/:hotel_id/:tab" isrouter="true" display="true" module="Hotels" controller="wego" action="details" /> 
+	  
+	  <item name="HotelEanSearch" url="Search-Ean-Hotels" isrouter="true" display="true" module="Hotels" controller="expedia" action="items" /> 
+	  <item name="HotelEanDetails" url="Details-Ean-Hotels/:hotel_id/:arrival/:departure/:rooms" isrouter="true" display="true" module="Hotels" controller="expedia" action="details" /> 
+	  <item name="HotelEanDetails" url="Details-Ean-Hotels/:hotel_id/:tab" isrouter="true" display="true" module="Hotels" controller="expedia" action="details" /> 
+	  <item name="HotelEanBooking" url="Ean-Booking/:bookingInfo/:hotel_id" isrouter="true" display="true" module="Hotels" controller="expedia" action="reservation" />  
+	  <item name="HotelEanPayment" url="Create-Payment" isrouter="true" display="true" module="Hotels" controller="expedia" action="card" />
+	  <item name="HotelEanHome" url="Hotels-Home/:page" isrouter="true" display="true" module="Hotels" controller="expedia" action="index" />  
+	  
+	  <item name="PropertyGroup" url="Property-group/:menu_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="group" />
+	  <item name="PropertyList" url="Property-list/:menu_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="view" />
+	  <item name="PropertyListByCategory" url="Property-List/:menu_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="category" />
+	  <item name="ListByCategories" url="Category-List/:category_id" isrouter="true" display="true" module="Property" controller="frontend" action="category" />
+	  <item name="ListByCategoriesPages" url="Category-List/:category_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="category" />
+	  <item name="ListByType" url="Property-Type-List/:type_id" isrouter="true" display="true" module="Property" controller="frontend" action="view" />
+	  <item name="ListByTypePages" url="Property-Type-List/:type_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="view" />
+	  <item name="PropertySearch" url="Property-Search" isrouter="true" display="true" module="Property" controller="frontend" action="search" />
+	  <item name="PropertyDetails" url="Property-details/:property_title" isrouter="true" display="true" module="Property" controller="frontend" action="details" />
+	  <item name="PropertyDetailsTab" url="Property-details/:property_title/:tab" isrouter="true" display="true" module="Property" controller="frontend" action="details" />
+	  <item name="PropertyPrint" url="Property-print/:property_title" isrouter="true" display="true" module="Property" controller="frontend" action="print" />
+	  <item name="PropertyEmailToFriend" url="Email-To-Friend/:property_title/:form_id" isrouter="true" display="true" module="Property" controller="emails" action="friend" />
+	  <item name="PropertyContactOwner" url="Contact-Owner/:property_title/:form_id" isrouter="true" display="true" module="Property" controller="emails" action="owner" />
+	  <item name="PropertyAppointment" url="Appointment/:property_title/:form_id" isrouter="true" display="true" module="Property" controller="emails" action="appointment" />
+	  <item name="DynamicSearch" url="Search-Items" isrouter="true" display="true" module="Property" controller="search" action="items" />
+	  <item name="PropertyBooking" url="Book-Property/:property_title" isrouter="true" display="true" module="Property" controller="book" action="booking" />
+	  <item name="PropertyBooking" url="Property-Invoice" isrouter="true" display="true" module="Property" controller="book" action="invoice" />	 
+	  <item name="PropertyBooking" url="Property-Invoice-Confirm" isrouter="true" display="true" module="Property" controller="book" action="confirm" />	
+	  <item name="PropertyItenerary" url="Property-Itinerary-List" isrouter="true" display="true" module="Property" controller="frontend" action="itinerarylist" /> 
+	  <item name="PropertyAgentSearch" url="Property-Agent-Search" isrouter="true" display="true" module="Property" controller="frontend" action="owners" />
+	  <item name="ListByAgents" url="Property-List-Agent/:menu_id/:page" isrouter="true" display="true" module="Property" controller="frontend" action="agents" /> 
+	  <item name="ListByAgents" url="Agent-Property-List/:property_owner" isrouter="true" display="true" module="Property" controller="frontend" action="agents" />
+	  <item name="ListByAgentsPages" url="Agent-Property-List/:property_owner/:page" isrouter="true" display="true" module="Property" controller="frontend" action="agents" />
+	  <item name="ListByCity" url="Property-list-city/:city/:city_id" isrouter="true" display="true" module="Property" controller="regionlist" action="viewcity" />
+	  <item name="ListByCityPages" url="Property-list-city/:city/:city_id/:page" isrouter="true" display="true" module="Property" controller="regionlist" action="viewcity" />
+	  <item name="ListByState" url="Property-list-state/:state/:state_id" isrouter="true" display="true" module="Property" controller="regionlist" action="viewstate" />
+	  <item name="ListByStatePages" url="Property-list-state/:state/:state_id/:page" isrouter="true" display="true" module="Property" controller="regionlist" action="viewstate" />
+	  
+	  <item name="RestaurantsGroup" url="Restaurants-group/:menu_id/:page" isrouter="true" display="true" module="Restaurants" controller="frontend" action="group" />
+	  <item name="RestaurantsList" url="Restaurants-list/:menu_id/:page" isrouter="true" display="true" module="Restaurants" controller="frontend" action="view" />
+	  <item name="RestaurantsListByCategory" url="Restaurants-List/:menu_id/:page" isrouter="true" display="true" module="Restaurants" controller="frontend" action="category" />
+	  <item name="RestaurantsListByCategories" url="Restaurants-Category-List/:category_id" isrouter="true" display="true" module="Restaurants" controller="frontend" action="category" />
+	  <item name="RestaurantsListByCategoriesPages" url="Restaurants-Category-List/:category_id/:page" isrouter="true" display="true" module="Restaurants" controller="frontend" action="category" />
+	  <item name="RestaurantsSearch" url="Restaurants-Search" isrouter="true" display="true" module="Restaurants" controller="search" action="items" />
+	  <item name="RestaurantsDetails" url="Restaurants-details/:restaurants_title" isrouter="true" display="true" module="Restaurants" controller="frontend" action="details" />
+	  <item name="RestaurantsDetailsTab" url="Restaurants-details/:restaurants_title/:tab" isrouter="true" display="true" module="Restaurants" controller="frontend" action="details" />
+	  <item name="RestaurantsEmailToFriend" url="Restaurants-Email-To-Friend/:restaurants_title/:form_id" isrouter="true" display="true" module="Restaurants" controller="emails" action="friend" />
+	  <item name="RestaurantsContactOwner" url="Restaurants-Contact-Owner/:restaurants_title/:form_id" isrouter="true" display="true" module="Restaurants" controller="emails" action="owner" />
+	  <item name="RestaurantsAppointment" url="Restaurants-Appointment/:restaurants_title/:form_id" isrouter="true" display="true" module="Restaurants" controller="emails" action="appointment" />
+	  
+	  <item name="VacationrentalsGroup" url="Vacationrentals-group/:menu_id/:page" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="group" />
+	  <item name="VacationrentalsGroup" url="All-Vacationrentals/:group_id" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="group" />
+	  <item name="VacationrentalsGroup" url="All-Vacationrentals/:group_id/:page" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="group" />
+	  <item name="VacationrentalsList" url="Vacationrentals-list/:menu_id/:page" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="view" />
+	  <item name="VacationrentalsListByCategory" url="Vacationrentals-List/:menu_id/:page" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="category" />
+	  <item name="VacationrentalsListByCategories" url="Vacationrentals-Category-List/:category_id" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="category" />
+	  <item name="VacationrentalsListByCategoriesPages" url="Vacationrentals-Category-List/:category_id/:page" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="category" />
+	  <item name="VacationrentalsSearch" url="Vacationrentals-Search" isrouter="true" display="true" module="Vacationrentals" controller="search" action="items" />
+	  <item name="VacationrentalsDetails" url="Vacationrentals-details/:vacationrentals_title" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="details" />
+	  <item name="VacationrentalsDetailsTab" url="Vacationrentals-details/:vacationrentals_title/:tab" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="details" />
+	  <item name="VacationrentalsPrint" url="Vacationrentals-print/:vacationrentals_title" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="print" />
+	  <item name="VacationrentalsEmailToFriend" url="Vacationrentals-Email-To-Friend/:vacationrentals_title/:form_id" isrouter="true" display="true" module="Vacationrentals" controller="emails" action="friend" />
+	  <item name="VacationrentalsContactOwner" url="Vacationrentals-Contact-Owner/:vacationrentals_title/:form_id" isrouter="true" display="true" module="Vacationrentals" controller="emails" action="owner" />
+	  <item name="VacationrentalsAppointment" url="Vacationrentals-Appointment/:vacationrentals_title/:form_id" isrouter="true" display="true" module="Vacationrentals" controller="emails" action="appointment" />
+	  <item name="VacationrentalsBooking" url="Book-Vacationrentals/:vacationrentals_title" isrouter="true" display="true" module="Vacationrentals" controller="book" action="booking" />
+	  <item name="VacationrentalsBooking" url="Vacationrentals-Invoice" isrouter="true" display="true" module="Vacationrentals" controller="book" action="invoice" />	
+	  <item name="VacationrentalsBooking" url="Vacationrentals-Invoice-Confirm" isrouter="true" display="true" module="Vacationrentals" controller="book" action="confirm" />
+	  <item name="VacationrentalItenerary" url="Vacationrentals-Itinerary-List" isrouter="true" display="true" module="Vacationrentals" controller="frontend" action="itinerarylist" /> 
+	  <item name="VacationrentalWegoSearch" url="Search-Wego-Vacationrental" isrouter="true" display="true" module="Vacationrentals" controller="wego" action="items" /> 
+	  <item name="VacationrentalWegoDetails" url="Details-Wego-Vacationrental/:id" isrouter="true" display="true" module="Vacationrentals" controller="wego" action="details" /> 
+
+	  <item name="ToursGroup" url="Tours-group/:menu_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="group" />
+	  <item name="ToursGroup" url="All-Tours/:group_id" isrouter="true" display="true" module="Tours" controller="frontend" action="group" />
+	  <item name="ToursGroup" url="All-Tours/:group_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="group" />
+	  <item name="ToursList" url="Tours-list/:menu_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="view" />
+	  <item name="ToursList" url="Tours-Type/:type_id" isrouter="true" display="true" module="Tours" controller="frontend" action="view" />
+	  <item name="ToursList" url="Tours-Type/:type_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="view" />
+	  <item name="ToursListByCategory" url="Tours-List/:menu_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="category" />
+	  <item name="ToursListByCategories" url="Tours-Category-List/:category_id" isrouter="true" display="true" module="Tours" controller="frontend" action="category" />
+	  <item name="ToursListByCategoriesPages" url="Tours-Category-List/:category_id/:page" isrouter="true" display="true" module="Tours" controller="frontend" action="category" />
+	  <item name="ToursSearch" url="Tours-Search" isrouter="true" display="true" module="Tours" controller="search" action="items" />
+	  <item name="ToursDetails" url="Tours-details/:tours_title" isrouter="true" display="true" module="Tours" controller="frontend" action="details" />
+	  <item name="ToursDetailsTab" url="Tours-details/:tours_title/:tab" isrouter="true" display="true" module="Tours" controller="frontend" action="details" />
+	  <item name="ToursPrint" url="Tours-print/:tours_title" isrouter="true" display="true" module="Tours" controller="frontend" action="print" />
+	  <item name="ToursEmailToFriend" url="Tours-Email-To-Friend/:tours_title/:form_id" isrouter="true" display="true" module="Tours" controller="emails" action="friend" />
+	  <item name="ToursContactOwner" url="Tours-Contact-Owner/:tours_title/:form_id" isrouter="true" display="true" module="Tours" controller="emails" action="owner" />
+	  <item name="ToursAppointment" url="Tours-Appointment/:tours_title/:form_id" isrouter="true" display="true" module="Tours" controller="emails" action="appointment" />
+	  <item name="ToursBooking" url="Book-Tours/:tours_title" isrouter="true" display="true" module="Tours" controller="book" action="booking" />
+	  <item name="ToursBooking" url="Tours-Invoice" isrouter="true" display="true" module="Tours" controller="book" action="invoice" />	
+	  <item name="ToursBooking" url="Tours-Invoice-Confirm" isrouter="true" display="true" module="Tours" controller="book" action="confirm" />
+	  <item name="ToursItenerary" url="Tours-Itinerary-List" isrouter="true" display="true" module="Tours" controller="frontend" action="itinerarylist" /> 
+	  <item name="TourWegoSearch" url="Search-Wego-Tour" isrouter="true" display="true" module="Tours" controller="wego" action="items" /> 
+	  <item name="TourWegoDetails" url="Details-Wego-Tour/:id" isrouter="true" display="true" module="Tours" controller="wego" action="details" /> 
+	  
+	  <item name="SiteSearchPagination" url="Search/:search_field/:page" isrouter="true" display="true" module="Search" controller="search" action="list" />
+	  <item name="SiteSearch" url="Search" isrouter="true" display="true" module="Search" controller="search" action="list" />
+	  <item name="SiteSearchDetails" url="Search-Details/:doc_table/:doc_title/:doc_search" isrouter="true" display="true" module="Search" controller="search" action="details" />
+		 
+	  <item name="SiteMapPagination" url="Pagination/:menu_id/:page" isrouter="true" display="true" module="Sitemap" controller="sitemap" action="list" />
+		 
+	  <item name="FeedbackList" url="Feedback-List/:page"   isrouter="true" display="true" module="Feedback" controller="frontend" action="feedback" />
+	  
+	  <item name="ReviewList" url="Review-List/:page"   isrouter="true" display="true" module="Review" controller="frontend" action="review" />
+	  <item name="ReviewDetails" url="Review-Details/:general_id/:group_id" isrouter="true" display="true" module="Review" controller="frontend" action="details" />
+	  <item name="ReviewWrite" url="Review-Write/:group_id/:item_id" isrouter="true" display="true" module="Review" controller="frontend" action="write" />		  
+	  
+	  <item name="NewsFeedback" url="List/:menu_id/:page" isrouter="true" display="true" module="News" controller="feedback" action="list" />
+	  <item name="NewsCategory" url="News-Section/:menu_id/:category_id" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+	  <item name="NewsCategory" url="News-Section/:menu_id/:category_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="categories" />	  
+	  <item name="NewsCalendar" url="News-Cal/:menu_id/:year/:month/:day" isrouter="true" display="true" module="News" controller="frontend" action="calendar" />
+	  <item name="NewsCalendar" url="News-Cal/:menu_id/:year/:month/:day/:page" isrouter="true" display="true" module="News" controller="frontend" action="calendar" />	  
+	  <item name="NewsArchive" url="News-Section/:menu_id/:category_id/:year/:month" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+	  <item name="NewsArticle" url="News-Article/:menu_id/:category_id/:page_id" isrouter="true" display="true" module="News" controller="frontend" action="article" />	  
+	  <item name="NewsEventList" url="Lists/:menu_id/:page" isrouter="true" display="true" module="News" controller="event" action="list" />
+	  <item name="NewsEvent" url="Event-Cal/:menu_id/:year/:month/:day" isrouter="true" display="true" module="News" controller="event" action="list" />
+	  <item name="NewsEventPagination" url="Event-Cal/:menu_id/:year/:month/:day/:page" isrouter="true" display="true" module="News" controller="event" action="list" />
+	  <item name="NewsEventDetails" url="Event-Details/:menu_id/:page_id" isrouter="true" display="true" module="News" controller="event" action="details" />
+	  
+	  <item name="NewsAdvertiseCatPagination" url="List-Category-Ad/:menu_id/:category_id/:page" isrouter="true" display="true" module="News" controller="advertise" action="categories" />
+	  <item name="NewsAdvertisePagination" url="List-Ad/:menu_id/:page" isrouter="true" display="true" module="News" controller="advertise" action="list" />
+	  <item name="NewsAdCal" url="Ad-Cal/:menu_id/:year/:month/:day" isrouter="true" display="true" module="News" controller="advertise" action="list" />
+	  <item name="NewsAdCalPagination" url="Ad-Cal/:menu_id/:year/:month/:day/:page" isrouter="true" display="true" module="News" controller="advertise" action="list" />
+	  <item name="NewsSearch" url="News-Search" isrouter="true" display="true" module="News" controller="Search" action="search" />
+	  
+	  <item name="Gallery-Search" url="Gallery-Search" isrouter="true" display="true" module="Gallery" controller="gallerysearch" action="simplesearch" />
+	  <item name="Gallery-Advance-Search" url="Advance-Search" isrouter="true" display="true" module="Gallery" controller="gallerysearch" action="advancesearch" />
+	  <item name="GallerySearchDetails" url="Search-Details/:id" isrouter="true" display="true" module="Gallery" controller="gallerysearch" action="searchdetails" />
+	  
+	  <item name="GalleryPagination" url="Galleries/:menu_id/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="view" />
+	  <item name="GalleryCategory" url="Gallery-Category/:menu_id/:parent" isrouter="true" display="true" module="Gallery" controller="frontend" action="categories" />
+	  <item name="GalleryCategoryPagination" url="Gallery-Category/:menu_id/:parent/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="categories" />
+	  <item name="GalleryProduct" url="Gallery-Product/:menu_id/:parent/:group_id" isrouter="true" display="true" module="Gallery" controller="frontend" action="viewproduct" />
+	  <item name="GalleryProductPagination" url="Gallery-Product/:menu_id/:parent/:group_id/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="viewproduct" />
+	  <item name="GalleryDetails" url="Details/:menu_id/:product_title" isrouter="true" display="true" module="Gallery" controller="frontend" action="productdetails" />
+	  
+	  <item name="ProductChartPagination" url="Chart/:menu_id/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="view" />
+	  <item name="ProductChartCategory" url="Chart-Category/:menu_id/:parent" isrouter="true" display="true" module="Gallery" controller="chart" action="categories" />
+	  <item name="ProductChartCategoryPagination" url="Chart-Category/:menu_id/:parent/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="categories" />
+	  <item name="ProductChartProduct" url="Chart-Product/:menu_id/:parent/:group_id" isrouter="true" display="true" module="Gallery" controller="chart" action="viewproduct" />
+	  <item name="ProductChartProductPagination" url="Chart-Product/:menu_id/:parent/:group_id/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="viewproduct" />
+	  <item name="ProductChartDetails" url="Chart-Details/:menu_id/:product_title" isrouter="true" display="true" module="Gallery" controller="chart" action="productdetails" />
+		
+	  <item name="Administrator" url="Administrator/"   isrouter="true" display="true" module="Administrator" controller="index" action="index" />
+	  <item name="Administrator" url="Administrator/login"   isrouter="true" display="true" module="Administrator" controller="login" action="index" />
+	  <item name="Administrator" url="Administrator/login/index/:menu_id"   isrouter="true" display="true" module="Administrator" controller="login" action="index" />
+	  <item name="Administrator" url="Administrator/login/index/:menu_id/:page"   isrouter="true" display="true" module="Administrator" controller="login" action="index" />
+	
+	  <item name="Members" url="Register"   isrouter="true" display="true" module="Members" controller="frontend" action="type" />
+	  <item name="Members" url="Registration/:role_id"   isrouter="true" display="true" module="Members" controller="frontend" action="register" />
+	  <item name="Members" url="Members/frontend/register/:menu_id"   isrouter="true" display="true" module="Members" controller="frontend" action="register" />
+	  <item name="Members" url="Members/frontend/register/:menu_id/:page"   isrouter="true" display="true" module="Members" controller="frontend" action="register" />
+	  
+	  <item name="Members" url="Members/frontend/login/:menu_id" isrouter="true" display="true" module="Members" controller="frontend" action="login" />
+	  <item name="Members" url="Members/frontend/login/:menu_id/:page" isrouter="true" display="true" module="Members" controller="frontend" action="login" />
+	  
+	  <item name="Contact" url="Contact/view/form/:menu_id"   isrouter="true" display="true" module="Contact" controller="view" action="form" />
+	  <item name="Contact" url="Contact/view/form/:menu_id/:page"   isrouter="true" display="true" module="Contact" controller="view" action="form" />
+	  
+	  <item name="Articles" url="Articles/frontend/view/:menu_id"   isrouter="true" display="true" module="Articles" controller="frontend" action="view" />
+	  <item name="Articles" url="Articles/frontend/view/:menu_id/:page"   isrouter="true" display="true" module="Articles" controller="frontend" action="view" />	  
+      
+	  <item name="News" url="News/frontend/view/:menu_id" isrouter="true" display="true" module="News" controller="frontend" action="view">
+	  	<subitems>
+		  <item name="News" url="News/project/document/:menu_id" isrouter="true" display="true" module="News" controller="project" action="document" />
+		  <item name="News" url="News/frontend/categories/:menu_id" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+          <item name="News" url="News/frontend/article/:menu_id" isrouter="true" display="true" module="News" controller="frontend" action="article" />
+		  <item name="Category" url="News/frontend/categories/:menu_id/:category_id" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+		</subitems>	
+	  </item>
+	  <item name="News" url="News/frontend/view/:menu_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="view">
+	   <subitems>
+		  <!--<item name="News" url="News/frontend/categories/:menu_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+          <item name="News" url="News/frontend/article/:menu_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="article" />-->
+		  <item name="Category" url="News/frontend/categories/:menu_id/:category_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+          <item name="Details" url="News/frontend/article/:menu_id/:category_id/:page_id" isrouter="true" display="true" module="News" controller="frontend" action="article" />
+		</subitems>		
+      </item>
+	  <item name="Feedback" url="News/feedback/list/:menu_id"   isrouter="true" display="true" module="News" controller="feedback" action="list" />
+	  <item name="Feedback" url="News/feedback/list/:menu_id/:page"   isrouter="true" display="true" module="News" controller="feedback" action="list" >	  	  
+	  	<subitems>
+			<item name="Feedback" url="News/feedback/send"   isrouter="true" display="true" module="News" controller="feedback" action="send" />			
+		</subitems>
+	  </item>	
+	  <item name="Archive" url="News/frontend/archive/:menu_id" isrouter="true" display="true" module="News" controller="frontend" action="archive" >
+	  	<subitems>
+			 <item name="Category" url="News/frontend/categories/:menu_id/:category_id/:year/:month/:page" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+		</subitems>
+	  </item>  
+	  <item name="Archive" url="News/frontend/archive/:menu_id/:page" isrouter="true" display="true" module="News" controller="frontend" action="archive" >
+	  	<subitems>
+			 <item name="Category" url="News/frontend/categories/:menu_id/:category_id/:year/:month" isrouter="true" display="true" module="News" controller="frontend" action="categories" />
+		</subitems>
+	  </item>
+	  
+	  <item name="Gallery" url="Gallery/frontend/view/:menu_id" isrouter="true" display="true" module="Gallery" controller="frontend" action="view">
+        <subitems>
+			<item name="Category 2" url="Gallery/frontend/categories/:menu_id" isrouter="true" display="true" module="Gallery" controller="frontend" action="categories" />
+          	<item name="Category 1" url="Gallery/frontend/categories/:menu_id/:parent" isrouter="true" display="true" module="Gallery" controller="frontend" action="categories" />        	
+			<item name="Product 1" url="Gallery/frontend/viewproduct/:menu_id/:parent/:group_id" isrouter="true" display="true" module="Gallery" controller="frontend" action="viewproduct" />
+			<item name="Product Details" url="Gallery/frontend/productdetails/:menu_id/:product_title" isrouter="true" display="true" module="Gallery" controller="frontend" action="productdetails" />
+		</subitems>
+      </item>
+	  <item name="Gallery" url="Gallery/frontend/view/:menu_id/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="view">
+        <subitems>
+          <item name="Category 1" url="Gallery/frontend/categories/:menu_id/:parent/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="categories" />
+        	<item name="Product 1" url="Gallery/frontend/viewproduct/:menu_id/:parent/:group_id/:page" isrouter="true" display="true" module="Gallery" controller="frontend" action="viewproduct" />
+		</subitems>
+      </item>
+	  
+	  <item name="GalleryChart" url="Gallery/chart/view/:menu_id" isrouter="true" display="true" module="Gallery" controller="chart" action="view">
+        <subitems>
+			<item name="Category Chart 2" url="Gallery/chart/categories/:menu_id" isrouter="true" display="true" module="Gallery" controller="chart" action="categories" />
+          	<item name="Category Chart 1" url="Gallery/chart/categories/:menu_id/:parent" isrouter="true" display="true" module="Gallery" controller="chart" action="categories" />        	
+			<item name="Product Chart 1" url="Gallery/chart/viewproduct/:menu_id/:parent/:group_id" isrouter="true" display="true" module="Gallery" controller="chart" action="viewproduct" />
+			<item name="Product Chart Details" url="Gallery/chart/productdetails/:menu_id/:product_title" isrouter="true" display="true" module="Gallery" controller="chart" action="productdetails" />
+		</subitems>
+      </item>
+	  
+	  
+	  <item name="GalleryChart" url="Gallery/chart/view/:menu_id/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="view">
+        <subitems>
+          <item name="Category Chart 1" url="Gallery/chart/categories/:menu_id/:parent/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="categories" />
+        	<item name="Product Chart 1" url="Gallery/chart/viewproduct/:menu_id/:parent/:group_id/:page" isrouter="true" display="true" module="Gallery" controller="chart" action="viewproduct" />
+		</subitems>
+      </item>
+	  
+	  <item name="Projects" url="Projects/index/filepreview/:menu_id" isrouter="true" display="true" module="Projects" controller="index" action="filepreview" />
+	  <item name="Projects" url="Projects/index/filepreview/:menu_id/:page" isrouter="true" display="true" module="Projects" controller="index" action="filepreview" />
+	  
+	  
+      <!--<item name="Sport" url="/sport/" isrouter="true" display="true" controller="sport" action="index">
+        <subitems>
+          <item name="Category 1" url="/sport/category-1/" isrouter="false" display="true" controller="sport" action="category" />
+          <item name="Category 2" url="/sport/category-2/" isrouter="false" display="true" controller="sport" action="category" />
+          <item name="Category 3" url="/sport/category-3/" isrouter="false" display="true" controller="sport" action="category" />
+          <item name="Category Routing" url="/sport/:category/" isrouter="true" display="false" controller="sport" action="category" />
+        </subitems>
+      </item>-->
+	  
+	  <item name="Track-Shipment" url="Track-Shipment" isrouter="true" display="true" module="Tracker" controller="frontend" action="tracking" />
+	   <item name="Our-Network" url="Our-Network" isrouter="true" display="true" module="Tracker" controller="frontendnetwork" action="shownetwork" />
+	   
+    </subitems>
+  </item>
+</nav>
