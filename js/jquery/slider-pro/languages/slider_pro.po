@@ -1,0 +1,1455 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Slider PRO\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-06-16 17:25+0200\n"
+"PO-Revision-Date: 2011-06-16 17:25+0200\n"
+"Last-Translator: David <contact@bqworks.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;__;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: D:\\Wamp\\www\\sliderpro\\wp-content\\plugins\\slider-pro\n"
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:132
+msgid "Slider PRO - Sliders"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:132
+msgid "Sliders"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:133
+msgid "Slider PRO - Add New"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:133
+msgid "Add New"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:134
+msgid "Slider PRO - Skin Editor"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:134
+msgid "Skin Editor"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:135
+msgid "Slider PRO - Plugin Options"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:135
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/plugin-options.php:3
+msgid "Plugin Options"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:177
+msgid "Are you sure you want to delete this slide?"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:178
+msgid "Are you sure you want to delete this slider?"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:179
+msgid "Yes"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:180
+msgid "Cancel"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:181
+msgid "Preview"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:182
+msgid "Import a slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/slider-pro.php:183
+msgid "Slider PRO Media Loader"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/import-slider-form.php:4
+msgid "Import Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:370
+msgid "The Skin of the slider."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:371
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:374
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:380
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:383
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:386
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:389
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:392
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:395
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:398
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:401
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:404
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:407
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:410
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:413
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:417
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:420
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:423
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:426
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:429
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:432
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:435
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:438
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:441
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:444
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:447
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:450
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:453
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:456
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:459
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:462
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:465
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:468
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:471
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:474
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:477
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:480
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:483
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:486
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:489
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:497
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:500
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:505
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:508
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:511
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:516
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:519
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:522
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:533
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:546
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:555
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:559
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:562
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:565
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:568
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:571
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:574
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:577
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:580
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:584
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:588
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:591
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:594
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:597
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:600
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:603
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:606
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:611
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:615
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:618
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:621
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:624
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:627
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:630
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:633
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:636
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:639
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:642
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:645
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:648
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:651
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:654
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:659
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:662
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:665
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:668
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:671
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:674
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:677
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:680
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:683
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:686
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:689
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:692
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:695
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:698
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:701
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:705
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:708
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:711
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:714
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:717
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:720
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:723
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:726
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:729
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:734
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:737
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:740
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:743
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:746
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:749
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:752
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:755
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:758
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:763
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:769
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:772
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:775
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:780
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:786
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:789
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:792
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:795
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:798
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:801
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:804
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:807
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:810
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:814
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:817
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:820
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:823
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:826
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:829
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:832
+msgid "Setting Name:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:373
+msgid "The Skin of the scrollbar."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:376
+msgid ""
+"In most cases you can leave this unchecked. You only need to check this if you add the slider in the header, sidebar or anywhere else outside the post/page. \n"
+"\t\t\t\t\t\t\t\t\t\t\t\t  If checked, the selected skin will be included sitewide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:379
+msgid "The width of the slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:382
+msgid "The height of the slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:385
+msgid "The alignment of the slide's image."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:388
+msgid "The index of the slide which will be visible when the slider starts."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:391
+msgid "Indicates how many slides will be preloaded before the first slide loads."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:394
+msgid "Indicates whether the slides will be shuffled."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:397
+msgid "Indicates whether the slides for which invalid image paths were specified, will be skipped."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:400
+msgid "The target type for links, when a link was specified for the slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:403
+msgid "Indicates whether the previous slide will fade out during transition."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:406
+msgid "Sets the fade out duration for the previous slide, when the feature is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:409
+msgid "Sets the slideshow mode."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:412
+msgid "Sets the delay, in milliseconds, for the slideshow mode."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:415
+msgid ""
+"Sets the direction of the slideshow. If 'next' was specified the slideshow will advance to the next slide, \t\t\t\t\t\t\t\n"
+"\t\t\t\t\t\t\t\t\t\t\t\t\t\tif 'previous' the slideshow will open the previous slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:419
+msgid "Indicates whether the slideshow button will be displayed."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:422
+msgid "Indicates whether the slideshow button will fade in/out on  mouse hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:425
+msgid "Sets the duration for the fade in animations of the slideshow button."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:428
+msgid "Sets the duration for the fade out animations of the slideshow button."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:431
+msgid "Indicates whether the slideshow will be paused when the mouse is over the slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:434
+msgid "Indicates whether the lightbox will be enabled."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:437
+msgid "Sets the default width for the lightbox."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:440
+msgid "Sets the default height for the lightbox."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:443
+msgid "Sets the theme of the lightbox."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:446
+msgid "Sets the opacity of the lightbox's overlay."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:449
+msgid "Indicates whether the slider shadow will be displayed."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:452
+msgid "Indicates whether the timer animation will be displayed."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:455
+msgid "Sets the duration for the fade in/out animation of the timer."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:458
+msgid "Indicates whether the timer will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:461
+msgid "Sets the radius of the timer."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:464
+msgid "Sets the color of the timer's back stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:467
+msgid "Sets the color of the timer's front stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:470
+msgid "Sets the opacity of the timer's back stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:473
+msgid "Sets the opacity of the timer's front stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:476
+msgid "Sets the width of the timer's back stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:479
+msgid "Sets the width of the timer's front stroke."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:482
+msgid "Indicates whether it's permitted to start a new transition while another one is in progress."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:485
+msgid "Sets the transition effect type."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:488
+msgid "Indicates whether specified HTML content will be displayed while the transition is in progress. A transition which displayes HTML will be slower."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:491
+msgid "Sets the direction of the Simple Slide effect"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:492
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:503
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:514
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:525
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:536
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:549
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:609
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:657
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:732
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:761
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:766
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:778
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:783
+msgid "Short names:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:499
+msgid "Sets the duration of the Simple Slide effect."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:502
+msgid "Sets the easing of the Simple Slide effect"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:507
+msgid "Sets the delay between each slice (square) animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:510
+msgid "Sets the duration of each slice animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:513
+msgid "Sets the easing of each slice animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:518
+msgid "Sets the number of horizontal slices."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:521
+msgid "Sets the number of vertical slices."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:524
+msgid "Sets the pattern in which the slices will be animated."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:535
+msgid "Sets the point from which the slice will begin to grow when the 'scale', 'width' or 'height' effects are used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:548
+msgid "Sets the starting position of the slice when the 'slide' effect is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:557
+msgid ""
+"Sets the actual distance between the starting and ending point for the 'slide' animation. \t\t\t\t\t\t\t\n"
+"\t\t\t\t\t\t\t\t\t\t\t\t\t  The actual distance will be determined by multiplying the slice's width/height to the 'slideStartRatio' property."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:561
+msgid "Indicates whether the slice will start as transparent and fade in when 'scale', 'width' or 'height' or 'slide' effects are used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:564
+msgid "Indicates whether the slices will be visible outside the slide area. This effect is relevant when the 'slide' effect is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:567
+msgid "Indicates whether the Left and Right arrows will be displayed."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:570
+msgid "Indicates whether the navigation arrows will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:573
+msgid "Sets the duration for the fade in animations of the slide navigation arrows."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:576
+msgid "Sets the duration for the fade out animations of the slide navigation arrows."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:579
+msgid "Indicates whether the navigation buttons (bullets) will be displayed."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:582
+msgid ""
+"Indicates whether the navigation buttons will be centered horizontally within the main buttons container. \t\t\t\t\t\t\t\n"
+"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  If false, you can set a custom position for the buttons from within the CSS file."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:586
+msgid ""
+"Indicates whether the navigation buttons container will be centered horizontally. \t\t\t\t\t\t\t\n"
+"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  \t If false, you can set a custom position for the container from within the CSS file."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:590
+msgid "Indicates whether the navigation buttons will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:593
+msgid "Sets the duration for the fade in animations of the slide navigation buttons."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:596
+msgid "Sets the duration for the fade out animations of the slide navigation buttons."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:599
+msgid "Indicates whether numbers will be displayed over the navigation buttons."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:602
+msgid "Sets the sliding amount of the thumbnail, when Thumbnails Type is set to 'tooltip'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:605
+msgid "Sets the sliding  duration of the thumbnail, when Thumbnails Type is set to 'tooltip'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:608
+msgid "Sets the sliding easing of the thumbnail, when Thumbnails Type is set to 'tooltip'"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:613
+msgid ""
+"Indicates the way in which the thumbnails will be displayed. If 'tooltip' is used the thumbnails will fade in on top of the navigation buttons when you roll over\t\t\t\t\t\t\t\n"
+"\t\t\t\t\t\t\t\t\t\t\t\t\t them. If 'navigation' is used the thumbnails will appear inside the thumbnail scroller."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:617
+msgid "Sets the width of the thumbnail"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:620
+msgid "Sets the height of the thumbnail"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:623
+msgid "Indicates whether the navigation thumbnails will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:626
+msgid "Sets the duration for the fade out animation of the navigation thumbnails."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:629
+msgid "Sets the duration for the fade in animation of the navigation thumbnails."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:632
+msgid "Indicates whether the navigation thumbnails will be centered relativelly to the slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:635
+msgid "Indicates whether the thumbnail page will always be synchronized with the current slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:638
+msgid "Sets the number of thumbnails per page."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:641
+msgid "Indicates whether the thumbnails will be arranged horizontally or vertically."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:644
+msgid "Indicates whether the tooltip will be displayed for those thumbnails for which the tooltip content was specified."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:647
+msgid "Indicates whether the navigation thumbnails will have arrows for navigating through thumbnail pages."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:650
+msgid "Indicates whether the thumbnail arrows will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:653
+msgid "Sets the duration of the scrolling animation when the thumbnail arrows or thumbnail buttons are used for scrolling."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:656
+msgid "Sets the easing of the scrolling animation when the thumbnail arrows or thumbnail buttons are used for scrolling."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:661
+msgid "Indicates the duration for the fade out animation of the thumbnail arrows."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:664
+msgid "Indicates the duration for the fade in animation of the thumbnail arrows."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:667
+msgid "Indicates whether the navigation thumbnails will have buttons (bullets) for navigating through thumbnail pages."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:670
+msgid "Indicates whether the thumbnail buttons will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:673
+msgid "Indicates the duration for the fade out animation of the thumbnail buttons."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:676
+msgid "Indicates the duration for the fade in animation of the thumbnail buttons."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:679
+msgid "Indicates whether the navigation thumbnails will have a scrollbar."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:682
+msgid "Indicates whether the thumbnail scrollbar will fade in/out on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:685
+msgid "Indicates the duration for the fade out animation of the thumbnail scrollbar."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:688
+msgid "Indicates the duration for the fade in animation of the thumbnail scrollbar."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:691
+msgid "Indicates the easing amount for the scrollbar scrolling."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:694
+msgid "Sets the amount, in pixels, by which the thumbnails will be scrolled when one of the scrollbar's arrows is clicked."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:697
+msgid "Indicates whether the thumbnails can be scrolled by moving the mouse over them."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:700
+msgid "Sets the speed of the thumbnail mouse scrolling."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:704
+msgid "Sets the ease of the mouse scrolling when the mouse leaves the thumbnails area."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:707
+msgid "Indicates whether the thumbnails can be scrolled using the mouse wheel."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:710
+msgid "Sets the speed of the thumbnail mouse wheel scrolling."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:713
+msgid "Indicates whether the thumbnails will be scrolled in the opposite direction when mouse wheel scrolling is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:716
+msgid "Sets the position of the caption inside the thumbnail. Can be set to 'top' or 'bottom'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:719
+msgid "Indicates whether the thumbnail caption will be hidden/shown on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:722
+msgid "Sets the animation effect type for the captions."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:725
+msgid "Sets the duration of the fade/slide in animation of the caption."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:728
+msgid "Sets the duration of the fade/slide out animation of the caption."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:731
+msgid "Sets the easing of the caption's animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:736
+msgid "Sets the duration of the tooltip's fade in animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:739
+msgid "Sets the duration of the tooltip's fade out animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:742
+msgid "Indicates whether the slide caption will be hidden/shown on hover."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:745
+msgid "Sets the position of the caption inside the slide. Can be set to 'top', 'bottom', 'left', 'right' or 'custom'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:748
+msgid "Sets the caption's background opacity."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:751
+msgid "Sets the caption's background color."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:754
+msgid "Sets the effect type for the caption's show animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:757
+msgid "Sets the duration for the caption's show animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:760
+msgid "Sets the easing type for the caption's show animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:765
+msgid "Sets the direction of the sliding for the caption's show animation, when the slide effect is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:771
+msgid "Sets the effect type for the caption's hide animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:774
+msgid "Sets the duration for the caption's hide animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:777
+msgid "Sets the easing type for the caption's hide animation."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:782
+msgid "Sets the direction of the sliding for the caption's hide animation, when the slide effect is used."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:788
+msgid "Sets the width/height of the caption's background, unless the caption's position is 'custom'"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:791
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:794
+msgid "Sets the left position of the caption when caption's position is 'custom'"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:797
+msgid "Sets the width of the caption when caption's position is 'custom'"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:800
+msgid "Sets the height of the caption when caption's position is 'custom'"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:803
+msgid "The path to the slide's image."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:806
+msgid "The ALT text for the slide's image."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:809
+msgid "The link for the current slide."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:812
+msgid "Sets a custom thumbnail image for the current slide. If no path is specified, a thumbnail will be automatically generated from the slide's main image."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:816
+msgid "The ALT text for the thumbnail image."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:819
+msgid "Sets a caption for the thumbnail image. The caption will be displayed only if the Thumbnails Type is set to 'navigation'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:822
+msgid "Sets a tooltip for the thumbnail image. The tooltip will be displayed only if the Thumbnails Type is set to 'navigation'."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:825
+msgid "The path to the lightbox content. Can be a path to an image a YouTube/Vimeo video or other flash content."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:828
+msgid "The title of the lightbox."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/lists.php:831
+msgid "The description of the lightbox."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/media-loader.php:94
+msgid "#"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/media-loader.php:95
+msgid "Image"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/media-loader.php:96
+msgid "Name"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/media-loader.php:97
+msgid "Date"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/media-loader.php:98
+msgid "Insert"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:3
+msgid "Captions"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:8
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:8
+msgid "Style"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:10
+msgid "Background Opacity"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:13
+msgid "Background Color"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:19
+msgid "Show/Hide on Hover"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:26
+msgid "Size & Position"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:31
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:277
+msgid "Position"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:45
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:10
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:31
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:21
+msgid "Width"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:51
+msgid "Left"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:60
+msgid "Size"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:66
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:13
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:35
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:24
+msgid "Height"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:72
+msgid "Top"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:83
+msgid "Show Effect"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:85
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:127
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:299
+msgid "Effect"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:96
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:138
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:36
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:92
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:77
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:171
+msgid "Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:99
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:141
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:39
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:95
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:321
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:108
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:158
+msgid "Easing"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:112
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:154
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:33
+msgid "Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-captions.php:125
+msgid "Hide Effect"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:3
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:8
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:8
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:8
+msgid "General"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:16
+msgid "Align"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:27
+msgid "Shadow"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:33
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:172
+msgid "Skin"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:47
+msgid "Include Skin"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:55
+msgid "Slides"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:57
+msgid "Slide Start"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:60
+msgid "Link Target"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:71
+msgid "Shuffle"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:77
+msgid "Preloaded"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-general.php:80
+msgid "Skip Broken"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:3
+msgid "Lightbox"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:7
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:7
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:237
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:251
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:10
+msgid "Enabled"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:12
+msgid "Theme"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-lightbox.php:24
+msgid "Opacity"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-publish.php:6
+msgid "Update Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-publish.php:6
+msgid "Create Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-publish.php:13
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-publish.php:19
+msgid "Preview Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-publish.php:15
+msgid "Delete Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:3
+msgid "Slide Navigation Controls"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:8
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:108
+msgid "Arrows"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:10
+msgid "Show Arrows"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:14
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:54
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:44
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:85
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:128
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:159
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:219
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:293
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:345
+msgid "Show Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:19
+msgid "Fade Arrows"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:23
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:57
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:41
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:82
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:124
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:155
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:225
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:315
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:348
+msgid "Hide Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:30
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:139
+msgid "Buttons"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:32
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:113
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:144
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:191
+msgid "Show"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:36
+msgid "Number"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:40
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:72
+msgid "Center"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:44
+msgid "Container Center"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slide-navigation-controls.php:50
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:35
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:78
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:117
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:148
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:212
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:14
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:89
+msgid "Fade"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slides-order.php:3
+msgid "Slides order"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:3
+msgid "Slideshow"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:11
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:83
+msgid "Delay"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:14
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:147
+msgid "Direction"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:27
+msgid "Pause On Hover"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-slideshow.php:31
+msgid "Show Controls"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:3
+msgid "Thumbnails"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:10
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:10
+msgid "Type"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:31
+msgid "Tooltip Thumbnails"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:52
+msgid "Navigation Thumbnails"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:54
+msgid "Visible"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:57
+msgid "Orientation"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:68
+msgid "Syncing"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:90
+msgid "Scrolling"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:170
+msgid "Scrollbar"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:198
+msgid "Scrolling Speed"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:204
+msgid "Arrow Scroll"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:235
+msgid "Mouse Scroll"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:241
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:255
+msgid "Speed"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:244
+msgid "Ease"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:249
+msgid "Mouse Wheel"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:258
+msgid "Reverse"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:265
+msgid "Caption"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:270
+msgid "Show/Hide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:339
+msgid "Tooltip"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-thumbnails.php:341
+msgid "Enable"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:3
+msgid "Timer Animation"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:18
+msgid "Fade Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:24
+msgid "Graphic Style"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:26
+msgid "Width 1"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:29
+msgid "Color 1"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:33
+msgid "Opacity 1"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:38
+msgid "Width 2"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:41
+msgid "Color 2"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:45
+msgid "Opacity 2"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-timer-animation.php:50
+msgid "Radius"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:3
+msgid "Transition Effects"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:21
+msgid "Override Transition"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:25
+msgid "HTML"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:31
+msgid "Previous Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:32
+msgid "Fade Out"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:36
+msgid "Fade Out Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:41
+msgid "Slice General Settings"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:46
+msgid "Horizontal"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:53
+msgid "Vertical"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:59
+msgid "Point"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:98
+msgid "Pattern"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:122
+msgid "Slide Effect Settings"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:124
+msgid "Start Position"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:135
+msgid "Start Ratio"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:138
+msgid "Mask"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/panel-transition-effects.php:145
+msgid "Simple Slide Effect Settings"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/skin-editor.php:12
+msgid "Select a skin to edit"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/skin-editor.php:30
+msgid "Skin Name:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/skin-editor.php:31
+msgid "Skin Author:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/skin-editor.php:32
+msgid "Skin Description:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/skin-editor.php:33
+msgid "Skin Class:"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:2
+msgid "Show/Hide Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:3
+msgid "Delete Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:4
+msgid "Duplicate Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:19
+msgid "Thumbnail"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:21
+msgid "Inline HTML"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:23
+msgid "Settings"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:45
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:85
+msgid "Path"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:50
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:90
+msgid "ALT"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:55
+msgid "Link"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:62
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:107
+msgid "Refresh Image"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:63
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:108
+msgid "Add Image"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:130
+msgid "Content"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:135
+msgid "Title"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:142
+msgid "Description"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:157
+msgid "Other"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:161
+msgid "Effect Type"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:177
+msgid "Show HTML"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:381
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:383
+msgid "Fade Previous Slide"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:392
+msgid "Fade Previous Slide Duration"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:442
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:499
+msgid "Slide Direction"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slide.php:643
+msgid "Slideshow Delay"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slider.php:5
+msgid "Edit Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slider.php:5
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:63
+msgid "Create a New Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slider.php:11
+msgid "Slider created."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slider.php:13
+msgid "Slider updated."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/slider.php:25
+msgid "My Slider"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:7
+msgid "Slider deleted."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:14
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:53
+msgid "ID"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:16
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:55
+msgid "Created"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:17
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:56
+msgid "Modified"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:18
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:57
+msgid "Actions"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:29
+msgid "No slider created yet."
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:39
+msgid "Edit"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:41
+msgid "Delete"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:42
+msgid "Duplicate"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:43
+msgid "Export"
+msgstr ""
+
+#: D:\Wamp\www\sliderpro\wp-content\plugins\slider-pro/includes/sliders.php:64
+msgid "Import a Slider"
+msgstr ""
+

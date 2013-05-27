@@ -1,0 +1,56 @@
+.slider-pro .slider-icon
+{
+	margin-top:6px;	
+}
+
+
+.slider-pro .widefat tr:hover
+{
+	background-color:#F1F1F1;
+}
+
+
+.slider-pro .ui-widget-content
+{
+	background:none;	
+}
+
+
+.slider-pro .mceEditor iframe
+{
+	background-color:#FFFFFF;	
+}
+
+
+.slider-pro .slidebox .info-input input
+{
+	background-color:#F5F5F5;
+	border-color:#DDDDDD;
+}
+
+
+.slider-pro .slidebox .mceEditor td.mceToolbar
+{
+	background:#F0F0F0;
+}
+
+
+.slider-pro .slidebox .closediv, .slider-pro .slidebox .duplicatediv
+{
+	width:27px;
+	height:30px;
+	float:right;
+	cursor:pointer;
+}
+
+
+.slider-pro .slidebox:hover .closediv
+{
+	background:url(images/slidebox_close_wp32.png) no-repeat 10px 12px transparent;
+}
+
+
+.slider-pro .slidebox:hover .duplicatediv
+{
+	background:url(images/slidebox_duplicate_wp32.png) no-repeat 9px 11px transparent;
+}

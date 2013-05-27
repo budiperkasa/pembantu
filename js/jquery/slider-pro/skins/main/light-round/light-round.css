@@ -1,0 +1,450 @@
+/*
+	Skin Name: Light Round
+	Class: light-round
+	Description: Light Round skin for Slider PRO WordPress plugin
+	Author: David
+*/
+
+
+/* MAIN SLIDE */
+
+.light-round .slide-wrapper
+{
+	background-color:#FFF;
+	border:4px solid #FFF;
+	-moz-box-shadow: 0px 0px 10px #CCC;
+	-webkit-box-shadow: 0px 0px 10px #CCC;
+	box-shadow: 0px 0px 10px #CCC;
+}
+
+/* END OF MAIN SLIDE */
+
+
+/* SLIDE PRELOADER */
+
+.light-round .preloader
+{
+	background:url(images/preloader2.gif) no-repeat;
+	width:62px;
+	height:14px;
+}
+
+/* END OF SLIDE PRELOADER */
+
+
+/* SLIDE ARROWS */
+
+.light-round .navigation-arrows a
+{
+	background:url(images/arrows.png) no-repeat;
+	width:66px;
+	height:66px;
+	top:50%;
+	margin-top:-33px;
+}
+
+
+.light-round .navigation-arrows a.previous
+{
+	left: 20px;
+}
+
+
+.light-round .navigation-arrows a.next
+{
+	right: 20px;
+	background-position: -66px 0px;
+}
+
+/* SLIDE ARROWS */
+
+
+/* SLIDESHOW CONTROLS */
+
+.light-round .slideshow-controls
+{
+	background:url(images/playpause.png) no-repeat;
+	width:66px;
+	height:66px;
+	top:50%;
+	left:50%;
+	margin-top:-33px;
+	margin-left:-33px;
+}
+
+
+.light-round .slideshow-controls.pause
+{
+	background-position: 0px 0px;
+}
+
+
+.light-round .slideshow-controls.play
+{
+	background-position: -66px 0px;
+}
+
+/* END OF SLIDESHOW CONTROLS */
+
+
+/* SHADOW */
+
+.light-round .shadow
+{
+	height:94px;
+	margin-top:-50px;
+}
+
+
+.light-round .shadow .shadow-left, .light-round .shadow .shadow-right
+{
+	width:200px;
+	height:94px;
+}
+
+
+.light-round .shadow .shadow-left
+{
+	background:url(images/shadow_left.png);
+}
+
+
+.light-round .shadow .shadow-right
+{
+	background:url(images/shadow_right.png)
+}
+
+
+.light-round .shadow .shadow-middle
+{
+	background:url(images/shadow_middle.png) repeat-x;
+	height:94px;
+}
+
+/* END OF SHADOW */
+
+
+/* TIMER ANIMATION */
+
+.light-round .timer-animation
+{
+	top:20px;
+	right:20px;
+}
+
+/* END OF TIMER ANIMATION */
+
+
+/* SLIDE CAPTION */
+
+.light-round .caption .background
+{
+	background-color:#000;
+	width:100%;
+	height:100%;
+}
+
+
+.light-round .caption .content
+{	
+	color:#FFF;
+	margin:0px;
+	padding:8px;
+	font-size:16px;
+	line-height:18px;
+}
+
+/* END OF SLIDE CAPTION */
+
+
+/* NAVIGATION BUTTONS/BULLETS */
+
+/* main container of the navigation buttons */
+.light-round .navigation-buttons
+{
+	bottom:-50px;
+}
+
+
+/* 
+ left, right and middle of the main container 
+ for this skin, these elements are not styled by default
+ feel free to add your own styling
+*/
+.light-round .navigation-buttons .left, .light-round .navigation-buttons .right {}
+
+
+.light-round .navigation-buttons .left {}
+
+
+.light-round .navigation-buttons .middle {}
+
+
+.light-round .navigation-buttons .right {}
+
+
+/* this contains the buttons */
+.light-round .navigation-buttons .buttons {}
+
+
+/* this is a button */
+.light-round .navigation-buttons .buttons a
+{
+	background:url(images/buttons.png) no-repeat;
+	background-position:0px 0px;
+	cursor:pointer;
+	width:14px;
+	height:14px;
+	margin:0px 2px;
+	text-align:center;
+}
+
+
+.light-round .navigation-buttons .buttons a.over
+{
+	background-position:-14px 0px; 
+}
+
+
+.light-round .navigation-buttons .buttons a.select
+{
+	background-position:-28px 0px; 
+}
+
+
+/* this is used to style the numbers from within the buttons, when they are used */
+.light-round .navigation-buttons .buttons a .number
+{
+	margin-top:2px;
+	font-size:8px;
+	line-height:10px;
+	font-weight:bold;
+	color:#888;
+}
+
+
+.light-round .navigation-buttons .buttons a.over .number
+{
+	color:#666;
+}
+
+
+.light-round .navigation-buttons .buttons a.select .number
+{
+	color:#666;
+}
+
+
+/* 
+ applied to the thumbnail when the thumbnail is used only as a tooltip
+ sets the distance between the button and the thumbnail
+*/
+.light-round .navigation-buttons .buttons .thumbnail
+{
+	margin-bottom:10px;
+}
+
+/* END OF NAVIGATION BUTTONS/BULLETS */
+
+
+/* THUMBNAIL IMAGE */
+
+.light-round .thumbnail
+{
+	background-image:url(images/preloader.gif);
+	background-color:#FFF;
+	background-position:center;
+	background-repeat:no-repeat;
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #AAA;
+	-webkit-box-shadow: 0px 0px 10px #AAA;
+	box-shadow: 0px 0px 10px #AAA;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA');
+}
+
+/* END OF THUMBNAIL IMAGE */
+
+
+/* NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+.light-round .navigation-thumbnails.horizontal
+{
+	margin-top:50px;
+	padding:0px 20px;
+}
+
+
+.light-round .navigation-thumbnails.vertical
+{
+	margin-left:50px;
+	padding:20px 0px;
+}
+
+
+.light-round .navigation-thumbnails .thumbnail
+{
+	cursor:pointer;
+	margin:10px 5px;
+}
+
+
+.light-round .navigation-thumbnails .thumbnail.over
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+.light-round .navigation-thumbnails .thumbnail.select
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+/* THUMBNAIL CAPTION */
+
+.light-round .thumbnail .caption .background
+{
+	background-color:#000;
+	opacity:0.5;
+	filter:alpha(opacity=50);
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}
+
+
+.light-round .thumbnail .caption .content
+{
+	color:#FFF;
+	font-size:12px;
+	line-height:14px;
+	text-align:center;
+	padding:2px 0px;
+	margin:0px;
+}
+
+/* END OF THUMBNAIL CAPTION */
+
+
+/* NAVIGATION THUMBNAILS ARROWS */
+
+.light-round .navigation-thumbnails .arrows a
+{
+	background:url(images/arrows_small.png) no-repeat;
+	width:40px;
+	height:40px;
+}
+
+
+.light-round .navigation-thumbnails.vertical .arrows a
+{
+	background:url(images/arrows_v_small.png) no-repeat;
+}
+
+
+.light-round .navigation-thumbnails .arrows a.next
+{
+	background-position:-40px 0px;
+}
+
+
+.light-round .navigation-thumbnails.horizontal .arrows a.previous
+{
+	left:0px;
+}
+
+
+.light-round .navigation-thumbnails.horizontal .arrows a.next
+{
+	right:0px;
+}
+
+
+.light-round .navigation-thumbnails.vertical .arrows a.previous
+{
+	top:0px;
+}
+
+
+.light-round .navigation-thumbnails.vertical .arrows a.next
+{
+	bottom:0px;
+}
+
+/* END OF NAVIGATION THUMBNAILS ARROWS */
+
+
+/* NAVIGATION THUMBNAILS BUTTONS */
+
+.light-round .navigation-thumbnails .buttons a
+{
+	background:url(images/buttons_small.png) no-repeat;
+	background-position:0px 0px; 
+	width:10px;
+	height:10px;
+	margin: 2px;
+}
+
+
+.light-round .navigation-thumbnails .buttons a.over
+{
+	background-position:-10px 0px; 
+}
+
+
+.light-round .navigation-thumbnails .buttons a.select
+{
+	background-position:-20px 0px; 
+}
+
+/* END OF NAVIGATION THUMBNAILS BUTTONS */
+
+
+/* NAVIGATION THUMBNAILS SCROLLBAR */
+
+.light-round .navigation-thumbnails.horizontal .scrollbar
+{
+	margin-top:30px;
+}
+
+
+.light-round .navigation-thumbnails.vertical .scrollbar
+{
+	margin-left:30px;
+}
+
+/* END OF NAVIGATION THUMBNAILS SCROLLBAR */
+
+/* END OF NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+
+/* TOOLTIP */
+
+.light-round .tooltip
+{
+	background-color:#DDD;
+	margin-bottom:20px;
+	border:#EEE solid 4px;
+	border-radius:8px;
+	-moz-border-radius:8px;
+	-webkit-border-radius:8px;
+}
+
+
+.light-round .tooltip .content
+{
+	color:#999;
+	padding:10px;
+	margin:0px;
+}
+
+/* END OF TOOLTIP */

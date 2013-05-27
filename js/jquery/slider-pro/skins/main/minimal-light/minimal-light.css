@@ -1,0 +1,450 @@
+/*
+	Skin Name: Minimal Light
+	Class: minimal-light
+	Description: Minimal Light skin for Slider PRO WordPress plugin
+	Author: David
+*/
+
+
+/* MAIN SLIDE */
+
+.minimal-light .slide-wrapper
+{
+	background-color:#FFF;
+	border:8px solid #FFF;
+	-moz-box-shadow: 0px 0px 10px #CCC;
+	-webkit-box-shadow: 0px 0px 10px #CCC;
+	box-shadow: 0px 0px 10px #CCC;
+}
+
+/* END OF MAIN SLIDE */
+
+
+/* SLIDE PRELOADER */
+
+.minimal-light .preloader
+{
+	background:url(images/preloader2.gif) no-repeat;
+	width:62px;
+	height:14px;
+}
+
+/* END OF SLIDE PRELOADER */
+
+
+/* SLIDE ARROWS */
+
+.minimal-light .navigation-arrows a
+{
+	background:url(images/arrows.png) no-repeat;
+	width:64px;
+	height:64px;
+	top:50%;
+	margin-top:-32px;
+}
+
+
+.minimal-light .navigation-arrows a.previous
+{
+	left:-5px;
+}
+
+
+.minimal-light .navigation-arrows a.next
+{
+	right:-5px;
+	background-position: -64px 0px;
+}
+
+/* SLIDE ARROWS */
+
+
+/* SLIDESHOW CONTROLS */
+
+.minimal-light .slideshow-controls
+{
+	background:url(images/playpause.png) no-repeat;
+	width:64px;
+	height:64px;
+	top:50%;
+	left:50%;
+	margin-top:-32px;
+	margin-left:-32px;
+}
+
+
+.minimal-light .slideshow-controls.pause
+{
+	background-position: 0px 0px;
+}
+
+
+.minimal-light .slideshow-controls.play
+{
+	background-position: -64px 0px;
+}
+
+/* END OF SLIDESHOW CONTROLS */
+
+
+/* SHADOW */
+
+.minimal-light .shadow
+{
+	height:94px;
+	margin-top:-50px;
+}
+
+
+.minimal-light .shadow .shadow-left, .minimal-light .shadow .shadow-right
+{
+	width:200px;
+	height:94px;
+}
+
+
+.minimal-light .shadow .shadow-left
+{
+	background:url(images/shadow_left.png);
+}
+
+
+.minimal-light .shadow .shadow-right
+{
+	background:url(images/shadow_right.png)
+}
+
+
+.minimal-light .shadow .shadow-middle
+{
+	background:url(images/shadow_middle.png) repeat-x;
+	height:94px;
+}
+
+/* END OF SHADOW */
+
+
+/* TIMER ANIMATION */
+
+.minimal-light .timer-animation
+{
+	top:20px;
+	right:20px;
+}
+
+/* END OF TIMER ANIMATION */
+
+
+/* SLIDE CAPTION */
+
+.minimal-light .caption .background
+{
+	background-color:#000;
+	width:100%;
+	height:100%;
+}
+
+
+.minimal-light .caption .content
+{	
+	color:#FFF;
+	margin:0px;
+	padding:8px;
+	font-size:16px;
+	line-height:18px;
+}
+
+/* END OF SLIDE CAPTION */
+
+
+/* NAVIGATION BUTTONS/BULLETS */
+
+/* main container of the navigation buttons */
+.minimal-light .navigation-buttons
+{
+	bottom:-50px;
+}
+
+
+/* 
+ left, right and middle of the main container 
+ for this skin, these elements are not styled by default
+ feel free to add your own styling
+*/
+.minimal-light .navigation-buttons .left, .minimal-light .navigation-buttons .right {}
+
+
+.minimal-light .navigation-buttons .left {}
+
+
+.minimal-light .navigation-buttons .middle {}
+
+
+.minimal-light .navigation-buttons .right {}
+
+
+/* this contains the buttons */
+.minimal-light .navigation-buttons .buttons {}
+
+
+/* this is a button */
+.minimal-light .navigation-buttons .buttons a
+{
+	background:url(images/buttons.png) no-repeat;
+	background-position:0px 0px;
+	cursor:pointer;
+	width:14px;
+	height:14px;
+	margin:0px 2px;
+	text-align:center;
+}
+
+
+.minimal-light .navigation-buttons .buttons a.over
+{
+	background-position:-14px 0px; 
+}
+
+
+.minimal-light .navigation-buttons .buttons a.select
+{
+	background-position:-28px 0px; 
+}
+
+
+/* this is used to style the numbers from within the buttons, when they are used */
+.minimal-light .navigation-buttons .buttons a .number
+{
+	margin-top:2px;
+	font-size:8px;
+	line-height:10px;
+	font-weight:bold;
+	color:#666;
+}
+
+
+.minimal-light .navigation-buttons .buttons a.over .number
+{
+	color:#333;
+}
+
+
+.minimal-light .navigation-buttons .buttons a.select .number
+{
+	color:#333;
+}
+
+
+/* 
+ applied to the thumbnail when the thumbnail is used only as a tooltip
+ sets the distance between the button and the thumbnail
+*/
+.minimal-light .navigation-buttons .buttons .thumbnail
+{
+	margin-bottom:10px;
+}
+
+/* END OF NAVIGATION BUTTONS/BULLETS */
+
+
+/* THUMBNAIL IMAGE */
+
+.minimal-light .thumbnail
+{
+	background-image:url(images/preloader.gif);
+	background-color:#FFF;
+	background-position:center;
+	background-repeat:no-repeat;
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #AAA;
+	-webkit-box-shadow: 0px 0px 10px #AAA;
+	box-shadow: 0px 0px 10px #AAA;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA');
+}
+
+/* END OF THUMBNAIL IMAGE */
+
+
+/* NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+.minimal-light .navigation-thumbnails.horizontal
+{
+	margin-top:50px;
+	padding:0px 20px;
+}
+
+
+.minimal-light .navigation-thumbnails.vertical
+{
+	margin-left:50px;
+	padding:20px 0px;
+}
+
+
+.minimal-light .navigation-thumbnails .thumbnail
+{
+	cursor:pointer;
+	margin:10px 5px;
+}
+
+
+.minimal-light .navigation-thumbnails .thumbnail.over
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+.minimal-light .navigation-thumbnails .thumbnail.select
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+/* THUMBNAIL CAPTION */
+
+.minimal-light .thumbnail .caption .background
+{
+	background-color:#000;
+	opacity:0.5;
+	filter:alpha(opacity=50);
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}
+
+
+.minimal-light .thumbnail .caption .content
+{
+	color:#FFF;
+	font-size:12px;
+	line-height:14px;
+	text-align:center;
+	padding:2px 0px;
+	margin:0px;
+}
+
+/* END OF THUMBNAIL CAPTION */
+
+
+/* NAVIGATION THUMBNAILS ARROWS */
+
+.minimal-light .navigation-thumbnails .arrows a
+{
+	background:url(images/arrows_small.png) no-repeat;
+	width:32px;
+	height:32px;
+}
+
+
+.minimal-light .navigation-thumbnails.vertical .arrows a
+{
+	background:url(images/arrows_v_small.png) no-repeat;
+}
+
+
+.minimal-light .navigation-thumbnails .arrows a.next
+{
+	background-position:-32px 0px;
+}
+
+
+.minimal-light .navigation-thumbnails.horizontal .arrows a.previous
+{
+	left:0px;
+}
+
+
+.minimal-light .navigation-thumbnails.horizontal .arrows a.next
+{
+	right:0px;
+}
+
+
+.minimal-light .navigation-thumbnails.vertical .arrows a.previous
+{
+	top:0px;
+}
+
+
+.minimal-light .navigation-thumbnails.vertical .arrows a.next
+{
+	bottom:0px;
+}
+
+/* END OF NAVIGATION THUMBNAILS ARROWS */
+
+
+/* NAVIGATION THUMBNAILS BUTTONS */
+
+.minimal-light .navigation-thumbnails .buttons a
+{
+	background:url(images/buttons_small.png) no-repeat;
+	background-position:0px 0px; 
+	width:8px;
+	height:8px;
+	margin:2px;
+}
+
+
+.minimal-light .navigation-thumbnails .buttons a.over
+{
+	background-position:-8px 0px; 
+}
+
+
+.minimal-light .navigation-thumbnails .buttons a.select
+{
+	background-position:-16px 0px; 
+}
+
+/* END OF NAVIGATION THUMBNAILS BUTTONS */
+
+
+/* NAVIGATION THUMBNAILS SCROLLBAR */
+
+.minimal-light .navigation-thumbnails.horizontal .scrollbar
+{
+	margin-top:30px;
+}
+
+
+.minimal-light .navigation-thumbnails.vertical .scrollbar
+{
+	margin-left:30px;
+}
+
+/* END OF NAVIGATION THUMBNAILS SCROLLBAR */
+
+/* END OF NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+
+/* TOOLTIP */
+
+.minimal-light .tooltip
+{
+	background-color:#DDD;
+	margin-bottom:20px;
+	border:#EEE solid 4px;
+	border-radius:8px;
+	-moz-border-radius:8px;
+	-webkit-border-radius:8px;
+}
+
+
+.minimal-light .tooltip .content
+{
+	color:#999;
+	padding:10px;
+	margin:0px;
+}
+
+/* END OF TOOLTIP */

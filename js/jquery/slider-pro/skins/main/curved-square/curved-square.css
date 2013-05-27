@@ -1,0 +1,469 @@
+/*
+	Skin Name: Curved Square
+	Class: curved-square
+	Description: Curved Square skin for Slider PRO WordPress plugin
+	Author: David
+*/
+
+
+/* MAIN SLIDE */
+
+.curved-square .slide-wrapper
+{
+	background-color:#FFF;
+	border:4px solid #FFF;
+	-moz-box-shadow: 0px 0px 10px #CCC;
+	-webkit-box-shadow: 0px 0px 10px #CCC;
+	box-shadow: 0px 0px 10px #CCC;
+}
+
+/* END OF MAIN SLIDE */
+
+
+/* SLIDE PRELOADER */
+
+.curved-square .preloader
+{
+	background:url(images/preloader2.gif) no-repeat;
+	width:62px;
+	height:14px;
+}
+
+/* END OF SLIDE PRELOADER */
+
+
+/* SLIDE ARROWS */
+
+.curved-square .navigation-arrows a
+{
+	background:url(images/arrows.png) no-repeat;
+	width:60px;
+	height:66px;
+	top:50%;
+	margin-top:-30px;
+}
+
+
+.curved-square .navigation-arrows a.previous
+{
+	left:-25px;
+}
+
+
+.curved-square .navigation-arrows a.next
+{
+	right:-25px;
+	background-position: -60px 0px;
+}
+
+/* SLIDE ARROWS */
+
+
+/* SLIDESHOW CONTROLS */
+
+.curved-square .slideshow-controls
+{
+	background:url(images/playpause.png) no-repeat;
+	width:50px;
+	height:48px;
+	top:50%;
+	left:50%;
+	margin-top:-24px;
+	margin-left:-25px;
+}
+
+
+.curved-square .slideshow-controls.pause
+{
+	background-position: 0px 0px;
+}
+
+
+.curved-square .slideshow-controls.play
+{
+	background-position: -50px 0px;
+}
+
+/* END OF SLIDESHOW CONTROLS */
+
+
+/* SHADOW */
+
+.curved-square .shadow
+{
+	height:94px;
+	margin-top:-50px;
+}
+
+
+.curved-square .shadow .shadow-left, .curved-square .shadow .shadow-right
+{
+	width:200px;
+	height:94px;
+}
+
+
+.curved-square .shadow .shadow-left
+{
+	background:url(images/shadow_left.png);
+}
+
+
+.curved-square .shadow .shadow-right
+{
+	background:url(images/shadow_right.png)
+}
+
+
+.curved-square .shadow .shadow-middle
+{
+	background:url(images/shadow_middle.png) repeat-x;
+	height:94px;
+}
+
+/* END OF SHADOW */
+
+
+/* TIMER ANIMATION */
+
+.curved-square .timer-animation
+{
+	top:20px;
+	right:20px;
+}
+
+/* END OF TIMER ANIMATION */
+
+
+/* SLIDE CAPTION */
+
+.curved-square .caption .background
+{
+	background-color:#000;
+	width:100%;
+	height:100%;
+}
+
+
+.curved-square .caption .content
+{	
+	color:#FFF;
+	margin:0px;
+	padding:8px;
+	font-size:16px;
+	line-height:18px;
+}
+
+/* END OF SLIDE CAPTION */
+
+
+/* NAVIGATION BUTTONS/BULLETS */
+
+/* main container of the navigation buttons */
+.curved-square .navigation-buttons
+{
+	bottom:-20px;
+	height:44px;
+}
+
+
+.curved-square .navigation-buttons .left, .curved-square .navigation-buttons .right
+{
+	width:28px;
+	height:44px;
+}
+
+
+.curved-square .navigation-buttons .left
+{
+	background:url(images/buttons_container_left.png);
+}
+
+
+.curved-square .navigation-buttons .middle
+{
+	background:url(images/buttons_container_middle.png);
+	height:44px;
+	padding:0px 10px;
+}
+
+
+.curved-square .navigation-buttons .right
+{
+	background:url(images/buttons_container_right.png);
+}
+
+
+/* this contains the buttons */
+.curved-square .navigation-buttons .buttons {}
+
+
+/* this is a button */
+.curved-square .navigation-buttons .buttons a
+{
+	background:url(images/buttons.png) no-repeat;
+	background-position:0px 0px;
+	cursor:pointer;
+	width:20px;
+	height:20px;
+	margin:12px 2px;
+	text-align:center;
+}
+
+
+.curved-square .navigation-buttons .buttons a.over
+{
+	background-position:-20px 0px; 
+}
+
+
+.curved-square .navigation-buttons .buttons a.select
+{
+	background-position:-40px 0px; 
+}
+
+
+/* this is used to style the numbers from within the buttons, when they are used */
+.curved-square .navigation-buttons .buttons a .number
+{
+	margin-top: 3px;
+	font-size:11px;
+	line-height:13px;
+	font-weight:bold;
+	color:#FFF;
+}
+
+
+.curved-square .navigation-buttons .buttons a.over .number
+{
+	color:#FFF;
+}
+
+
+.curved-square .navigation-buttons .buttons a.select .number
+{
+	color:#333;
+}
+
+
+/* 
+ applied to the thumbnail when the thumbnail is used only as a tooltip
+ sets the distance between the button and the thumbnail
+*/
+.curved-square .navigation-buttons .buttons .thumbnail
+{
+	margin-bottom:10px;
+}
+
+/* END OF NAVIGATION BUTTONS/BULLETS */
+
+
+/* THUMBNAIL IMAGE */
+
+.curved-square .thumbnail
+{
+	background-image:url(images/preloader.gif);
+	background-color:#FFF;
+	background-position:center;
+	background-repeat:no-repeat;
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #AAA;
+	-webkit-box-shadow: 0px 0px 10px #AAA;
+	box-shadow: 0px 0px 10px #AAA;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#AAAAAA');
+}
+
+/* END OF THUMBNAIL IMAGE */
+
+
+/* NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+.curved-square .navigation-thumbnails.horizontal
+{
+	margin-top:50px;
+	padding:0px 20px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical
+{
+	margin-left:50px;
+	padding:20px 0px;
+}
+
+
+.curved-square .navigation-thumbnails .thumbnail
+{
+	cursor:pointer;
+	margin:10px 5px;
+}
+
+
+.curved-square .navigation-thumbnails .thumbnail.over
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+.curved-square .navigation-thumbnails .thumbnail.select
+{
+	border:solid 3px #FFF;
+	-moz-box-shadow: 0px 0px 10px #555;
+	-webkit-box-shadow: 0px 0px 10px #555;
+	box-shadow: 0px 0px 10px #555;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=130, Color='#555555');
+}
+
+
+/* THUMBNAIL CAPTION */
+
+.curved-square .thumbnail .caption .background
+{
+	background-color:#000;
+	opacity:0.5;
+	filter:alpha(opacity=50);
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}
+
+
+.curved-square .thumbnail .caption .content
+{
+	color:#FFF;
+	font-size:12px;
+	line-height:14px;
+	text-align:center;
+	padding:2px 0px;
+	margin:0px;
+}
+
+/* END OF THUMBNAIL CAPTION */
+
+
+/* NAVIGATION THUMBNAILS ARROWS */
+
+.curved-square .navigation-thumbnails .arrows a
+{
+	background:url(images/arrows_small.png) no-repeat;
+	width:28px;
+	height:27px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical .arrows a
+{
+	background:url(images/arrows_v_small.png) no-repeat;
+	width:26px;
+	height:27px;
+}
+
+
+.curved-square .navigation-thumbnails .arrows a.next
+{
+	background-position:-28px 0px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical .arrows a.next
+{
+	background-position:-26px 0px;
+}
+
+
+.curved-square .navigation-thumbnails.horizontal .arrows a.previous
+{
+	left:0px;
+}
+
+
+.curved-square .navigation-thumbnails.horizontal .arrows a.next
+{
+	right:0px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical .arrows a.previous
+{
+	top:0px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical .arrows a.next
+{
+	bottom:0px;
+}
+
+/* END OF NAVIGATION THUMBNAILS ARROWS */
+
+
+/* NAVIGATION THUMBNAILS BUTTONS */
+
+.curved-square .navigation-thumbnails .buttons a
+{
+	background:url(images/buttons_small.png) no-repeat;
+	background-position:0px 0px; 
+	width:13px;
+	height:13px;
+	margin: 2px;
+}
+
+
+.curved-square .navigation-thumbnails .buttons a.over
+{
+	background-position:-13px 0px; 
+}
+
+
+.curved-square .navigation-thumbnails .buttons a.select
+{
+	background-position:-26px 0px; 
+}
+
+/* END OF NAVIGATION THUMBNAILS BUTTONS */
+
+
+/* NAVIGATION THUMBNAILS SCROLLBAR */
+
+.curved-square .navigation-thumbnails.horizontal .scrollbar
+{
+	margin-top:30px;
+}
+
+
+.curved-square .navigation-thumbnails.vertical .scrollbar
+{
+	margin-left:30px;
+}
+
+/* END OF NAVIGATION THUMBNAILS SCROLLBAR */
+
+/* END OF NAVIGATION THUMBNAILS / THUMBNAIL SCROLLER */
+
+
+/* TOOLTIP */
+
+.curved-square .tooltip
+{
+	background-color:#DDD;
+	margin-bottom:20px;
+	border:#EEE solid 4px;
+	border-radius:8px;
+	-moz-border-radius:8px;
+	-webkit-border-radius:8px;
+}
+
+
+.curved-square .tooltip .content
+{
+	color:#999;
+	padding:10px;
+	margin:0px;
+}
+
+/* END OF TOOLTIP */
