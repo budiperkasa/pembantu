@@ -1,0 +1,183 @@
+/*
+	Stylesheet for examples by DevHeart.
+	http://devheart.org/
+
+	Article title:	jQuery: Collapsible sidebar layout
+	Article URI:	http://devheart.org/articles/jquery-collapsible-sidebar-layout/
+
+	Example title:	4. Adding style and usability
+	Example URI:	http://devheart.org/examples/jquery-collapsible-sidebar-layout/4-adding-style-and-usability/index.html
+*/
+
+/*
+	Alignment
+------------------------------------------------------------------- */
+
+/* Floats */
+
+.left {float: left;}
+.right {float: right;}
+
+.clearer {
+	clear: both;
+	display: block;
+	font-size: 0;
+	height: 0;
+	line-height: 0;
+}
+
+
+/*
+	Misc
+------------------------------------------------------------------- */
+
+.hidden {display: none;}
+
+
+/*
+	Example specifics
+------------------------------------------------------------------- */
+
+/* Layout */
+
+/*#center-wrapper {
+	margin: 0 auto;
+	width: 100%;
+}
+*/
+
+/* Content & sidebar */
+
+#content,#sidebar {
+	/*line-height: 0px; 	 300*/
+	text-align: center;
+	border: 1px solid;
+}
+
+#sidebar {
+	background-color: #F8F4EB;
+	border-color: #E7D7C0;
+	display: none;	
+}
+#content {
+	background-color:#F8F4EB;
+	border-color: #CDC;
+	width: 99%;        /*97 */
+}
+
+.use-sidebar #content {width: 84%;}				/*	--	*/
+.use-sidebar #sidebar {
+	display: block;
+	width: 15%; 	  							/*	--	*/
+}
+
+.sidebar-at-left #sidebar {margin-right: 0%;} 	/*	--	*/
+.sidebar-at-right #sidebar {margin-left: 0%;}	/*	--	*/
+
+.sidebar-at-left #content, .use-sidebar.sidebar-at-right #sidebar, .sidebar-at-right #separator {float: right;}
+.sidebar-at-right #content, .use-sidebar.sidebar-at-left #sidebar, .sidebar-at-left #separator {float: left;}
+
+#separator {
+	background-color: #EBDDCA;
+	border: 1px solid #C1B194;
+	display: block;
+	outline: none;
+	width: 5px;
+}
+.use-sidebar #separator {	
+	border:1px solid #C1B194;
+	background-color: #EBDDCA;
+}
+#separator:hover {
+	border:1px solid #6068B9;
+	background: #9E9EDF;
+}
+
+
+/* -------------------------------------------------------- */
+
+.dashboard{
+		border:1px solid #C1B194;
+		background-color:#EADEC4;
+		width:99%;
+		margin-left:6px;
+		margin-right:0px;
+		margin-top:10px;
+		margin-bottom:10px;
+		text-align:left;
+		padding:0px;
+		background:url(../../../images/adminImages/commonImages/dashboardbg.jpg) no-repeat;
+		background-color:#FFF0C8;
+}
+
+
+
+.dashboard_title{
+	font-size:25px;
+	font-weight:bold;
+	font-family:Helvetica, Arial, sans-serif;
+	font-size:60px;
+	left:32px;
+	bottom:18px;
+	color:#FFF;
+	padding-left:3px;
+}
+
+
+
+.admin_profile{
+		font-family:Helvetica, Arial, sans-serif;
+		font-size:23px;
+		color:#000;
+		font-weight:bold;
+}
+
+.admin_info{
+		font-family:Arial, Helvetica, sans-serif;
+		font-size:11px;
+		color:#000;
+		line-height:17px;
+		font-weight:normal;
+		
+}
+
+.online{
+		width:400px;
+		border:1px solid #C1B194;
+		border-style:dotted;
+		background:#FCFAF5;
+		padding:5px;
+		font-size:13px;
+		line-height:25px;
+}
+
+
+/* ----------- Reight Panel *-----------------------*/
+
+
+.right_panel_div{
+		border:3px solid #E7D7C0;
+		background:#FFF;
+		margin-left:10px;
+		width:300px;
+		text-align:left;
+		background-color:#FFF;
+
+}
+
+
+
+.right_panel_div_header{
+		background:url(../../../images/adminImages/dashboardImages/header-bg-1.gif) repeat-x;
+		line-height:29px;
+		border-bottom:1px solid #E1E1E1;
+}
+
+.right_panel_div_title{
+		font-family:Arial, Helvetica, sans-serif;
+		font-size:12px;
+		color:#333;
+		font-weight:bold;
+}
+
+

@@ -1,0 +1,122 @@
+/* ________________________________________________________________________________________________________
+   
+   CSS Framework for Eicra Product Script [Installer] 
+   ________________________________________________________________________________________________________ */
+
+
+@charset "utf-8";
+
+/* Global Styles --------------------------------------------------------------------- */
+
+html{
+	direction:rtl; 
+}
+
+body{
+	direction:rtl;
+    font-family: Tahoma,Arial,Helvetica,sans-serif;
+	font-size: 76%;
+}
+
+input[type="text"],
+input[type="password"], select, textarea,
+select.ui-widget-content, textarea.ui-widget-content{
+	margin:0 0 0 10px;
+}
+
+input[type="radio"], .radio,
+input[type="checkbox"]{
+	margin: -3px 0 0 8px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Layout --------------------------------------------------------------------------- */
+
+#header .logo{
+	margin: 5px 10px 0 15px;
+	float:right;
+}
+
+#header .version{
+	float:left;
+    padding: 30px 0 0 10px;
+}
+
+#header h1{
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Messages ------------------------------------------------------------------------- */
+
+.errors,
+.success,
+.infoMess,
+.warning{
+	padding:3px 45px 3px 3px;
+	background-position:99% center;
+}
+
+.infoMess{
+	padding:5px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Button --------------------------------------------------------------------------- */
+
+.button-container{
+    float:left;
+}
+
+.button-next,
+.button-prev,
+.button-cancel,
+.button-refresh{
+	background-position:85% center;
+}
+
+.button-frontend,
+.button-backend{
+	background-position:93% center;
+}
+
+.button-next{
+	background-image: url("../../data/installer/previous.png");
+}
+
+.button-prev{
+	background-image: url("../../data/installer/next.png");
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Data Table Global ---------------------------------------------------------------- */
+
+.chart-1 .data-table table.admin-login-info{
+	float:right;
+}
+
+.chart-1 .data-table table.super-admin-login-info{
+	float:left;
+}
+.data-table table tr td{
+	text-align:right;
+}
+
+.data-table table tr td.checkbox{
+	padding-right:0;
+}
+
+.data-table table tr td.right{
+	text-align:left;
+}
+
+table.highlighter tr td{
+	padding:0 2px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+

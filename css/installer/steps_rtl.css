@@ -1,0 +1,31 @@
+
+#breadcrumb, #breadcrumb2 { float:right;}
+
+.crumbs li.first { padding-left: 0px; padding-right: 8px; }
+
+.crumbs li, .crumbs li a:link, .crumbs li a:visited { float: right; margin-left: 0; margin-right:-15px; padding: 15px 45px 13px 25px;}
+
+.crumbs li { background-image: url('../../data/installer/bg-crumbs-rtl.png'); background-position: 0 0;}
+
+.crumbs li.active{  background-image: url('../../data/installer/bg-crumbs-rtl.png'); background-position: 0 -58px;}
+
+.crumbs li div.step-1,
+.crumbs li div.step-2,
+.crumbs li div.step-3,
+.crumbs li div.step-4,
+.crumbs li div.step-5,
+.crumbs li div.step-6,
+.crumbs li div.step-2-inactive,
+.crumbs li div.step-3-inactive,
+.crumbs li div.step-4-inactive,
+.crumbs li div.step-5-inactive,
+.crumbs li div.step-6-inactive{
+	padding-left:0;
+	padding-right:45px;
+	margin:-11px -25px 0 0;
+	background-position: 100% center;
+}
+
+.ul-fixer{
+	margin:0; padding-right:0;	
+}

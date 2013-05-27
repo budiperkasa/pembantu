@@ -1,0 +1,87 @@
+#steps-bar{ border-top:1px solid #EBEBEB; border-bottom:1px solid #EBEBEB; padding:9px 0 0 0; margin:5px 0 0 0; overflow:hidden;}
+
+#breadcrumb, #breadcrumb2 { float: left; display: block;}
+
+#breadcrumb ul, #breadcrumb2 ul { list-style: none; overflow:hidden; }
+
+.crumbs { display: block; }
+
+.crumbs li {  display: inline; }
+
+.crumbs li.first { padding-left: 8px; }
+
+.crumbs li, .crumbs li a:link, .crumbs li a:visited { color: #666; font-weight:bold; display: block; float: left; font-size: 12px; margin-left: -15px; padding: 15px 25px 13px 45px; position: relative; text-decoration: none; }
+
+.crumbs li { background-image: url('../../data/installer/bg-crumbs.png'); background-repeat: no-repeat; background-position: 100% 0; position: relative; }
+
+.crumbs li.active{ color: #FFFFFF; font-weight:bold; background-position: 100% -58px; background-image: url('../../data/installer/bg-crumbs.png'); text-shadow: 0px 1px 1px #06C;	}
+
+.crumbs li div.step-1,
+.crumbs li div.step-2,
+.crumbs li div.step-3,
+.crumbs li div.step-4,
+.crumbs li div.step-5,
+.crumbs li div.step-6,
+.crumbs li div.step-1-inactive,
+.crumbs li div.step-2-inactive,
+.crumbs li div.step-3-inactive,
+.crumbs li div.step-4-inactive,
+.crumbs li div.step-5-inactive,
+.crumbs li div.step-6-inactive{
+	line-height:36px;
+	padding-left:45px;
+	margin:-11px 0 0 -25px;
+	background-repeat:no-repeat;
+}
+
+.crumbs li div.step-1{
+	background-image: url("../../data/installer/step-1.png");
+}
+
+.crumbs li div.step-2{
+	background-image: url("../../data/installer/step-2.png");
+}
+
+.crumbs li div.step-3{
+	background-image: url("../../data/installer/step-3.png");
+}
+
+.crumbs li div.step-4{
+	background-image: url("../../data/installer/step-4.png");
+}
+
+.crumbs li div.step-5{
+	background-image: url("../../data/installer/step-5.png");
+}
+
+.crumbs li div.step-6{
+	background-image: url("../../data/installer/step-6.png");
+}
+
+.crumbs li div.step-1-inactive{
+	background-image: url("../../data/installer/step-1-inactive.png");
+}
+
+.crumbs li div.step-2-inactive{
+	background-image: url("../../data/installer/step-2-inactive.png");
+}
+
+.crumbs li div.step-3-inactive{
+	background-image: url("../../data/installer/step-3-inactive.png");
+}
+
+.crumbs li div.step-4-inactive{
+	background-image: url("../../data/installer/step-4-inactive.png");
+}
+
+.crumbs li div.step-5-inactive{
+	background-image: url("../../data/installer/step-5-inactive.png");
+}
+
+.crumbs li div.step-6-inactive{
+	background-image: url("../../data/installer/step-6-inactive.png");
+}
+
+.ul-fixer{
+	margin:0; padding-left:0;	
+}

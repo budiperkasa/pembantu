@@ -1,0 +1,13 @@
+*:first-child+html #bottom-bar #right form input#submit{ /* IE7 Can't handle text-indent on form inputs */
+	text-indent:0;
+	padding-top:29px;
+	overflow:auto;
+}
+
+*:first-child+html #we-list li{
+	margin-top:-3px;
+}
+
+*:first-child+html #about-us{
+	padding-bottom:30px;
+}
