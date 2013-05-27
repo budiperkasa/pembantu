@@ -1,0 +1,268 @@
+<?php
+$version = Zend_Registry::get('version');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+$this->ContactForm->setEditor($this->serverUrl().$this->baseUrl());
+$this->ContactForm->getEditor();
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+					
+		$.each($('form').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		$.each($('form').serializeArray(), function(i, field) {			
+			if(tinyMCE.get(field.name))
+			{
+				fieldObj[field.name] = tinyMCE.get(field.name).getContent();
+			}
+			else
+			{					
+				fieldObj[field.name] = field.value;			
+			}						
+		});
+		return fieldObj;
+	}
+	
+	$('a.save_data_btn').click(function() 
+	{				
+			var formData = getFormData();		
+			 // alert(formData.ini_file);	
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Contact','controller' => 'backend', 'action'     => 'update' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));														
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+	
+	
+});
+
+
+</script>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="contact"><h1><?php echo $this->translator->translator('contact_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+<div id="button_top_bar"></div>
+<div class="content-container">
+	<div id="actionMessage"></div>
+	<form name="formContact" id="formContact" method="post">
+    	
+        <div id="generalInfo">
+        	<div id="tabs">
+            	<ul>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('contact_tab1'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('contact_tab2'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('contact_tab3'); ?></a></li>
+                </ul>
+                
+                <div id="tabs-1">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('contact_info_general'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label label-small">
+                                    <?php echo $this->ContactForm->contact_title->getLabel(); if($this->ContactForm->contact_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field field-big">
+                                    <?php echo $this->ContactForm->contact_title; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->contact_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="contact_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label label-small">
+                                    <?php echo $this->ContactForm->contact_desc->getLabel(); if($this->ContactForm->contact_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                    
+                                <div class="field field-big">
+                                    <div class="left-float"><?php echo $this->ContactForm->contact_desc; ?></div>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->contact_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                 	<span id="loaderLink"><a href="javascript:void(0);" onClick="loadTinyMCE('contact_desc');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator('common_editor_open'); ?>" alt="<?php echo $this->translator->translator('common_editor_open'); ?>" ></a></span>
+                                    <div class="input-errors" id="contact_desc_err"></div>
+                                </div>	
+                            </div>
+                     	</div>
+                  	</fieldset>
+              	</div>
+                
+                <div id="tabs-2">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('contact_info_meta'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->ContactForm->meta_title->getLabel(); if($this->ContactForm->meta_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->ContactForm->meta_title; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->meta_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->ContactForm->meta_key->getLabel(); if($this->ContactForm->meta_key->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->ContactForm->meta_key; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->meta_key->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_key_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->ContactForm->meta_desc->getLabel(); if($this->ContactForm->meta_key->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->ContactForm->meta_desc; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->meta_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_desc_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                 	</fieldset>
+                </div>
+                
+                <div id="tabs-3">
+                	<fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('contact_info_ini_file'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label label-small">
+                                    <?php echo $this->ContactForm->ini_file->getLabel();  if($this->ContactForm->ini_file->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field field-big">
+                                    <?php echo $this->ContactForm->ini_file; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->ContactForm->ini_file->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="ini_file_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                 	</fieldset>
+                </div>
+        	</div>
+		</div>
+	</form>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('contact_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<?php endif; ?>
+</div>

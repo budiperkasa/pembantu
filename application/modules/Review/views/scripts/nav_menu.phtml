@@ -1,0 +1,31 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('review_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('group','backend','Review')) : ?>
+			<li <?php if($getAction == 'group' && strtolower($getController) == 'backend' ){ ?> class="review-group selected"<?php }else{ ?>class="review-group"<?php } ?>>
+				<a href="<?php echo $this->url( array('module' => 'Review','controller' => 'backend', 'action'     => 'group' ), 'adminrout',    true) ?>"><?php echo $translator->translator('review_menu_settings'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('add','backend','Review')) : ?>
+			<li <?php if($getAction == 'add' && strtolower($getController) == 'backend'){ ?> class="review-add selected"<?php }else{ ?>class="review-add"<?php } ?>>
+				<a href="<?php echo $this->url( array('module' => 'Review','controller' => 'backend', 'action'     => 'add' ), 'adminrout',    true) ?>"><?php echo $translator->translator('review_menu_add'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Review')) : ?>
+				  
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backend'){ ?> class="review selected last"<?php }else{ ?>class="review last"<?php } ?>>
+				<a href="<?php echo $this->url( array('module' => 'Review','controller' => 'backend', 'action'     => 'list'), 'adminrout',    true) ?>"><?php echo $translator->translator('review_menu_list'); ?></a>
+			</li>
+			<?php endif; ?>      
+		</ul>
+	</div>
+</div>

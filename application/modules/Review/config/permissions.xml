@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Review Manager" langKey="permisson_review">
+		<privilege for="dashboard" name="group" description="Review Setting Group" langKey="permisson_review_setting_group"  />
+		<privilege for="dashboard" name="new" description="New Review Group Setting" langKey="permisson_review_setting_group_new"  />
+		<privilege name="setting" description="Review Settings Update" langKey="permisson_review_setting"  />
+		<privilege name="del" description="Delete Review Settings Group" langKey="permisson_review_setting_delete"  />		
+		<privilege for="dashboard"  name="list" description="View Review List" langKey="permisson_review_list"  />
+		<privilege for="dashboard"  name="add" description="Add Review" langKey="permisson_review_add"  />	
+		<privilege name="edit" description="Edit Review" langKey="permisson_review_edit"  />
+	</resource>	
+	<resource name="frontend" for="frontend" description="Review Frontend View" langKey="permisson_review_frontend">
+		<privilege name="review" description="View Review and Post Review" langKey="permisson_review_frontend_view" img="permisson_review_frontend_view.jpg" />
+	</resource>	
+	
+	<dbtable name="review_settings" for="review">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="group_name" />
+	</dbtable>
+</permissions>

@@ -1,0 +1,99 @@
+<?php 
+$locale = Eicra_Global_Variable::getSession()->sess_lang;
+$locale_arr = explode('_', $locale);
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$style_direction = ($locale_direction == 'rtl') ? '_'.$locale_direction : ''; 
+
+echo $this->doctype(); ?> 
+<html dir="<?php echo $locale_direction; ?>" lang="<?php echo $locale_arr[0]; ?>" xml:lang="<?php echo $locale_arr[0]; ?>"> 
+<head>  
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<base href="<?php echo $this->serverUrl().$this->baseUrl().'/'; ?>" />
+<?php echo $this->headMeta(); ?>
+<?php echo html_entity_decode($this->headTitle(), ENT_QUOTES ,"UTF-8"); ?>
+<?php    		
+	$version = Zend_Registry::get('version');
+	echo $this->headScript()->setFile('application/layouts/scripts/default/vendor/scripts/jquery/jquery-1-8-3/jquery.js', '');
+	echo $this->headScript()->setFile('application/layouts/scripts/default/vendor/scripts/jui/jui-1-9-2/blue/jquery-ui-custom.js', '');
+	echo $this->headLink()->setStylesheet('application/layouts/scripts/default/vendor/scripts/jui/jui-1-9-2/blue/jquery-ui-custom.css');
+	echo $this->headLink()->setStylesheet('css/installer/setup.css');
+	echo $this->headLink()->setStylesheet('css/installer/steps.css'); 
+	
+	if($locale_direction == 'rtl')
+	{
+		echo $this->headLink()->setStylesheet('css/installer/setup'.$style_direction.'.css');
+		echo $this->headLink()->setStylesheet('css/installer/steps'.$style_direction.'.css');
+	}
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".highlighter tbody tr:nth-child(even)").addClass("even");
+    $(".highlighter tbody tr:nth-child(odd)").addClass("odd");
+});
+</script>
+	
+</head> 
+<body>
+	<div id="wrapper">
+    	<div id="header">
+   			<img src="data/installer/header_logo.jpg" class="logo" height="70px"/><h1><?php echo $this->translator->translator('install_wizard'); ?></h1>
+            <div class="version"><?php echo $this->translator->translator('install_steps_table_title_version'); ?> : <?php echo $version->getVersion(); ?></div>
+    	</div>
+        
+       	<div id="steps-bar">
+        <div id="breadcrumb">
+			<ul class="crumbs ul-fixer">
+            
+
+            	<?php 
+					$actionName = Zend_Controller_Front::getInstance()->getRequest()->getActionName();
+					$stepNumber = (int) str_replace('step' , '' , $actionName);
+
+					switch ($stepNumber ){
+						case 1: 
+							$step1 = 'active';
+							break;
+						case 2:
+							$step2 = 'active';					
+							break;
+						case 3:
+							$step3 = 'active';					
+							break;
+						case 4:
+							$step4 = 'active';					
+							break;
+						case 5:
+							$step5 = 'active';					
+							break;
+						case 6:
+							$step6 = 'active';					
+							break;
+						
+						
+					}
+				?>
+  
+				<li class="<?php  echo $step1; ?>" style="z-index:11;"><div class="step-1<?php if(empty($step1) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_localization'); ?></div></li>
+				<li class="<?php  echo $step2; ?>" style="z-index:10;"><div class="step-2<?php if(empty($step2) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_installation_type'); ?></div></li>
+				<li class="<?php  echo $step3; ?>" style="z-index:9;"><div class="step-3<?php if(empty($step3) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_lic_cgreement'); ?></div></li>
+				<li class="<?php  echo $step4; ?>" style="z-index:8;"><div class="step-4<?php if(empty($step4) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_lib'); ?></div></li>
+                <li class="<?php  echo $step5; ?>" style="z-index:7;"><div class="step-5<?php if(empty($step5) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_install_info'); ?></div></li>
+                <li class="<?php  echo $step6; ?>" style="z-index:6;"><div class="step-6<?php if(empty($step6) ) echo '-inactive'; ?>"><?php echo $this->translator->translator('install_steps_table_title_complete'); ?></div></li>
+			</ul>
+		</div>
+        </div> 
+        
+        <div id="container">
+            <div class="content">
+                <?php echo $this->layout()->content ?>
+            </div>
+       	</div>
+    </div>
+    
+    <div id="footer">
+   		<!--Copyright &copy; 2007-<?php echo date('Y');?> All Rights Reserved. Powered By: <a href="http://www.eicra.com"  target="_blank">Eicra Soft Ltd</a>-->
+    	<?php echo $this->translator->translator('common_footer_copy_right'); ?> <?php echo date("Y"); ?> <?php echo $this->translator->translator('common_footer_all_right'); ?>. &nbsp;<?php echo $this->translator->translator('common_footer_power_by'); ?><a href="http://www.eicra.com"  target="_blank">Eicra Soft Ltd</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<?php
+$front_template = Zend_Registry::get('front_template');
+echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/js/accordionmenu.js');
+echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/accordionmenu.css');	
+
+		
+		$vmenu_class = new Eicra_View_Helper_Menu(2);	
+		$vmenu_data = $vmenu_class->getMenuData('0',$this);
+		
+		
+		function subVMenu($menu_id,$menu_class,$view, $last = false)
+		{
+			$data = '';				
+			if($menu_class->checkChild($menu_id))
+			{
+				$sub_menu_raw = $menu_class->getMenuData($menu_id,$view);			
+				$data ='<div class="submenu">';
+				$data .= '<ul>';	
+				$count = count($sub_menu_raw);	
+				if($sub_menu_raw)
+				{ 			
+					foreach($sub_menu_raw as $sub_menu_raw_key => $sub_menu)
+					{	
+						$border_top_class = ($sub_menu_raw_key == 0 && $last == true) ? "border-top:0px;" : '';				
+						if($sub_menu_raw_key == ($count - 1) && $last == true)
+						{
+							$data .= '<li class="sub-bottom-border" style="'.$border_top_class.'"><a  href="'.$view->escape($sub_menu['link']).'" title="'.str_replace('-',' ',$view->escape($sub_menu['menu_name'])).'" target="'.$view->escape($sub_menu['target']).'">'.$view->escape($sub_menu['menu_name']).'</a></li>';
+						}
+						else
+						{											
+							$data .= '<li style="'.$border_top_class.'"><a  href="'.$view->escape($sub_menu['link']).'" title="'.str_replace('-',' ',$view->escape($sub_menu['menu_name'])).'" target="'.$view->escape($sub_menu['target']).'">'.$view->escape($sub_menu['menu_name']).'</a></li>';
+						}				
+					}	
+				}				
+				$data .= '</ul>';
+				$data .= '</div>';								
+			}				
+			return $data;
+		}	
+?>
+
+<script type="text/javascript">
+
+
+ddaccordion.init({
+	headerclass: "submenuheader", //Shared CSS class name of headers group
+	contentclass: "submenu", //Shared CSS class name of contents group
+	revealtype: "click", //Reveal content when user clicks or onmouseover the header? Valid value: "click", "clickgo", or "mouseover"
+	mouseoverdelay: 200, //if revealtype="mouseover", set delay in milliseconds before header expands onMouseover
+	collapseprev: true, //Collapse previous content (so only one open at any time)? true/false 
+	defaultexpanded: [], //index of content(s) open by default [index1, index2, etc] [] denotes no content
+	onemustopen: false, //Specify whether at least one header should be open always (so never all headers closed)
+	animatedefault: false, //Should contents open by default be animated into view?
+	persiststate: true, //persist state of opened contents within browser session?
+	toggleclass: ["", ""], //Two CSS classes to be applied to the header when it's collapsed and expanded, respectively ["class1", "class2"]
+	togglehtml: ["suffix", "<img src='application/layouts/scripts/<?php echo $front_template['theme_folder'] ?>/images/right-arrow.png' class='statusicon' />", "<img src='application/layouts/scripts/<?php echo $front_template['theme_folder'] ?>/images/down-arrow.png' class='statusicon' />"], //Additional HTML added to the header when it's collapsed and expanded, respectively  ["position", "html1", "html2"] (see docs)
+	animatespeed: "fast", //speed of animation: integer in milliseconds (ie: 200), or keywords "fast", "normal", or "slow"
+	oninit:function(headers, expandedindices){ //custom code to run when headers have initalized
+		//do nothing
+	},
+	onopenclose:function(header, index, state, isuseractivated){ //custom code to run whenever a header is opened or closed
+		//do nothing
+	}
+})
+
+
+</script>
+<div class="block">
+<div class="glossymenu">
+<?php
+	$total_menu = count($vmenu_data);
+	foreach($vmenu_data as $menu_key => $menus)
+	{
+		
+		if($menu_key == ($total_menu - 1))
+		{
+			$sub_vmenu = subVMenu($menus['menu_id'],$vmenu_class,$this, true);
+			$vmain_class = ($sub_vmenu) ? 'class="menuitem submenuheader"' : 'class="menuitem"';
+			$vlink = ($sub_vmenu) ? '#' : $this->escape($menus['link']);
+			?>
+				<div class="last"><a <?php echo $vmain_class; ?>  href="<?php echo $vlink; ?>"  title="<?php echo str_replace('-',' ',$this->escape($menus['menu_name'])); ?>" target="<?php echo $this->escape($menus['target']); ?>"><?php echo $this->escape($menus['menu_name']); ?></a></div>
+			<?php
+				echo $sub_vmenu;
+		}
+		else
+		{
+			$sub_vmenu = subVMenu($menus['menu_id'],$vmenu_class,$this, false);
+			$vmain_class = ($sub_vmenu) ? 'class="menuitem submenuheader"' : 'class="menuitem"';
+			$vlink = ($sub_vmenu) ? '#' : $this->escape($menus['link']);
+			?>
+				<a <?php echo $vmain_class; ?>  href="<?php echo $vlink; ?>"  title="<?php echo str_replace('-',' ',$this->escape($menus['menu_name'])); ?>" target="<?php echo $this->escape($menus['target']); ?>"><?php echo $this->escape($menus['menu_name']); ?></a>
+			<?php
+				echo $sub_vmenu;
+		}
+	}
+?>
+</div>
+</div>

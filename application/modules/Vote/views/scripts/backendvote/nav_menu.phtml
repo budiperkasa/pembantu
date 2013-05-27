@@ -1,0 +1,25 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('vote_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('list','backendvote','Vote')) : ?>
+           	<li <?php if($getAction == 'list' && strtolower($getController) == 'backendvote'){ ?> class="vote selected"<?php }else{ ?>class="vote"<?php } ?>>
+          	<a href="<?php echo $this->url(array('module' => 'Vote','controller'=>'backendvote', 'action'=>'list'),'adminrout',true);?>" ><?php echo $translator->translator('vote_menu1'); ?></a>
+            </li>
+           	<?php endif; ?>
+            
+            <?php if ($this->allow('bannedlist','backendvote','Vote')) : ?>
+			<li <?php if($getAction == 'bannedlist' && strtolower($getController) == 'backendvote'){ ?> class="ip selected last"<?php }else{ ?>class="ip last"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Vote','controller'=>'backendvote', 'action'=>'bannedlist'),'adminrout',true);?>"><?php echo $translator->translator('vote_menu2'); ?></a>
+			</li>
+			<?php endif; ?>
+        </ul>
+  	</div>
+</div>

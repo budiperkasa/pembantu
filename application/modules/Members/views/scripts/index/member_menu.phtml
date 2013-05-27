@@ -1,0 +1,55 @@
+<?php
+$front = Zend_Controller_Front::getInstance();
+$getAction = $front->getRequest()->getActionName();
+$getController = $front->getRequest()->getControllerName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('Member_list_page_name'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('profile','index','Members')) : ?>
+        	<li <?php if($getAction == 'profile' && strtolower($getController) == 'index'){ ?> class="profile selected"<?php }else{ ?>class="profile"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'Index', 'action'     => 'profile' ), 'adminrout',    true) ?>"><?php echo $translator->translator('Member_menu_user_profile'); ?></a>
+            </li>
+            <?php endif; ?>
+           	
+			<?php if ($this->allow('list','index','Members')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'index'){ ?> class="user selected"<?php }else{ ?>class="user"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Members','controller'=>'index', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('Member_menu_user_list'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php //if ($this->allow('list','index','Members')) : ?>
+            <!--<li <?php //if($getAction == 'list' && strtolower($getController) == 'index'){ ?> class="user-search selected"<?php //}else{ ?>class="user-search"<?php //} ?>>
+            	<a href="<?php //echo $this->url(array('module' => 'Members','controller'=>'index', 'action'=>'list'),'adminrout',true);?>"><?php// echo $translator->translator('Member_menu_user_search'); ?></a>           
+            </li>-->
+            <?php //endif; ?>
+            
+            <?php if ($this->allow('add','index','Members')) : ?>
+            <li <?php if(($getAction == 'add' || $getAction == 'group') && strtolower($getController) == 'index'){ ?> class="user-add selected"<?php }else{ ?>class="user-add"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Members','controller'=>'index', 'action'=>'group'),'adminrout',true);?>"><?php echo $translator->translator('Member_menu_user_add'); ?></a>
+            </li>
+            <?php endif; ?>
+           	
+            <?php if ($this->allow('list','Role','Administrator')) : ?>
+            <li class="user-role">
+            	<a href="<?php echo $this->url(array('module' => 'Administrator','controller'=>'Role', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('Member_menu_user_group'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','form','Members')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'form'){ ?> class="form-list selected"<?php }else{ ?>class="form-list"<?php } ?>>
+				<a href="<?php echo $this->url(array('module' => 'Members','controller'=>'form', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('Member_menu_custom_form'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('change','password','Members')) : ?>
+            <li <?php if($getAction == 'change' && strtolower($getController) == 'password'){ ?> class="password-change selected last"<?php }else{ ?>class="password-change last"<?php } ?>>
+				<a href="<?php echo $this->url(array('module' => 'Members','controller'=>'password', 'action'=>'change'),'adminrout',true);?>"><?php echo $translator->translator('Member_menu_change_pass'); ?></a>
+            </li>
+            <?php endif; ?>
+        </ul>
+    </div>
+</div>

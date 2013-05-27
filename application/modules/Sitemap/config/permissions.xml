@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="sitemap" for="frontend" description="Site Map" langKey="permisson_sitemap">
+		<privilege  name="list" description="View the Site Map" langKey="permisson_sitemap_list" img="permisson_sitemap_list.jpg" />		
+	</resource>		
+</permissions>

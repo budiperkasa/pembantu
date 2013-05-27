@@ -1,0 +1,31 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('projects_menu_name'); ?>	</div></div>
+    <div class="nav-body">
+    	<ul>
+        <?php if ($this->allow('filepreview','index','Projects')) : ?>
+        	<li <?php if($getAction == 'filepreview' && strtolower($getController) == 'index'){ ?> class="file-uploaded selected"<?php }else{ ?>class="file-uploaded"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'filepreview' ), 'adminrout',    false); ?>" ><?php echo $translator->translator('projects_menu1'); ?></a>
+            </li>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('file','index','Projects')) : ?>
+        	<li class="file-manager">
+            	<a href="javascript:  void(0);" class="upload_btn"><?php echo $translator->translator('projects_menu2'); ?></a>
+            </li>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('index','index','Projects')) : ?>
+        	<li <?php if($getAction == 'Index' && strtolower($getController) == 'index'){ ?> class="user-privilege selected last"<?php }else{ ?>class="user-privilege last"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'Index' ), 'adminrout',    false); ?>"><?php echo $translator->translator('projects_menu3'); ?></a>
+            </li>
+        <?php endif; ?>
+        </ul>
+	</div>
+</div>

@@ -1,0 +1,617 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+$permission_arr = array('csv_enable' => $this->allow('export','csv','Database'), 'add_enable' => $this->allow('addvalue','form','Members'), 'edit_enable' => $this->allow('editvalue','form','Members'), 'publish_enable' => $this->allow('publishvalue','form','Members'), 'delete_enable' => $this->allow('deletevalue','form','Members'));	
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	lastClassAdd(oTable);
+	
+	/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+	
+	/****************************Sorting Table End*********************/
+	
+	
+	$('a.export_btn').click(function() {
+		var self = this;
+		var post_type = $(self).attr('rel');
+		var table_name = <?php echo $this->form_id; ?>;		
+		
+		$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Database', 'controller' => 'csv', 'action'     => 'export' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: {post_type : post_type, table_name : table_name},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+					{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						
+						if(json_arr.status == 'ok')
+						{
+							var link_dl = '/' + json_arr.data.path + '/' + json_arr.data.name;
+							window.location.href="<?php echo $this->serverUrl().$this->baseUrl(); ?>"+link_dl;
+							//openMsgDialog(json_arr.msg);
+						}
+						else
+						{							
+							openMsgDialog(json_arr.msg);
+						}
+						$(self).html("<span class='icon submit'><?php echo $this->translator->translator('common_export', '', 'Database'); ?></span>");							
+					},
+					error: function(xhr, status, error){				
+						var msg = "Error! " + xhr.status + " " + error;
+						openMsgDialog(msg);
+						$(self).html("<span class='icon submit'><?php echo $this->translator->translator('common_export', '', 'Database'); ?></span>");	
+					}
+			});
+	});
+	
+	
+	
+		function openMsgDialog(msg)
+		{
+			$('#dialog_container').html(msg).dialog({
+						autoOpen: true,
+						modal: false,
+						show: 'fade',
+						resizable: 'false',				
+						buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+						open: function(event, ui)
+							 {
+								setTimeout(function() 
+								{									
+									if($('#' + event.target.id).dialog('isOpen'))
+									{
+										$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+									}
+								}, 10000);
+							  }
+					});
+		}
+		
+		function deleteThis(self)
+		{
+			var arr = $(self).attr('rel').split('_');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'deletevalue' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[0] },
+				 beforeSend: function(){
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+					 },
+				 success: function(response) 
+				 {
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{						
+						$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+						var oTables = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTables );
+						oTables.fnDeleteRow( anSelected[0] );
+						lastClassAdd(oTables);
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" />');
+					}
+				 }
+			});
+		}
+		
+		function deleteAll(self)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'deletevalueall' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+							{	
+								if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+								{							
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');								
+								}
+							}
+							var oTabled = $('#sortTable').dataTable();
+							var anSelected = fnGetSelected( oTabled );
+							for(var k = 0; k < anSelected.length; k++)
+							{
+								oTabled.fnDeleteRow( anSelected[k] );
+							}
+							lastClassAdd(oTabled);
+						}
+						else
+						{							
+							openMsgDialog(json_arr.msg);
+						}	
+						$(self).html('<span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span>');
+					}
+			});	
+		}
+	
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('form_list_delete_confirm')); ?>").dialog({
+			resizable: false,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteThis(self);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});
+		
+	});
+	
+	$('a.publish_btn').click(function() {
+		<?php if ($permission_arr['publish_enable']){ ?>
+		var self = this;
+		$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+		var arr = $(self).attr('rel').split('_');		
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'publishvalue' ), 'adminrout',    true) ?>",
+			 type: 'POST',
+			 data: { id: arr[0],  paction: arr[1]},
+			 success: function(response) 
+			 {
+			 	//alert(response);
+			 	var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					if(json_arr.active == '1')
+					{
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("common_unpublish_title"); ?>" />').attr('rel',arr[0]+"_unpublish");
+					}
+					else
+					{						
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("common_publish_title"); ?>" />').attr('rel',arr[0]+"_publish");
+					}
+			 	}
+				else
+				{
+					openMsgDialog(json_arr.msg);
+					$(self).html('');
+				}
+			 }
+		});
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+	
+		
+	$('a.publish_all').click(function() {
+		var self = this;
+		var bigrel = $(self).attr('rel');
+		if($('input.check_btn:checked').length > 0)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'publishall' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str, paction: bigrel},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							if(bigrel=='publish')
+							{	
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{								
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").html('<?php echo $this->translator->translator("common_published_language"); ?>');
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_unpublish';
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("common_unpublish_title"); ?>" />');								
+								}
+							}
+							else
+							{
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{								
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").html('<?php echo $this->translator->translator("common_unpublished_language"); ?>');
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_publish';
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(7)").children("table:nth-child(1)").children("tbody:nth-child(1)").children("tr:nth-child(1)").children("td:nth-child(3)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("common_publish_title"); ?>" />');								
+								}
+							}
+
+						}
+						else
+						{
+							openMsgDialog(json_arr.msg);
+						}
+						if(bigrel=='publish')
+						{	
+							$(self).html('<?php echo addslashes($this->translator->translator("common_publish_selected")); ?>');
+						}
+						else
+						{
+							$(self).html('<?php echo addslashes($this->translator->translator("common_unpublish_selected")); ?>');
+						}
+					}
+			});			
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('Members_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+		
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('form_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('member_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	function checkNonDeletedId(id,id_arr)
+	{
+		var tmp = false;
+		for(var i = 0;i < id_arr.length;i++)
+		{
+			if(id_arr[i] == id)
+			{
+				tmp = true;
+				break;
+			}
+		}
+		return tmp;
+	}
+	
+});
+</script>
+
+<div id="container">
+<?php if (!$this->allow('values')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php 
+	else : 
+if($this->form_id)
+{
+	$form_db = new Members_Model_DbTable_Forms();
+	$form_info = $form_db->getFormsInfo($this->form_id);
+	if($this->escape($form_info['meta_title'])){ $list_title = $this->escape($form_info['meta_title']); }else{ $list_title =  $this->escape($form_info['form_name']); } 
+?>
+<?php if($form_info['id'] == '9' || $form_info['id'] == '10'){ $new_btn = 'members_page_form_add'; $title_class = 'membership-pkg'; $body_class="content-inner"; }else{ $title_class = 'forms'; $new_btn = 'form_data_insert_btn';$body_class="";  } ?>
+
+<div class="title-container">
+	<div class="<?php echo $title_class; ?>"><h1><?php echo $this->translator->translator('form_data_list_title', $list_title); ?></h1></div>
+    
+    <div class="button-container">
+    	
+    	<?php
+			if($form_info['id'] != '9' && $form_info['id'] != '10')
+			{
+		?>
+        	<span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'list'), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <?php
+			}
+		?>
+        
+        <?php if ($permission_arr['add_enable']) : ?>
+        	<span class="button ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Members','controller'=>'form', 'action'=>'addvalue', 'form_id' => $this->form_id),'adminrout',true);?>"><span class="icon add"><?php echo $this->translator->translator($new_btn); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php  if ($permission_arr['csv_enable']) : ?>
+        	<span class="button ui-widget-content-1"><a href="javascript: void(0);" rel="form" class="export_btn"><span class="icon submit"><?php echo html_entity_decode($this->translator->translator("common_export", '', 'Database'), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php  endif; ?>
+        
+        <?php  if ($permission_arr['delete_enable']) : ?>
+        	<span class="button ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php  endif; ?>
+    </div>
+</div>
+<div id="button_top_bar"></div>
+<div class="content-container">
+	<?php if($form_info['id'] == '9' || $form_info['id'] == '10'){ ?>
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('form/package_menu.phtml');  ?>
+    </div>
+    <?php } ?>
+    
+    
+    <div id="<?php echo $body_class; ?>">
+    	<div class="pagination">
+			<?php echo $this->paginationControl($this->datas, 'Sliding', 'index/top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+        	<div class="data-table">
+            	<table id="sortTable" width="100%" cellpadding="0" cellspacing="0">
+                	<thead>
+                    	<tr>
+                       		<th width="3%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                       		<th width="5%"><?php echo $this->translator->translator('ID'); ?></th>
+						  	<?php
+								$field_db = new Members_Model_DbTable_Fields();
+								$fieldsInfo = $field_db->getFieldsInfo($this->form_id);
+								$c = 1;
+								foreach($fieldsInfo as $fields)
+								{
+                           	?>
+                           	<th><?php echo str_replace(':','',$this->escape($fields->field_label)); ?></th>
+                                <?php
+                                if($c >= 4) 
+                                {
+                                    break;
+                                }
+                                $c++;
+                                }
+                       		?>	
+                       		<th width="8%"><?php echo $this->translator->translator('common_status'); ?></th>	
+                       		<th width="9%"><?php echo $this->translator->translator('common_date'); ?></th>									 
+                       		<th width="8%"><?php echo $this->translator->translator('common_action'); ?></th>
+                    	</tr>
+                  	</thead>
+					<tbody>
+						  	<?php
+                            $fields_db = new Members_Model_DbTable_FieldsValue();  
+                            $j = 1;
+                            foreach ($this->datas as $entry): 
+                                if($j % 2 == 0)
+                                {
+                                    $onmouseout = "this.bgColor='#FFFFFF';";
+                                    $background = '#FFFFFF';
+                                }
+                                else
+                                {
+                                    $onmouseout = "this.bgColor='#F7F7F7';";
+                                    $background = '#F7F7F7';
+                                }
+                          	?>
+							<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+								<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+								<td class="center"><?php echo $this->escape($entry->id); ?></td>
+								<?php
+                                    $c = 1;
+                                    foreach($fieldsInfo as $fields)
+                                    {
+                               	?>
+								<td class="center">												 
+								<?php
+                                try
+                                { 
+                                    $value_info = $fields_db->getFieldsValue($this->escape($entry->id),$this->escape($entry->form_id),$this->escape($fields->id));														
+                                     if($value_info)
+                                     {
+                                        if(!empty($value_info[0]) && !empty($value_info[0]['field_value']))
+                                        {
+                                            if($this->escape($fields->field_type) == 'file')
+                                            {																	
+                                                $files_arr = explode(',',$value_info[0]['field_value']);
+                                                $ext = Eicra_File_Utility::GetExtension($this->escape($files_arr[0]));
+                                                if($ext == 'jpg' || $ext == 'JPG' || $ext == 'png' || $ext == 'PNG' || $ext == 'bmp' || $ext == 'BMP' || $ext == 'gif' || $ext == 'GIF')
+                                                {
+                                                    echo '<div><a href="'.$this->escape($form_info['attach_file_path']).'/'.$this->escape($files_arr[0]).'" target="_blank"><img src="'.$this->escape($form_info['attach_file_path']).'/'.$this->escape($files_arr[0]).'" width="35" height="30" border="0" /></a></div>';
+                                                }
+                                                else
+                                                {
+                                                    echo '<a href="'.$this->escape($form_info['attach_file_path']).'/'.$this->escape($files_arr[0]).'" target="_blank">'.$this->escape($files_arr[0]).'</a>'; 
+                                                }																	
+                                            }
+                                            else
+                                            {
+                                                echo truncate($this->escape(strip_tags($value_info[0]['field_value'])),0,2); 
+                                            }
+                                        }
+                                     }
+                                  }
+                                  catch(Exception $e)
+                                  {
+                                  
+                                  }
+                                ?>
+								</td>	
+								<?php
+                                    if($c >= 4)
+                                    {
+                                        break;
+                                    }
+                                    $c++;
+                                   }
+                              	?>	
+								<td class="center">	
+							  		<?php if($this->escape($entry->active) == '2'){ ?>
+                              		<a href="javascript:void(0);" class="publish_btn" rel="<?php echo $this->escape($entry->id); ?>_publish"><img src="application/modules/Administrator/layouts/scripts/images/tools/pending.gif"  border="0" title="<?php echo $this->translator->translator('common_publish_title'); ?>" /></a>
+                              		<?php }else{ ?>
+                                	<a href="javascript:void(0);" class="publish_btn" rel="<?php echo $this->escape($entry->id); ?>_<?php if($this->escape($entry->active) == '1'){ ?>unpublish<?php }else{ ?>publish<?php } ?>"><?php if($this->escape($entry->active) == '1'){ ?> <img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif"  border="0" title="<?php echo $this->translator->translator('common_unpublish_title'); ?>" /> <?php }else{ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator('common_publish_title'); ?>" /><?php } ?></a>
+                              		<?php } ?>
+                              	</td>
+                                <td class="center">		
+                                    <?php echo strftime('%Y-%m-%d',strtotime($this->escape($entry->g_date))); ?>	
+                              	</td>	  
+                                <td class="tools-list">
+                                	<ul>
+                                    	<?php if ($permission_arr['edit_enable']) : ?>
+                                        <li><a href="<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'editvalue', 'id' => $this->escape($entry->id) ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a></li>
+                                        <?php endif; ?>
+                                        
+                                        <?php if ($permission_arr['delete_enable']) : ?>
+                                      	<li><a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>"  border="0" /></a></li>
+                                      	<?php endif; ?>
+                                    </ul>
+                                </td>
+							</tr>
+							<?php 													
+                                $j++;
+                                endforeach;	
+                         	?>
+                  	</tbody>
+               	</table>
+            </div>
+        </div>
+        <div class="pagination"><?php echo $this->paginationControl($this->datas, 'Sliding', 'index/pagination.phtml'); ?></div>
+    </div>
+</div>
+
+<?php
+	}
+ endif; 
+?>
+<div  id="floatingbar">
+	<h1><?php echo $this->translator->translator('form_data_list_title', $list_title); ?></h1>
+    
+    <div class="button-container">
+    	<?php
+			if($form_info['id'] != '9' && $form_info['id'] != '10')
+			{
+		?>
+        	<span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'list'), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <?php
+			}
+		?>
+        
+        <?php if ($permission_arr['add_enable']) : ?>
+        	<span class="button ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Members','controller'=>'form', 'action'=>'addvalue', 'form_id' => $this->form_id),'adminrout',true);?>"><span class="icon add"><?php echo $this->translator->translator($new_btn); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php  if ($permission_arr['delete_enable']) : ?>
+        	<span class="button ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php  endif; ?>
+    </div>
+</div>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('members_page_form_value_list')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>	
+</div>

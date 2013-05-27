@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Forget Password Form" langKey="permisson_password">
+		<privilege for="dashboard" name="send" description="Get New Password" langKey="permisson_get_new_password" />
+	</resource>	
+	<resource name="view" for="frontend" description="Forget Password Page" langKey="permisson_frontend_password">
+		<privilege name="send" description="Get New Password" langKey="permisson_frontend_get_new_password" img="permisson_frontend_get_new_password.jpg" />
+	</resource>
+</permissions>

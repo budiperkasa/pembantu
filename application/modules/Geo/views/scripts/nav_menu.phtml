@@ -1,0 +1,31 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('geo_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('list','country','Geo')) : ?>
+           	<li <?php if($getAction == 'list' && strtolower($getController) == 'country'){ ?> class="country selected"<?php }else{ ?>class="country"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'country', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('geo_menu1'); ?></a>
+            </li> 
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','state','Geo')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'state'){ ?> class="state selected"<?php }else{ ?>class="state"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'state', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('geo_menu2'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','city','Geo')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'city'){ ?> class="city selected last"<?php }else{ ?>class="city last"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'city', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('geo_menu3'); ?></a>
+			</li>
+			<?php endif; ?>		
+        </ul>
+  	</div>
+</div>

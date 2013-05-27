@@ -1,0 +1,255 @@
+.menu li {
+	float:right;
+	margin-left:0px;
+	margin-right:10px;
+}
+
+.menu li:hover a {
+	padding: 4px 10px 4px 9px;
+	margin-left:-1px;
+	margin-right:0px;
+	text-shadow: none;
+	position:relative;
+	z-index:11;
+}
+
+.menu li .drop,
+.menu li:hover .drop {
+	padding-left:27px;
+}
+
+/* Right aligned menu item */
+
+.menu li.right {
+	float:left;
+	left:0;
+}
+
+/*  _______________________________________
+
+	02 DROP DOWN MENU
+    _______________________________________  */
+
+
+
+/* Left & right aligned common styles */
+
+.menu .dropdown_1column, 
+.menu .dropdown_2columns, 
+.menu .dropdown_3columns, 
+.menu .dropdown_4columns,
+.menu .dropdown_5columns,
+.menu .dropdown_fullwidth {
+	left:-999em;
+	display:none;
+	text-align:right;
+	border-radius: 5px 0px 5px 5px;
+	-moz-border-radius: 5px 0px 5px 5px;
+	-webkit-border-radius: 5px 0px 5px 5px;
+}
+
+/* Showing Drop Down on Mouse Hover - Left aligned */
+
+.menu li:hover .dropdown_1column, 
+.menu li:hover .dropdown_2columns, 
+.menu li:hover .dropdown_3columns,
+.menu li:hover .dropdown_4columns,
+.menu li:hover .dropdown_5columns {
+	display:inline;
+	left:1px;
+	right:-1px;
+}
+
+.menu li:hover .dropdown_fullwidth {
+	left:0;
+	right:21px;
+}
+.wrapper_menu_full .menu li:hover .dropdown_fullwidth {
+	left:0%;
+	right:50%;
+	margin-left:470px;
+	margin-right:-470px;
+}
+
+/* Showing Drop Down on Mouse Hover - Right aligned */
+
+.menu li.right:hover .dropdown_fullwidth {
+	right:0px;
+	left:18px;
+}
+.wrapper_menu_full .menu li.right:hover .dropdown_fullwidth {
+	left:auto;
+	right:auto;
+	right:00%;
+	left:50%;
+	margin-right:0;
+	margin-left:-471px;
+}
+
+/* Columns Sizes */
+
+.menu .col_1,
+.menu .col_2,
+.menu .col_3,
+.menu .col_4,
+.menu .col_5,
+.menu .col_6 {
+	float: left;
+	margin-left: 10px;
+}
+.menu .col_1 {width:145px;}
+.menu .col_2 {width:300px;}
+.menu .col_3 {width:455px;}
+.menu .col_4 {width:610px;}
+.menu .col_5 {width:765px;}
+.menu .col_6 {width:920px;}
+
+/* IMPORTANT */
+
+/* Use the firstcolumn class for the items that stick to the left edge of the dropdown */
+.menu .firstcolumn {
+	margin-left: 0; /* Clearing margin & left */
+	clear:right;
+}
+
+/* Standard lists styles */
+
+.menu li ul li {
+	float:right;
+	text-align:right;
+}
+/* 2-Levels Drop Down */
+
+.menu .levels li ul {
+	margin:10px 4px 0 0px;
+	left: 999em;
+	right: -999em;
+}
+.menu .levels li:hover ul ul, 
+.menu .levels li:hover ul ul ul {
+	left: 999em;
+	right: -999em;
+}
+.menu .levels li:hover ul, 
+.menu .levels li li:hover ul, 
+.menu .levels li li li:hover ul {
+	left: -210px;
+	right: 180px;
+	top:-12px;
+	padding-left:0px;
+	padding-right:15px;
+}
+
+/*  _______________________________________
+
+	DARK THEME
+    _______________________________________  */
+
+.menu_dark_theme ul li:hover,
+.menu_dark_theme ul li.nodrop:hover {
+	background:#161616;
+	border:1px solid #000000;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#212121), to(#161616));
+	background: -webkit-linear-gradient(top, #212121, #161616);
+	background: -moz-linear-gradient(top, #212121, #161616);
+	background: -o-linear-gradient(top, #212121, #161616);
+	background: -ms-linear-gradient(top, #212121, #161616);
+	background: linear-gradient(top, #212121, #161616);
+}
+.menu_dark_theme ul li:hover a {
+	color:#ffffff;
+	border-bottom:1px solid #161616;
+}
+.menu_dark_theme ul li .drop,
+.menu_dark_theme .menu li.noactive .drop {
+	background:url("../img/arrow_down2.png") no-repeat 2px 13px;
+}
+.menu_dark_theme ul li:hover .drop {
+	background:url("../img/arrow_down2.png") no-repeat 2px 12px;
+}
+
+.menu_dark_theme ul li .plus li {
+	background: url("../img/plus_dark.png") left 6px no-repeat;
+}
+.menu_dark_theme ul .levels a.parent, 
+.menu_dark_theme ul .levels a.parent:hover {
+	background: url("../img/arrow_left2.png") left center no-repeat;
+}
+
+.menu_dark_theme ul .contact_form input.button {
+	background-color:#1E1E1E;
+	border:1px solid #0A0A0A;
+	color:#cccccc;	
+}
+.menu_dark_theme ul .contact_form input.button:hover {
+	color:#eeeeee;	
+	background-color:#222222;
+	border:1px solid #000000;
+}
+.menu_dark_theme .menu li:hover div a {
+	border-bottom:none;
+}
+
+
+
+/*  _______________________________________
+
+	07 COLORS
+    _______________________________________  */
+
+
+
+/* Black */
+
+.menu_black {
+	background: #333;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#555), to(#2a2a2a));
+	background: -webkit-linear-gradient(top, #555, #2a2a2a);
+	background: -moz-linear-gradient(top, #555, #2a2a2a);
+	background: -o-linear-gradient(top, #555, #2a2a2a);
+	background: -ms-linear-gradient(top, #555, #2a2a2a);
+	background: linear-gradient(top, #555, #2a2a2a);
+}
+.wrapper_menu .menu_black {
+	border: 0px solid #444;
+	border-top: 1px solid #777;
+}
+.wrapper_menu_full .menu_black {
+	border-bottom: 1px solid #444;
+}
+.menu_dark_theme .menu_black li:hover div a {color:#F7F7F7;}
+.menu_dark_theme .menu_black li:hover div a:hover {color:#A6A6A6;}
+.menu_dark_theme .menu_black li ul li a:hover {color:#EEE;}
+.menu_light_theme .menu_black li:hover div a {color:#444;}
+.menu_light_theme .menu_black li:hover div a:hover {color:#777;}
+.menu_light_theme .menu_black li ul li a:hover {color:#777;}
+
+
+/*  _______________________________________
+	
+	08 TOUCH SCREEN DEVICES
+    _______________________________________  */
+
+
+
+.menu li.noactive,
+.menu li.noactive:hover {
+	background:none;
+	border:none;
+	margin-right:20px;
+}
+.menu li.noactive a {
+	padding: 5px 27px 3px 10px;
+	text-shadow: 1px 1px 1px #000;
+	border-bottom:none;
+}
+.menu li.noactive.right {
+	margin-right:0;
+}
+
+
+li.menu_divider{
+	border-bottom:1px solid #888888 !important;
+	display:block;
+	width:100%;	
+}

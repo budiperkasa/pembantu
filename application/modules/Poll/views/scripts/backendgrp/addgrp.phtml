@@ -1,0 +1,839 @@
+<?php
+$version = Zend_Registry::get('version');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+?>
+
+<script type="text/javascript">
+$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();		
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+		
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			} 		
+			fieldObj[filename] = filevalue;
+		});
+		return fieldObj;
+	}
+	
+	$('select.vote_multiple_select').change(function() {	
+		var multipleVote = $(this).val();
+		if(multipleVote == 1)
+		{
+			$('input#hours').removeAttr('disabled');
+		}
+		else
+		{
+			$('input#hours').attr('disabled','disabled');
+		}
+	});
+	
+	$('a.add_gallery_group_btn').click(function() {			
+		var formData = getFormData();
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Poll','controller' => 'backendgrp', 'action'     => 'addgrp' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+						resetFields();							
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});		
+	
+});
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="polls-group-add"><h1><?php echo $this->translator->translator('pool_group_page_add'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Poll','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="add_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <form name="formPoll" id="formPoll" method="post">
+    	<div id="button_top_bar"></div>
+        <div id="generalInfo">
+        	<div id="tabs">
+            	<ul>
+                	<li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('poll_general_info'); ?></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('poll_category_manage'); ?></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('poll_page_manage'); ?></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('poll_file_manage'); ?></a></li>
+                </ul>
+                
+                <div id="tabs-1">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_general_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->group_name->getLabel(); if($this->pollGroupForm->group_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->group_name; ?>
+                                    <div class="input-errors" id="group_name_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->role_id->getLabel(); if($this->pollGroupForm->role_id->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->role_id; ?>
+                                    <div class="input-errors" id="role_id_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->multiple_vote->getLabel(); if($this->pollGroupForm->multiple_vote->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->multiple_vote; ?>
+                                    <div class="input-errors" id="multiple_vote_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php 
+										if($this->pollGroupForm->multiple_vote->getValue() == '0')
+										{
+											$this->pollGroupForm->hours->setAttrib('disabled','disabled');
+										}
+										echo $this->pollGroupForm->hours->getLabel(); 
+										if($this->pollGroupForm->hours->isRequired())
+										{ 
+									?>
+										<span class="required">*</span>
+									<?php 
+										} 
+									?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->hours; ?>&nbsp;<?php echo $this->translator->translator('poll_group_hour_duration'); ?>
+                                    <div class="input-errors" id="hours_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->category_on_off->getLabel(); if($this->pollGroupForm->category_on_off->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->category_on_off; ?>
+                                    <div class="input-errors" id="category_on_off_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->category_panel->getLabel(); if($this->pollGroupForm->category_panel->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->category_panel; ?>
+                                    <div class="input-errors" id="category_panel_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->horizontal_panel->getLabel(); if($this->pollGroupForm->horizontal_panel->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->horizontal_panel; ?>
+                                    <div class="input-errors" id="horizontal_panel_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->num_of_pic_show->getLabel(); if($this->pollGroupForm->num_of_pic_show->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->num_of_pic_show; ?>&nbsp;<?php echo $this->translator->translator('zero_pic_show'); ?>
+                                    <div class="input-errors" id="num_of_pic_show_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->dynamic_form->getLabel(); if($this->pollGroupForm->dynamic_form->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->dynamic_form; ?>
+                                    <div class="input-errors" id="dynamic_form_err"></div>
+                                </div>
+                            </div>
+                       	</div>
+                	</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('common_metainfo_title'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php  echo $this->pollGroupForm->meta_title->getLabel(); if($this->pollGroupForm->meta_title->isRequired()){ ?><span class="required">*</span><?php }  ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->meta_title; ?>
+                                    <div class="input-errors" id="meta_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->meta_keywords->getLabel(); if($this->pollGroupForm->meta_keywords->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->meta_keywords; ?>
+                                    <div class="input-errors" id="meta_keywords_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->meta_desc->getLabel(); if($this->pollGroupForm->meta_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->meta_desc; ?>
+                                    <div class="input-errors" id="news_desc_truncate_err"></div>
+                                </div>
+                            </div>
+                       	</div>
+					</fieldset>
+                </div>
+                
+                <div id="tabs-2">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_general_category_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->cat_num_per_page->getLabel();  if($this->pollGroupForm->cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->cat_num_per_page; ?>
+                                    <div class="input-errors" id="cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->cat_col_num->getLabel();  if($this->pollGroupForm->cat_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->cat_col_num; ?>
+                                    <div class="input-errors" id="cat_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->cat_sort->getLabel();  if($this->pollGroupForm->cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->cat_sort; ?>
+                                    <div class="input-errors" id="cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->cat_order->getLabel();  if($this->pollGroupForm->cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->cat_order; ?>
+                                    <div class="input-errors" id="cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_latest_category_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->latest_cat_on->getLabel();  if($this->pollGroupForm->latest_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_cat_on; ?>
+                                    <div class="input-errors" id="latest_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->pollGroupForm->latest_cat_num_per_page->getLabel();  if($this->pollGroupForm->latest_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_cat_num_per_page; ?>
+                                    <div class="input-errors" id="latest_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->pollGroupForm->latest_cat_sort->getLabel();  if($this->pollGroupForm->latest_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_cat_sort; ?>
+                                    <div class="input-errors" id="latest_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->pollGroupForm->latest_cat_order->getLabel();  if($this->pollGroupForm->latest_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_cat_order; ?>
+                                    <div class="input-errors" id="latest_cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                   	
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_featured_category_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_cat_on->getLabel(); if($this->pollGroupForm->featured_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_cat_on; ?>
+                                    <div class="input-errors" id="featured_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_cat_num_per_page->getLabel(); if($this->pollGroupForm->featured_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_cat_num_per_page; ?>
+                                    <div class="input-errors" id="featured_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_cat_sort->getLabel(); if($this->pollGroupForm->featured_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_cat_sort; ?>
+                                    <div class="input-errors" id="featured_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_cat_order->getLabel(); if($this->pollGroupForm->featured_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_cat_order; ?>
+                                    <div class="input-errors" id="featured_cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                </div>
+                
+                <div id="tabs-3">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_general_poll_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_num_per_page->getLabel(); if($this->pollGroupForm->file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_num_per_page; ?>
+                                    <div class="input-errors" id="file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_col_num->getLabel(); if($this->pollGroupForm->file_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_col_num; ?>
+                                    <div class="input-errors" id="file_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_sort->getLabel(); if($this->pollGroupForm->file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_sort; ?>
+                                    <div class="input-errors" id="file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_order->getLabel(); if($this->pollGroupForm->file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_order; ?>
+                                    <div class="input-errors" id="file_order_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->light_box_on->getLabel(); if($this->pollGroupForm->light_box_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->light_box_on; ?>
+                                    <div class="input-errors" id="light_box_on_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_latest_poll_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->latest_file_on->getLabel(); if($this->pollGroupForm->latest_file_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_file_on; ?>
+                                    <div class="input-errors" id="latest_file_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->latest_file_num_per_page->getLabel(); if($this->pollGroupForm->latest_file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_file_num_per_page; ?>
+                                    <div class="input-errors" id="latest_file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->latest_file_sort->getLabel(); if($this->pollGroupForm->latest_file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_file_sort; ?>
+                                    <div class="input-errors" id="latest_file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->latest_file_order->getLabel(); if($this->pollGroupForm->latest_file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->latest_file_order; ?>
+                                    <div class="input-errors" id="latest_file_order_err"></div>
+                                </div>
+                            </div>
+                    	</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_featured_poll_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_file_on->getLabel(); if($this->pollGroupForm->featured_file_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_file_on; ?>
+                                    <div class="input-errors" id="featured_file_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_file_num_per_page->getLabel(); if($this->pollGroupForm->featured_file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_file_num_per_page; ?>
+                                    <div class="input-errors" id="featured_file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_file_sort->getLabel(); if($this->pollGroupForm->featured_file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_file_sort; ?>
+                                    <div class="input-errors" id="featured_file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->featured_file_order->getLabel(); if($this->pollGroupForm->featured_file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->featured_file_order; ?>
+                                    <div class="input-errors" id="featured_file_order_err"></div>
+                                </div>
+                            </div>
+                    	</div>
+					</fieldset>
+                </div>
+                
+                <div id="tabs-4">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_general_file_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_type->getLabel(); if($this->pollGroupForm->file_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_type; ?>
+                                    <div class="input-errors" id="file_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_size_max->getLabel(); if($this->pollGroupForm->file_size_max->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_size_max; ?>&nbsp;<?php echo $this->translator->translator('zero_file_size'); ?>
+                                    <div class="input-errors" id="file_size_max_err"></div>
+                                </div>
+                            </div>
+						</div>
+                	</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('poll_thumb_info'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_type->getLabel(); if($this->pollGroupForm->file_cat_thumb_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_type; ?>
+                                    <div class="input-errors" id="file_cat_thumb_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_width->getLabel(); if($this->pollGroupForm->file_cat_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_width; ?>
+                                    <div class="input-errors" id="file_cat_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_height->getLabel(); if($this->pollGroupForm->file_cat_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_height; ?>
+                                    <div class="input-errors" id="file_cat_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_resize_func->getLabel(); if($this->pollGroupForm->file_cat_thumb_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_cat_thumb_resize_func; ?>
+                                    <div class="input-errors" id="file_cat_thumb_resize_func_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_thumb_type->getLabel(); if($this->pollGroupForm->file_thumb_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_thumb_type; ?>
+                                    <div class="input-errors" id="file_thumb_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_thumb_width->getLabel(); if($this->pollGroupForm->file_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_thumb_width; ?>
+                                    <div class="input-errors" id="file_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_thumb_height->getLabel(); if($this->pollGroupForm->file_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_thumb_height; ?>
+                                    <div class="input-errors" id="file_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->file_thumb_resize_func->getLabel(); if($this->pollGroupForm->file_thumb_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->file_thumb_resize_func; ?>
+                                    <div class="input-errors" id="file_thumb_resize_func_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('only_for_image'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->img_big_width->getLabel(); if($this->pollGroupForm->img_big_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->img_big_width; ?>
+                                    <div class="input-errors" id="img_big_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->img_big_height->getLabel(); if($this->pollGroupForm->img_big_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->img_big_height; ?>
+                                    <div class="input-errors" id="img_big_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->pollGroupForm->img_big_resize_func->getLabel(); if($this->pollGroupForm->img_big_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->pollGroupForm->img_big_resize_func; ?>
+                                    <div class="input-errors" id="img_big_resize_func_err"></div>
+                                </div>
+                            </div>
+                            
+                      	</div>
+					</fieldset>
+                </div>
+			</div>
+		</div>
+    </form>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Poll','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="add_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('pool_group_page_add'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Poll','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="add_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+<?php endif; ?>	
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+</div>

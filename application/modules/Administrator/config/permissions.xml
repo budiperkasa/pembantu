@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="index" for="backend" description="Administration Panel" langKey="permisson_admin">
+		<privilege for="dashboard" name="index" description="View The Dashboard" langKey="permisson_users_list" />
+		<privilege  name="add" description="Create new users" langKey="permisson_users_add" />
+		<privilege name="edit" description="Edit a users" langKey="permisson_users_edit" />	
+		<privilege name="approval" description="Approval Page" langKey="permisson_users_approval" />		
+	</resource>	
+	<resource name="privilege" for="backend" description="Privilege" langKey="permisson_privilege">
+		<privilege for="dashboard" name="list" description="View the list of Privilege" langKey="permisson_privilege_list" />
+		<privilege  name="add" description="Add new Privilege" langKey="permisson_privilege_add" />
+		<privilege name="delete" description="Delete a Privilege" langKey="permisson_privilege_del" />		
+	</resource>
+	<resource name="resource" for="backend" description="Resource" langKey="permisson_resource">		
+		<privilege  name="add" description="Add this Resource" langKey="permisson_resource_add" />
+		<privilege name="delete" description="Delete this Resource" langKey="permisson_resource_del" />		
+	</resource>	
+	<resource name="role" for="backend" description="Group" langKey="permisson_role">		
+		<privilege for="dashboard" name="list" description="View the list of User Role" langKey="permisson_role_list" />
+		<privilege name="lock" description="Lock this User Role" langKey="permisson_role_lock" />
+		<privilege name="add" description="Add a new Role" langKey="permisson_role_add" />
+		<privilege name="delete" description="Delete this Role" langKey="permisson_role_del" />	
+		<privilege name="new" description="Create New Role" langKey="permisson_role_new" />	
+		<privilege name="update" description="Edit Role" langKey="permisson_role_edit" />	
+	</resource>
+	<resource name="rule" for="backend" description="Permission" langKey="permisson_rule">		
+		<privilege name="rolelist" description="View Role permission list" langKey="permisson_rule_role_list" />
+		<privilege name="roleupdate" description="Update Role permission" langKey="permisson_rule_role_update" />		
+		<privilege name="userlist" description="View User permission list" langKey="permisson_rule_user_list" />
+		<privilege name="userupdate" description="Update User permission" langKey="permisson_rule_user_update" />		
+	</resource>
+	<resource name="login" for="frontend" description="Log In box" langKey="permisson_login">	
+		<privilege name="index" description="View Log In box" langKey="permisson_view_login" img="permisson_view_login.jpg" />
+	</resource>
+</permissions>

@@ -1,0 +1,61 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('property_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+       		<?php if ($this->allow('listgrp','backendgrp','Property')) : ?>
+			<li <?php if($getAction == 'listgrp' && strtolower($getController) == 'backendgrp'){ ?> class="property-grp selected"<?php }else{ ?>class="property-grp"<?php } ?>>
+            <a href="<?php echo $this->url(array('module' => 'Property','controller'=>'backendgrp', 'action'=>'listgrp'),'adminrout',true);?>" ><?php echo $translator->translator('property_menu1'); ?></a>
+            </li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Property')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backend'){ ?> class="property-cat-list selected"<?php }else{ ?>class="property-cat-list"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Property','controller'=>'backend', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('property_menu2'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendpro','Property')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendpro'){ ?> class="property-list selected"<?php }else{ ?>class="property-list"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Property', 'controller' => 'backendpro', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('property_menu3'); ?></a>
+			</li>
+			<?php endif; ?>
+           
+            <?php if ($this->allow('saved','backendpro','Property')) : ?>
+			<li <?php if($getAction == 'saved' && strtolower($getController) == 'backendpro'){ ?> class="property-save selected"<?php }else{ ?>class="property-save"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Property', 'controller' => 'backendpro', 'action'     => 'saved' ),'adminrout',true) ?>"><?php echo $translator->translator('property_menu7'); ?></a>
+           	</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendtype','Property')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendtype'){ ?> class="property-business-type selected"<?php }else{ ?>class="property-business-type"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Property', 'controller' => 'backendtype', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('property_menu4'); ?></a>
+           	</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendstate','Property')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendstate'){ ?> class="property-state selected"<?php }else{ ?>class="property-state"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Property', 'controller' => 'backendstate', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('property_menu5'); ?></a>
+           	</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendarea','Property')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendarea'){ ?> class="property-area selected"<?php }else{ ?>class="property-area"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Property', 'controller' => 'backendarea', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('property_menu6'); ?></a>
+           	</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendvote','Vote')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendvote'){ ?> class="vote selected last"<?php }else{ ?>class="vote last"<?php } ?>>
+			<a href="<?php echo $this->url( array('module'=> 'Vote', 'controller' => 'backendvote', 'action'     => 'list', 'group_id' => 'property_page'  ),'adminrout',true) ?>"><?php echo $translator->translator('vote_menu_title','' , 'Vote'); ?></a>
+            </li>
+			<?php endif; ?>
+        </ul>
+    </div>
+</div>

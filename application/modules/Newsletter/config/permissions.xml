@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="templates" for="backend" description="Manage Newsletter Template" langKey="permisson_newsletter">
+		<privilege for="dashboard" name="list" description="View the list of Newsletter" langKey="permisson_newsletter_list" />
+		<privilege for="dashboard" name="add" description="Create new Newsletter" langKey="permisson_newsletter_add" />
+		<privilege name="edit" description="Edit Newsletter" langKey="permisson_newsletter_edit" />
+		<privilege name="delete" description="Delete a Newsletter" langKey="permisson_newsletter_delete" />
+		<privilege name="preview" description="Prewiew a Newsletter Template" langKey="permisson_newsletter_template_preview" />
+		<privilege for="dashboard" name="send" description="Send Newsletter" langKey="permisson_newsletter_send" />		
+	</resource>	
+	<resource name="subscribers" for="backend" description="Manage Subscribers" langKey="permisson_subscribers">
+		<privilege for="dashboard" name="list" description="Subscribers List" langKey="permisson_subscribers_list" />
+		<privilege name="publish" description="Subscribers Activation" langKey="permisson_subscribers_publish" />
+		<privilege name="edit" description="Edit Subscribers" langKey="permisson_subscribers_edit" />
+		<privilege name="delete" description="Delete Subscribers" langKey="permisson_subscribers_Delete" />
+	</resource>
+	<resource name="formats" for="backend" description="Manage Email Variables" langKey="permisson_formats">
+		<privilege for="dashboard" name="list" description="View Variables List" langKey="permisson_formats_list" />
+		<privilege name="add" description="Add New Variables" langKey="permisson_formats_add" />
+		<privilege name="edit" description="Edit Variables" langKey="permisson_formats_edit" />
+		<privilege name="delete" description="Delete Variables" langKey="permisson_formats_Delete" />
+	</resource>
+</permissions>

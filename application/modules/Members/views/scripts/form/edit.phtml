@@ -1,0 +1,1583 @@
+<?php 
+$version = Zend_Registry::get('version'); 
+$this->CustomForm->setEditor($this->serverUrl().$this->baseUrl());
+$this->CustomForm->getEditor();
+$global_conf = Zend_Registry::get('global_conf');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/jpicker/jpicker-1.1.6.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/jpicker/jPicker.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/jpicker/css/jPicker-1.1.6.css');
+?>
+
+<script type="text/javascript">
+$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+
+$(document).ready(function() {
+
+	/**************************************JPicker Code Start*************************/		
+	colorPicker('captcha_font_color_');
+	colorPicker('captcha_background_color_');
+	/************************************JPicker Code End**************************/
+
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	
+	var field_no = $('#field_order').val();
+	$('a.global_email').click(function() {	
+		$('#email_to').val('<?php echo $this->escape($global_conf["global_email"]); ?>');
+	});
+	function refreshField()
+	{
+		field_no++;
+		 $('#field_name').val('');
+		 $('#field_id').val('');
+		 $('#field_class').val('');
+		 $('#field_type').val('text');
+		 $('#field_label').val('');
+		 $('#field_title').val('');
+		 $('#field_desc').val('');
+		 $('#field_option').val('');
+		 $('#field_default_value').val('');
+		 $('#regexpr').val('');
+		 $('input[name=display_admin]').attr('checked','checked');
+		 $('input[name=display_frontend]').attr('checked','checked');
+		 $('input[name=required]').removeAttr('checked');
+		 $('#field_order').val(field_no);
+	}
+	
+	$('a.delete_ex_field_btn').bind('click',function(){
+		var self = this;
+		var rel = $(self).parents("div:first").children('input:nth-child(1)').val();
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'deletefield' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { id : rel },
+				beforeSend: function(){						
+						$(self).html('<span class="icon loader"></span>');			
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");								
+					if(json_arr.status == 'ok')
+					{
+						$(self).parents("span:first").parents("div:first").parents("div:first").remove();
+						field_no--;											
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$(self).html('<?php echo addslashes($this->translator->translator("add_form_page_delete_field")); ?>');
+					}					
+				}
+		});		
+	});
+	
+	$('a.add_field_btn').click(function() {			
+		 var self = this;
+		 var field_group 		= $('#field_group').val();
+		 var group_order 		= $('#group_order').val();
+		 var field_name 		= $('#field_name').val();
+		 var field_id 			= $('#field_id').val();
+		 var field_class 		= $('#field_class').val();
+		 var field_type 		= $('#field_type').val();
+		 var field_width 		= $('#field_width').val();
+		 var field_height 		= $('#field_height').val();
+		 var field_separator	= $('#field_separator').val();
+		 var field_label 		= $('#field_label').val();
+		 var field_title 		= $('#field_title').val();
+		 var field_desc 		= $('#field_desc').val();
+		 var field_option 		= $('#field_option').val();
+		 var field_default_value= $('#field_default_value').val();
+		 var regexpr 			= $('#regexpr').val();
+		 var display_admin 		= ($('input[name=display_admin]').is(':checked')) ? '1' : '0';
+		 var display_frontend 	= ($('input[name=display_frontend]').is(':checked')) ? '1' : '0';
+		 var required 			= ($('input[name=required]').is(':checked')) ? '1' : '0';
+		 var field_order 		= $('#field_order').val();
+		 if(field_name != '')
+		 {
+			 var putData =	'<div class="new-form-container"><div class="form">'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_group_name"); ?>'+															 
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_group[]" id="field_group'+field_no+'" size="50" value="'+field_group+'" />'+												  
+								 	'</div>'+
+									'<div class="custom-field-set">'+
+										'<?php echo $this->translator->translator("form_dy_field_group_order"); ?>&nbsp;'+
+										'<input type="text" name="group_order[]" id="group_order'+field_no+'" class="center" size="5" value="'+group_order+'" />'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_name"); ?>'+
+									'</div>'+
+									'<div class="field custom-field">'+
+										'<input type="text" name="field_name[]" id="field_name'+field_no+'" size="50" value="'+field_name+'" />'+
+										
+										'<br /><?php echo $this->translator->translator("reserved_field_name"); ?>'+											  
+								  	'</div>'+
+									'<div class="custom-field-set">'+
+										'<?php echo $this->translator->translator("form_dy_field_order"); ?>&nbsp;'+
+										'<input type="text" name="field_order[]" id="field_order'+field_no+'" class="center" size="5" value="'+field_order+'" />'+										
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_id"); ?>'+
+									'</div>'+
+									'<div class="field custom-field">'+
+										'<input type="text" name="field_id[]" id="field_id'+field_no+'" size="50" value="'+field_id+'" />'+										
+								  	'</div>'+
+									'<div>'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_class"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_class[]" id="field_class'+field_no+'" size="50" value="'+field_class+'" />'+
+									'</div>'+
+								  	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+	
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_type"); ?>'+
+									'</div>'+
+									'<div class="field custom-field">'+
+									'<select name="field_type[]" id="field_type'+field_no+'" >'+
+										'<option value="text" '; if(field_type == 'text'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_text"); ?></option>'+
+										'<option value="select" '; if(field_type == 'select'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_select"); ?></option>'+
+										'<option value="checkbox" '; if(field_type == 'checkbox'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_checkbox"); ?></option>'+
+										'<option value="multiCheckbox" '; if(field_type == 'multiCheckbox'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_multi_checkbox"); ?></option>'+
+										'<option value="radio" '; if(field_type == 'radio'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_radio"); ?></option>'+
+										'<option value="textarea" '; if(field_type == 'textarea'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_textarea"); ?></option>'+
+										'<option value="file" '; if(field_type == 'file'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_file"); ?></option>'+										
+										'<option value="hidden" '; if(field_type == 'hidden'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_hidden"); ?></option>'+
+										'<option value="multiselect" '; if(field_type == 'multiselect'){ putData += 'selected="selected"'; }  putData += '><?php echo $this->translator->translator("form_dy_field_option_multi_select"); ?></option>'+
+									'</select>&nbsp;'+
+									'<?php echo $this->translator->translator("form_dy_field_width"); ?><input type="text" size="4" class="center" name="field_width[]" id="field_width'+field_no+'" value="'+field_width+'" />&nbsp;'+
+									'<?php echo $this->translator->translator("form_dy_field_height"); ?><input type="text" size="4" class="center" name="field_height[]" id="field_height'+field_no+'" value="'+field_height+'" />'+
+								 	'</div>'+
+								 	'<div class="custom-field-set">'+
+								  		'<?php echo $this->translator->translator("form_dy_field_separator"); ?><textarea class="center" name="field_separator[]" id="field_separator'+field_no+'">'+field_separator+'</textarea>'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+								  		'<?php echo $this->translator->translator("form_dy_field_label"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_label[]" id="field_label'+field_no+'" size="50" value="'+field_label+'" />'+	
+								  	'</div>'+
+								  	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_title"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_title[]" id="field_title'+field_no+'" size="50" value="'+field_title+'" />'+
+								  	'</div>'+
+								  	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+	
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_desc"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_desc[]" id="field_desc'+field_no+'" size="50" value="'+field_desc+'" />'+
+								  	'</div>'+
+								 	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+	
+								  	'<div class="label custom-label">'+
+								  		'<?php echo $this->translator->translator("form_dy_field_option"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_option[]" id="field_option'+field_no+'" size="50" value="'+field_option+'" />	'+
+								  	'</div>'+
+								  	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+									'<div class="label custom-label">'+
+										'<?php echo $this->translator->translator("form_dy_field_default"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="field_default_value[]" id="field_default_value'+field_no+'" size="50" value="'+field_default_value+'" />'+	
+									'</div>'+
+									'<div class="custom-field-set">'+
+								  	'</div>'+
+								'</div>'+	
+								'<div class="form-row">'+
+								  	'<div class="label custom-label">'+
+								  		'<?php echo $this->translator->translator("form_dy_field_regexpr"); ?>'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="text" name="regexpr[]" id="regexpr'+field_no+'" size="50" value="'+regexpr+'" />'+	
+								  	'</div>'+
+								  	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+
+								'<div class="form-row">'+
+								  	'<div class="label custom-label">'+
+									'</div>'+
+								  	'<div class="field custom-field">'+
+										'<input type="checkbox" name="display_admin[]" id="display_admin'+field_no+'" '; if($('input[name=display_admin]').is(':checked')){ putData += ' checked="checked" '; } putData += ' /><?php echo $this->translator->translator("form_dy_field_display_admin"); ?>&nbsp;'+
+										'<input type="checkbox" name="display_frontend[]" id="display_frontend'+field_no+'" '; if($('input[name=display_frontend]').is(':checked')){ putData += ' checked="checked" '; } putData += ' /><?php echo $this->translator->translator("form_dy_field_display_frontend"); ?>&nbsp;'+
+										'<input type="checkbox" name="required[]" id="required'+field_no+'" '; if($('input[name=required]').is(':checked')){ putData += ' checked="checked" '; } putData += ' /><?php echo $this->translator->translator("form_dy_field_required"); ?>'+
+								  	'</div>'+
+								 	'<div class="custom-field-set">'+
+									'</div>'+
+								'</div>'+										
+							'</div>'+
+							'<hr />'+
+							'<div class="form-button-container">'+
+								'<input type="hidden" name="id[]" id="id'+field_no+'" size="50" value="" />'+
+								'<span class="button ui-widget-content-1"><a href="javascript: void(0);" class="delete_field_btn"><span class="icon delete"><?php echo $this->translator->translator("add_form_page_delete_field"); ?></span></a></span>'+
+							'</div>'+
+							'</div>';
+							
+				$('#dynamicFields').append(putData);
+				$('a.delete_field_btn').unbind('click');
+				$('a.delete_field_btn').bind('click',function(){
+					var self = this;
+					$(self).parents("span:first").parents("div:first").parents("div:first").remove();
+					field_no--;
+				});
+				refreshField();
+		 }
+		 else
+		 {
+		 	openMsgDialog("<?php echo $this->translator->translator('form_dy_field_add_field_name_err'); ?>");
+		 }
+	});
+	
+	
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: false,
+			show: 'fade',
+			resizable: 'false',				
+			buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 10000);
+				  }
+		});
+	}
+	
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();
+	});
+	
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+		if(editor){ editor.mirror.setValue($('#front_desc').val()); }	
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+		
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;		
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openPerfectTab(key_arr)
+	{
+		var err_id = '';
+		var sel = null;
+		var getTab = false;
+		
+		for(var i = 1; i <= $('#tabs').children('ul:first').children('li').length ; i++)
+		{				
+			for(var j= 0; j < key_arr.length; j++)
+			{	
+				err_id = '#'+key_arr[j].key+'_err';	
+				if($('#tabs-'+i+':has('+err_id+')').html())
+				{
+					sel = (i - 1);				
+					$("#tabs").tabs({ active: sel }).find(".ui-tabs-nav").sortable({axis:'xy'});
+					if($('#'+key_arr[j].key)[0])
+					{	
+						$('#'+key_arr[j].key)[0].focus();
+					}
+					else
+					{
+						$('#'+key_arr[j].key).focus();
+					}
+					getTab = true;
+					break;							
+				}
+			}
+			if(getTab == true)
+			{
+				break;
+			}
+		}
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			if(tinyMCE.get(field.name))
+			{			
+				fieldObj[filename] = tinyMCE.get(filename).getContent();	
+			}
+			else
+			{
+				fieldObj[field.name] = (editor && field.name == 'front_desc') ? editor.mirror.getValue() : field.value;
+			}			
+		});
+		return fieldObj;
+	}
+	
+	function getAllData()
+	{
+		var formData = getFormData();
+		var field_name 			= new Array(1);
+		var field_group			= new Array(1);
+		var group_order			= new Array(1);
+		var	ids					= new Array(1);
+		var field_id 			= new Array(1);
+		var field_class 		= new Array(1);
+		var field_type 			= new Array(1);
+		var field_width			= new Array(1);
+		var field_height		= new Array(1);
+		var field_separator		= new Array(1);
+		var field_label 		= new Array(1);
+		var field_title 		= new Array(1);
+		var field_desc 			= new Array(1);
+		var field_option 		= new Array(1);
+		var field_default_value	= new Array(1);
+		var regexpr 			= new Array(1);
+		var display_admin 		= new Array(1);
+		var display_frontend 	= new Array(1);
+		var required 			= new Array(1);
+		var field_order 		= new Array(1);
+		$("input[name='field_name[]']").each(function(id,field) { 				
+			field_name[id] 		= field.value;
+			ids[id]				= $("input[name='id[]']:eq("+id+")").val();
+			field_group[id] 	= $("input[name='field_group[]']:eq("+id+")").val();
+			group_order[id] 	= $("input[name='group_order[]']:eq("+id+")").val();
+			field_id[id] 		= $("input[name='field_id[]']:eq("+id+")").val();
+			field_class[id] 	= $("input[name='field_class[]']:eq("+id+")").val();
+			field_type[id] 		= $("select[name='field_type[]']:eq("+id+")").val();
+			field_width[id]		= $("input[name='field_width[]']:eq("+id+")").val();
+			field_height[id]	= $("input[name='field_height[]']:eq("+id+")").val();
+			field_separator[id]	= $("textarea[name='field_separator[]']:eq("+id+")").val();
+			field_label[id] 	= $("input[name='field_label[]']:eq("+id+")").val();
+			field_title[id] 	= $("input[name='field_title[]']:eq("+id+")").val();
+			field_desc[id] 		= $("input[name='field_desc[]']:eq("+id+")").val();
+			field_option[id] 	= $("input[name='field_option[]']:eq("+id+")").val();
+			field_default_value[id] = $("input[name='field_default_value[]']:eq("+id+")").val();
+			regexpr[id] 		= $("input[name='regexpr[]']:eq("+id+")").val();
+			display_admin[id] 	= ($("input[name='display_admin[]']:eq("+id+")").is(':checked')) ? '1' : '0';
+			display_frontend[id]= ($("input[name='display_frontend[]']:eq("+id+")").is(':checked')) ? '1' : '0';
+			required[id] 		= ($("input[name='required[]']:eq("+id+")").is(':checked')) ? '1' : '0';
+			field_order[id] 	= $("input[name='field_order[]']:eq("+id+")").val();							
+		});	
+		
+		formData.form_id = '<?php echo $this->form_id; ?>';	
+		formData.field_group 	= field_group;
+		formData.group_order 	= group_order;			
+		formData.field_name 	= field_name;
+		formData.id 			= ids;
+		formData.field_id 		= field_id;
+		formData.field_class 	= field_class;
+		formData.field_type 	= field_type;
+		formData.field_width 	= field_width;
+		formData.field_height 	= field_height;
+		formData.field_separator= field_separator;
+		formData.field_label	= field_label;
+		formData.field_title	= field_title;
+		formData.field_desc		= field_desc;
+		formData.field_option	= field_option;
+		formData.field_default_value = field_default_value;
+		formData.regexpr 		= regexpr;
+		formData.display_admin	= display_admin;
+		formData.display_frontend= display_frontend;
+		formData.required 		= required;
+		formData.field_order 	= field_order;
+		
+		return formData;
+	}
+	
+	$('a.edit_form_btn').click(function() {			
+			
+		var formData = getAllData();
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						if(json_arr.field_id_array)
+						{
+							for(var i= 0; i < json_arr.field_id_array.length; i++)
+							{
+								$("input[name='id[]']:eq("+i+")").val(json_arr.field_id_array[i]);							
+							}
+						}
+						$('a.delete_field_btn').addClass('delete_ex_field_btn');
+						$('a.delete_field_btn').removeClass('delete_field_btn');
+						
+						$('a.delete_field_btn').unbind('click');
+						$('a.delete_ex_field_btn').unbind('click');
+						$('a.delete_ex_field_btn').bind('click',function(){
+							var self = this;
+							var rel = $(self).parents("div:first").children('input:nth-child(1)').val();
+							
+							$.ajax({
+								url: "<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'deletefield' ), 'adminrout',    true) ?>",
+									type: 'POST',
+									data: { id : rel },
+									beforeSend: function(){						
+											$(self).html('<span class="icon loader"></span>');			
+										 },
+									success: function(response){
+										//alert(response);					
+										var json_arr = eval("("+response+")");								
+										if(json_arr.status == 'ok')
+										{
+											$(self).parents("span:first").parents("div:first").parents("div:first").remove();
+											field_no--;											
+										}
+										else
+										{
+											openMsgDialog(json_arr.msg);
+											$(self).html('<?php echo addslashes($this->translator->translator("add_form_page_delete_field")); ?>');
+										}					
+									}
+							});		
+						});
+						
+										
+					}
+					else if(json_arr.status == 'errV')
+					{						
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							focusFirst(json_arr.msg[i].key, json_arr.msg[i].value, i);
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+						openPerfectTab(json_arr.msg);
+					}
+					else
+					{						
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});		
+	
+});
+
+
+</script>
+<div id="container">
+<?php   if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else :  ?>
+
+<div class="title-container">
+	<div class="forms-edit"><h1><?php echo $this->translator->translator('edit_form_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_form_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <div id="button_top_bar"></div>
+    
+    <div id="generalInfo">
+		<div id="tabs">
+        	<ul>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('form_general_info'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('form_meta_info'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('form_style_info'); ?></a></li>
+				<li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('form_captcha_info'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-5"><?php echo $this->translator->translator('form_field_info'); ?></a></li>
+            </ul>
+            
+            <form name="formDynamic" id="formDynamic" method="post" >
+            	<div id="tabs-1">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('form_general_info'); ?></legend>
+                        <div class="form">
+                        	<div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->form_name->getLabel(); if($this->CustomForm->form_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->form_name; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->form_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="form_name_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->login_set->getLabel(); if($this->CustomForm->login_set->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->login_set; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->login_set->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="login_set_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->db_set->getLabel(); if($this->CustomForm->db_set->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->db_set; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->db_set->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="db_set_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->email_set->getLabel(); if($this->CustomForm->email_set->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->email_set; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->email_set->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_set_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->email_template_set->getLabel(); if($this->CustomForm->email_template_set->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->email_template_set; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->email_template_set->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_template_set_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->email_to->getLabel(); if($this->CustomForm->email_to->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->email_to; ?>
+                               		<p class="email"><a href="javascript:void(0);" class="global_email"><img src="application/modules/Administrator/layouts/scripts/images/common/email.png" border="0px" title="<?php echo $this->translator->translator('Members_global_email_put'); ?>" alt="<?php echo $this->translator->translator('Members_global_email_put'); ?>"/></a>
+                               		<span><?php echo $this->translator->translator('Members_global_email_put'); ?></span></p>
+                                	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->email_to->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                	<div class="input-errors" id="email_to_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->email_cc->getLabel(); if($this->CustomForm->email_cc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->email_cc; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->email_cc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_cc_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->email_bcc->getLabel(); if($this->CustomForm->email_bcc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->email_bcc; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->email_bcc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_bcc_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->support_tags->getLabel(); if($this->CustomForm->support_tags->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->support_tags; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->support_tags->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="support_tags_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->support_attribs->getLabel(); if($this->CustomForm->support_attribs->isRequired()){ ?><span class="required">*</span><?php } ?> <?php echo $this->CustomForm->support_attribs->getLabel(); if($this->CustomForm->support_attribs->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->support_attribs; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->support_attribs->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="support_attribs_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->editor_fields->getLabel(); if($this->CustomForm->editor_fields->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->editor_fields; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->editor_fields->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="editor_fields_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->form_type->getLabel(); if($this->CustomForm->form_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->form_type; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->form_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="form_type_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->group_no->getLabel(); if($this->CustomForm->group_no->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->group_no; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->group_no->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="group_no_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->attach_file_path->getLabel(); if($this->CustomForm->attach_file_path->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->attach_file_path; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->attach_file_path->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="attach_file_path_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->attach_file_delete->getLabel(); if($this->CustomForm->attach_file_delete->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->attach_file_delete; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->attach_file_delete->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="attach_file_delete_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->attach_file_type->getLabel(); if($this->CustomForm->attach_file_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->attach_file_type; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->attach_file_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="attach_file_type_err"></div>
+                                </div>
+                        	</div>
+                            
+                            <div class="form-row">
+                        		<div class="label">
+                                	<?php echo $this->CustomForm->attach_file_max_size->getLabel(); if($this->CustomForm->attach_file_max_size->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          		</div>
+                                
+                                <div class="field">
+                                	<?php echo $this->CustomForm->attach_file_max_size; ?>&nbsp;<?php echo $this->translator->translator('zero_file_size'); ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->attach_file_max_size->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="attach_file_max_size_err"></div>
+                                </div>
+                        	</div>
+                      	</div>
+                  	</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->CustomForm->front_desc->getLabel(); ?></legend>
+                            <div><?php echo $this->CustomForm->front_desc; ?></div>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->front_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>												
+                            <span id="loaderLink"><a href="javascript:void(0);" class="loaderLink_class" rel="wysiwyg,front_desc"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator('common_editor_open'); ?>" alt="<?php echo $this->translator->translator('common_editor_open'); ?>" ></a></span>
+                            <div class="ui-widget" id="front_desc_err"></div>
+                    </fieldset>
+                </div>
+                
+                <div id="tabs-2">
+                	<fieldset class="fieldset last">
+						<legend class="legend"><?php echo $this->translator->translator('form_meta_info'); ?></legend>
+                   		<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->meta_title->getLabel();  if($this->CustomForm->meta_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->meta_title; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->meta_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_title_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->meta_keywords->getLabel();  if($this->CustomForm->meta_keywords->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->meta_keywords; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->meta_keywords->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_keywords_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->meta_desc->getLabel();  if($this->CustomForm->meta_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->meta_desc; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->meta_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_desc_err"></div>                                   
+                                </div>
+                            </div>
+                      	</div>
+                  	</fieldset>
+                </div>
+                
+                <div id="tabs-3">
+                	<fieldset class="fieldset last">
+						<legend class="legend"><?php echo $this->translator->translator('form_style_info'); ?></legend>
+                   		<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->label_class->getLabel(); if($this->CustomForm->label_class->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->label_class; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->label_class->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="label_class_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->label_style->getLabel(); if($this->CustomForm->label_style->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->label_style; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->label_style->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="label_style_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->star_class->getLabel(); if($this->CustomForm->star_class->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->star_class; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->star_class->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="star_class_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->CustomForm->star_style->getLabel(); if($this->CustomForm->star_style->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->CustomForm->star_style; ?>
+                                   	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->star_style->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="star_style_err"></div>                                   
+                                </div>
+                            </div>
+                            
+                      	</div>
+                	</fieldset>
+                </div>
+				
+				<div id="tabs-4">
+           		<fieldset class="fieldset last">
+					<legend class="legend"><?php echo $this->translator->translator('form_captcha_info'); ?></legend>
+                    <div class="form">
+                    	<div class="form-row">
+                            <div class="label">
+                                 <?php echo $this->CustomForm->captcha_enable->getLabel(); if($this->CustomForm->captcha_enable->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                                <?php echo $this->CustomForm->captcha_enable; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_enable->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_enable_err"></div>                              
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->CustomForm->captcha_field_name->getLabel(); if($this->CustomForm->captcha_field_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                                <?php echo $this->CustomForm->captcha_field_name; ?>
+                               	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_field_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+								<div class="input-errors" id="captcha_field_name_err"></div>                     
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                 <?php echo $this->CustomForm->captcha_word_length->getLabel(); if($this->CustomForm->captcha_word_length->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                                <?php echo $this->CustomForm->captcha_word_length; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_word_length->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_word_length_err"></div>                 
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_width->getLabel(); if($this->CustomForm->captcha_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_width; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_width->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_width_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_height->getLabel(); if($this->CustomForm->captcha_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_height; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_height_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_dot_noise_level->getLabel(); if($this->CustomForm->captcha_dot_noise_level->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_dot_noise_level; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_dot_noise_level->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_dot_noise_level_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_line_noise_level->getLabel(); if($this->CustomForm->captcha_line_noise_level->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_line_noise_level; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_line_noise_level->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_line_noise_level_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_gc_freq->getLabel(); if($this->CustomForm->captcha_gc_freq->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_gc_freq; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_gc_freq->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_gc_freq_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_font_color_r->getLabel(); if($this->CustomForm->captcha_font_color_r->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_font_color_r; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_font_color_r->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_font_color_r_err"></div>                            
+							</div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_font_color_g->getLabel(); if($this->CustomForm->captcha_font_color_g->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_font_color_g; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_font_color_g->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <span id="captcha_font_color_picker"></span>
+								<div class="input-errors" id="captcha_font_color_g_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_font_color_b->getLabel(); if($this->CustomForm->captcha_font_color_b->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_font_color_b; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_font_color_b->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_font_color_b_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_background_color_r->getLabel(); if($this->CustomForm->captcha_background_color_r->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_background_color_r; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_background_color_r->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_background_color_r_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_background_color_g->getLabel(); if($this->CustomForm->captcha_background_color_g->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_background_color_g; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_background_color_g->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <span id="captcha_background_color_picker"></span>
+								<div class="input-errors" id="captcha_background_color_g_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_background_color_b->getLabel(); if($this->CustomForm->captcha_background_color_b->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_background_color_b; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_background_color_b->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_background_color_b_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_font->getLabel(); if($this->CustomForm->captcha_font->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_font; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_font->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_font_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_font_size->getLabel(); if($this->CustomForm->captcha_font_size->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_font_size; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_font_size->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_font_size_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_img_dir->getLabel(); if($this->CustomForm->captcha_img_dir->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_img_dir; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_img_dir->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_img_dir_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_img_url->getLabel(); if($this->CustomForm->captcha_img_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_img_url; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_img_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_img_url_err"></div>                            
+							</div>
+                        </div>
+						
+                        <div class="form-row">
+                            <div class="label">
+                               	<?php echo $this->CustomForm->captcha_timeout->getLabel(); if($this->CustomForm->captcha_timeout->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->CustomForm->captcha_timeout; ?>
+                              	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->CustomForm->captcha_timeout->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="captcha_timeout_err"></div>                            
+							</div>
+                        </div>
+						
+					</div>
+				</fieldset>
+            </div>
+            </form>
+            <div id="tabs-5">
+            	<fieldset class="fieldset last">
+					<legend class="legend"><?php echo $this->translator->translator('form_field_info'); ?></legend>
+            		
+                   	<div id="dynamicFields">
+						<?php
+                            $fields = new Members_Model_DbTable_Fields();
+                            $field_info = $fields->getFieldsInfo($this->form_id);
+                            foreach($field_info as $field)
+                            {
+                        ?>
+                        
+                        <div class="new-form-container">
+                            <div class="form">    
+                                                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_group_name'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_group[]" id="field_group<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_group); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                        <?php echo $this->translator->translator('form_dy_field_group_order'); ?>&nbsp;
+                                        <input type="text" name="group_order[]" id="group_order<?php echo $this->escape($field->field_order); ?>" class="center" size="5" value="<?php echo $this->escape($field->group_order); ?>" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_name'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_name[]" id="field_name<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_name); ?>" />	
+                                        <br />
+                                        <?php echo $this->escape($this->translator->translator('reserved_field_name')); ?>
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                        <?php echo $this->translator->translator('form_dy_field_order'); ?>&nbsp;
+                                        <input type="text" name="field_order[]" id="field_order<?php echo $this->escape($field->field_order); ?>" class="center" size="5" value="<?php echo $this->escape($field->field_order); ?>" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_id'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_id[]" id="field_id<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_id); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_class'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_class[]" id="field_class<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_class); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_type'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <select name="field_type[]" id="field_type<?php echo $this->escape($field->field_order); ?>" >
+                                            <option value="text" <?php if($this->escape($field->field_type) == 'text'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_text'); ?></option>
+                                            <option value="select" <?php if($this->escape($field->field_type) == 'select'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_select'); ?></option>
+                                            <option value="checkbox" <?php if($this->escape($field->field_type) == 'checkbox'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_checkbox'); ?></option>
+                                            <option value="multiCheckbox" <?php if($this->escape($field->field_type) == 'multiCheckbox'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_multi_checkbox'); ?></option>
+                                            <option value="radio" <?php if($this->escape($field->field_type) == 'radio'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_radio'); ?></option>
+                                            <option value="textarea" <?php if($this->escape($field->field_type) == 'textarea'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_textarea'); ?></option>
+                                            <option value="file" <?php if($this->escape($field->field_type) == 'file'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator('form_dy_field_option_file'); ?></option>
+                                            <option value="hidden" <?php if($this->escape($field->field_type) == 'hidden'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator("form_dy_field_option_hidden"); ?></option>
+                                            <option value="multiselect" <?php if($this->escape($field->field_type) == 'multiselect'){ ?> selected="selected"<?php } ?>><?php echo $this->translator->translator("form_dy_field_option_multi_select"); ?></option>
+                                        </select>
+                                        &nbsp;
+                                        <?php echo $this->translator->translator('form_dy_field_width'); ?><input type="text" size="4" class="center" name="field_width[]" id="field_width<?php echo $this->escape($field->field_order); ?>" value="<?php echo $this->escape($field->field_width); ?>" />&nbsp;
+                                        <?php echo $this->translator->translator('form_dy_field_height'); ?><input type="text" size="4" class="center" name="field_height[]" id="field_height<?php echo $this->escape($field->field_order); ?>" value="<?php echo $this->escape($field->field_height); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                        <?php echo $this->translator->translator('form_dy_field_separator'); ?><textarea class="center" name="field_separator[]" id="field_separator<?php echo $this->escape($field->field_order); ?>"><?php echo $this->escape($field->field_separator); ?></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_label'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_label[]" id="field_label<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_label); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                 <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_title'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_title[]" id="field_title<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_title); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_desc'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_desc[]" id="field_desc<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_desc); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_option'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_option[]" id="field_option<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_option); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_default'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="field_default_value[]" id="field_default_value<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->field_default_value); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                         <?php echo $this->translator->translator('form_dy_field_regexpr'); ?>
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="text" name="regexpr[]" id="regexpr<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->regexpr); ?>" />
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="label custom-label">
+                                    </div>
+                                    
+                                    <div class="field custom-field">
+                                        <input type="checkbox" name="display_admin[]" id="display_admin<?php echo $this->escape($field->field_order); ?>"  <?php if($this->escape($field->display_admin) == '1'){ ?> checked="checked"<?php } ?> /><?php echo $this->translator->translator('form_dy_field_display_admin'); ?>&nbsp;
+                                        <input type="checkbox" name="display_frontend[]" id="display_frontend<?php echo $this->escape($field->field_order); ?>"  <?php if($this->escape($field->display_frontend) == '1'){ ?> checked="checked"<?php } ?> /><?php echo $this->translator->translator('form_dy_field_display_frontend'); ?>&nbsp;
+                                        <input type="checkbox" name="required[]" id="required<?php echo $this->escape($field->field_order); ?>"  <?php if($this->escape($field->required) == '1'){ ?> checked="checked"<?php } ?> /><?php echo $this->translator->translator('form_dy_field_required'); ?>
+                                    </div>
+                                    
+                                    <div class="custom-field-set">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr />
+                            <div class="form-button-container">
+                            	<input type="hidden" name="id[]" id="id<?php echo $this->escape($field->field_order); ?>" size="50" value="<?php echo $this->escape($field->id); ?>" />
+                                <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="delete_ex_field_btn" rel="<?php echo $this->escape($field->id); ?>"><span class="icon delete"><?php echo $this->translator->translator("add_form_page_delete_field"); ?></span></a></span>
+                            </div>
+                        </div>
+                        
+                        <?php 
+                            $order = $this->escape($field->field_order); 
+                            }
+                        ?>
+                     </div>
+                
+                    <div class="form-info"><p><?php echo $this->translator->translator('form_dy_field_add_info'); ?></p></div>
+                    <h6><?php echo $this->translator->translator('form_dy_field_add_name'); ?></h6>
+                    
+                    <div class="activate-form-container">
+                    	<div class="form">    
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                     <?php echo $this->translator->translator('form_dy_field_group_name'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_group" id="field_group" size="50" value="Group 1" />                            
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                    <?php echo $this->translator->translator('form_dy_field_group_order'); ?>&nbsp;
+									<input type="text" name="group_order" id="group_order" class="center" size="5" value="1" />
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                     <?php echo $this->translator->translator('form_dy_field_name'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_name" id="field_name" size="50" value="" /><br />
+									<?php echo $this->escape($this->translator->translator('reserved_field_name')); ?>                           
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                    <?php echo $this->translator->translator('form_dy_field_order'); ?>&nbsp;
+									<input type="text" name="field_order" id="field_order" class="center" size="5" value="<?php echo ++$order; ?>" />
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                     <?php echo $this->translator->translator('form_dy_field_id'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_id" id="field_id" size="50" value="" />                           
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                     <?php echo $this->translator->translator('form_dy_field_class'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_class" id="field_class" size="50" value="ui-widget-content ui-corner-all" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                     <?php echo $this->translator->translator('form_dy_field_type'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <select name="field_type" id="field_type" >
+                                        <option value="text"><?php echo $this->translator->translator('form_dy_field_option_text'); ?></option>
+                                        <option value="select"><?php echo $this->translator->translator('form_dy_field_option_select'); ?></option>
+                                        <option value="checkbox"><?php echo $this->translator->translator('form_dy_field_option_checkbox'); ?></option>
+                                        <option value="multiCheckbox"><?php echo $this->translator->translator('form_dy_field_option_multi_checkbox'); ?></option>
+                                        <option value="radio"><?php echo $this->translator->translator('form_dy_field_option_radio'); ?></option>
+                                        <option value="textarea"><?php echo $this->translator->translator('form_dy_field_option_textarea'); ?></option>
+                                        <option value="file"><?php echo $this->translator->translator('form_dy_field_option_file'); ?></option>
+                                        <option value="hidden"><?php echo $this->translator->translator('form_dy_field_option_hidden'); ?></option>
+                                        <option value="multiselect"><?php echo $this->translator->translator('form_dy_field_option_multi_select'); ?></option>
+                                    </select>
+                                    &nbsp;
+                                    <?php echo $this->translator->translator('form_dy_field_width'); ?><input type="text" size="4" class="center" name="field_width" id="field_width" value="10" />&nbsp;
+                                    <?php echo $this->translator->translator('form_dy_field_height'); ?><input type="text" size="4" class="center" name="field_height" id="field_height" value="10" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                	<?php echo $this->translator->translator('form_dy_field_separator'); ?><textarea class="center" name="field_separator" id="field_separator"><br /></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_label'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_label" id="field_label" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_title'); ?>	
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_title" id="field_title" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_desc'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_desc" id="field_desc" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_option'); ?>	
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_option" id="field_option" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_default'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="field_default_value" id="field_default_value" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                    <?php echo $this->translator->translator('form_dy_field_regexpr'); ?>
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="text" name="regexpr" id="regexpr" size="50" value="" />
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label custom-label">
+                                </div>
+                                
+                                <div class="field custom-field">
+                                    <input type="checkbox" name="display_admin" id="display_admin" checked="checked" /><?php echo $this->translator->translator('form_dy_field_display_admin'); ?>&nbsp;
+									<input type="checkbox" name="display_frontend" id="display_frontend" checked="checked" /><?php echo $this->translator->translator('form_dy_field_display_frontend'); ?>&nbsp;
+									<input type="checkbox" name="required" id="required" /><?php echo $this->translator->translator('form_dy_field_required'); ?>
+                                </div>
+                                
+                                <div class="custom-field-set">
+                                </div>
+                            </div>
+                      	</div>
+                        <hr />
+                        <div class="form-button-container">
+                            <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_field_btn"><span class="icon add"><?php echo $this->translator->translator('add_form_page_add_field'); ?></span></a></span>
+                        </div>
+                	</div>
+              	</fieldset>
+            </div>
+        </div>
+    </div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_form_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('edit_form_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_form_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<script type="text/javascript">
+	openCodeMirror('front_desc');
+</script>
+<?php endif; ?>	
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('edit_form_page_name')); ?>"></div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+</div>

@@ -1,0 +1,11 @@
+<?php
+if($this->invoice_arr)
+{
+?>
+	<a href="javascript:print();"><?php echo $this->translator->translator('common_print'); ?></a>
+	<?php
+		echo $this->escape($this->invoice_arr['invoice_desc']);
+	?>		
+<?php
+}
+?>

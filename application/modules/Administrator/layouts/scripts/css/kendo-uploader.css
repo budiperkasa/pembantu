@@ -1,0 +1,64 @@
+/* Kendo UI Customization ----------------------------------------------------------- */
+
+.k-block, .k-widget, .k-input, .k-textbox, .k-group, .k-content, .k-header, .k-editable-area, .k-separator, .k-colorpicker .k-i-arrow-s, .k-textbox > input, .k-autocomplete, .k-dropdown-wrap, .k-toolbar, .k-group-footer td, .k-grid-footer, .k-footer-template td, .k-state-default, .k-state-default .k-select, .k-state-disabled, .k-grid-header-wrap, .k-grid-header, .k-grid td, .k-grid td.k-state-selected, .k-grid-footer-wrap, .k-pager-wrap, .k-pager-wrap .k-link, .k-pager-refresh, .k-grouping-header, .k-grouping-header .k-group-indicator, .k-panelbar > .k-item > .k-link, .k-panel > .k-item > .k-link, .k-panelbar .k-panel, .k-panelbar .k-content, .k-calendar th, .k-slider-track, .k-splitbar, .k-dropzone-active, .k-upload-files, .k-tiles, .k-toolbar, .k-tooltip, .k-progress {
+	font-size:12px;
+}
+
+.k-filter-menu input[type="text"].k-textbox{
+	border-radius:4px;
+}
+
+.k-dropzone{
+	padding:0;
+	margin:5px 0 0 0;
+}
+
+.k-upload-button{
+	width:100%;
+	display:inline-block;
+	padding:10px 0;
+	border:2px dashed #B3B6BC;
+	vertical-align:middle;
+	background-repeat:no-repeat;
+	background-position:center top;
+}
+
+.k-upload-button div.round{
+	width:100px;
+	height:100px;
+	border-radius:100px;
+	background-image:url("../images/common/file-uploader.jpg");
+	margin:0 auto 10px auto;
+	position:relative;
+	box-shadow: 0px 0px 10px rgba(111, 113, 125, 0.69);
+}
+
+.k-upload-button div.round:after{
+	background-image:url("../images/common/shape.png");
+	border-radius:100px;
+	background-position: center 4px;
+	background-repeat:no-repeat;
+	box-shadow: 0 3px 0 rgba(111, 113, 125, 0.69) inset, 0 0 0 1px rgba(144, 146, 154, 0.6) inset;
+	position:absolute;
+	top:0;
+	right:0;
+    content: "";
+    height: 100%;
+    width: 100%;
+}
+
+.k-upload-button span{
+	font-weight:bold;
+	text-shadow: 1px 1px 0 #FFF;
+	display:block;
+}
+
+.k-upload-button:hover span{
+	color:#FFF;
+	text-shadow:none;
+}
+
+.k-upload-button input[type="file"]{
+	height:150px;
+}
+/* ---------------------------------------------------------------------------------- */

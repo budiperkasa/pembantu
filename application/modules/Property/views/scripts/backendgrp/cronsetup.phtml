@@ -1,0 +1,19 @@
+<div id="container">
+    <div class="title-container">
+        <div class="cron-job"><h1><?php echo $this->translator->translator('property_cron_setup_title'); ?></h1></div>
+    </div>
+
+    <div class="content-container">
+        <div class="cron-container">
+            <?php echo $this->translator->translator('property_cron_setup_label'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Property/cron/run" type="text">
+        </div>
+        
+        <div class="cron-container">
+            <?php echo $this->translator->translator('property_cron_setup_label'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Property/cron/account" type="text">
+        </div>
+        
+        <div class="cron-container">
+            <?php echo $this->translator->translator('property_cron_setup_label'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Property/cron/expire" type="text">
+        </div>
+    </div>
+</div>

@@ -1,0 +1,131 @@
+<?php
+$version = Zend_Registry::get('version');
+$auth = Zend_Auth::getInstance ();
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+					
+		$.each($('form').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		$.each($('form').serializeArray(), function(i, field) {	
+			fieldObj[field.name] = field.value;						
+		});
+		return fieldObj;
+	}
+	
+	$('a.get_pass_btn').click(function() 
+	{	
+		var formData = getFormData();				  	
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Password','controller' => 'Backend', 'action'     => 'send' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){
+					openLoaderDialog();
+					removeError();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{					
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						resetFields();														
+					}
+					else if(json_arr.status == 'errV')
+					{					
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				}
+		});
+	});	
+});
+</script>
+<?php if ($auth->hasIdentity ()){ ?><div id="content"><?php } ?>
+
+<div class="password">
+	<div class="password-icon"><h1><?php echo $this->translator->translator('password_page_name'); ?></h1></div>
+    <div class="clr"></div>
+    <form name="formPassword" id="formPassword" method="post">	
+    	<fieldset class="fieldset">
+        	<div id="generalInfo"></div>
+    		<legend><?php echo $this->translator->translator('password_page_info'); ?></legend>
+            <div id="actionMessage"></div>
+            
+            <span class="label"><?php echo $this->PasswordForm->username->getLabel(); if($this->PasswordForm->username->isRequired()){ ?><span class="required">*</span><?php } ?></span>
+            
+            <?php echo $this->PasswordForm->username; ?><a href="<?php echo $this->url(array('controller'=>'index', 'action'=>'index' , 'module'=>'Administrator'));?>" class="icon"><?php echo  $this->translator->translator('admin_header_login_link'); ?></a>
+            
+            <p><span id="username_err" class="input-errors"></span></p>
+			<div>&nbsp;</div>
+        </fieldset>        
+        <div class="clr form-button-container toggle-btn">
+            <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+            <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="get_pass_btn"><span class="icon submit"><?php echo $this->translator->translator('common_send'); ?></span></a></span>
+        </div>
+
+    </form>
+</div>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_processing_language'); ?>"><div id="progressbar" style="height:22px;margin-top:30px;"></div></div> 
+<?php if ($auth->hasIdentity ()){ ?></div><?php } ?>

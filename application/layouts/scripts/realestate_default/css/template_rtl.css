@@ -1,0 +1,873 @@
+/* ___________________________________________________________________________________
+   
+   CSS Framework for Eicra Realestate Script [Templates, Blocks & Product Modules] 
+   ___________________________________________________________________________________ */
+   
+
+/*	GLOBAL STYLES ******************************************************************** */
+
+@charset "utf-8";
+
+html{
+	direction:rtl; 
+}
+
+body{
+	direction:rtl;
+    font-family: Tahoma,Arial,Helvetica,sans-serif;
+	font-size: 76%;
+}
+
+input[type="text"],
+input[type="password"], select, textarea,
+select.ui-widget-content, textarea.ui-widget-content{
+	margin:0 0 0 10px;
+}
+
+input[type="checkbox"],
+input[type="radio"]{
+	margin:0 0 5px 8px;
+}
+
+select option{
+	padding:0 4px 0 0;
+}
+
+/* ********************************************************************************** */
+
+/* LAYOUT STYLES ******************************************************************** */
+
+#content{
+	float:right;
+}
+
+/* Top Bar -------------------------------------------------------------------------- */
+
+.user-link{
+	float:right;
+	padding-left:0;
+	padding-right:2px;
+}
+
+.top-links ul{
+	margin: 0 0 0 5px;
+	float:left;
+}
+
+.top-links ul li{ 
+	margin-right:0; 
+	padding: 0 5px 0 1px;
+	border-left:0;
+	border-right:1px solid #8FBF00;
+}
+			
+.top-links ul li.first{ 
+	margin-right:0; 
+	border-right: none; 
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Header --------------------------------------------------------------------------- */
+
+#header .logo{
+	float:right;
+}
+
+#header .support{
+	float:left;
+	text-align:left;
+}
+
+#header .listing span.icon{
+	background-repeat:no-repeat;
+	background-position: right center;
+	margin:2px 0 0 5px;
+}
+
+#header .listing-count{
+	margin: 8px 0 0 10px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Side Bar ------------------------------------------------------------------------- */
+
+#sidebar{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Banner --------------------------------------------------------------------------- */
+
+#banner .left-bg{
+	background:url(../images/search-right.jpg) no-repeat;
+	float:right;
+}
+
+#banner .right-bg{
+	background:url(../images/search-left.jpg) no-repeat;
+	float:left;
+}
+
+#banner .bg{
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Block Box Model ------------------------------------------------------------------ */
+
+.block .block-heading .symbol{
+	background-image:url(../images/round-arrow-rtl.png);
+	background-position: 99% center;
+	background-repeat:no-repeat;
+	padding:10px 35px 10px 0;
+}
+
+.block .thumb{
+	margin: 2px 0 2px 4px;
+	float:right;
+}
+
+.block .img-wrapper,
+	   .img-wrapper{
+	float:right;
+}
+
+.block .img-wrapper .photo-count-container,
+	   .img-wrapper .photo-count-container{
+	left:0px;
+	right:5px;
+}
+
+.block .link-btn a{
+	float:left;
+}
+
+.block .more a {
+	background: url(../images/arrow-2-rtl.gif);
+	background-repeat:no-repeat;
+	background-position:99% 2px;
+	padding: 0 15px 0 0;
+	float:right;
+	clear:right;
+}
+
+.block .list{
+	margin:5px 10px 5px 0;
+	float:right;
+}
+
+.block .list ul li{
+	background-image:url(../images/list-arrow-rtl.gif);
+	background-position:98% 7px;
+	background-repeat:no-repeat;
+	padding:0 20px 0 0;
+}
+
+.left-float {
+	float:right;
+	margin: 0 0 5px 10px;
+}
+
+.right-float {
+	float:left;
+	margin: 0 10px 5px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Footer --------------------------------------------------------------------------- */
+
+#footer .social{
+	float:left;
+}
+
+#footer .links ul li {
+	padding: 0 5px 0 1px; 
+	border-left:0;
+	border-right: 1px solid #9C0;
+}
+			
+#footer .links ul li.first{
+	border-right:0;
+}
+
+.go-top a{
+	right:0;
+	left:30px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Inner Page Layout ---------------------------------------------------------------- */
+
+#sidebar-inner{
+	float:right;
+}
+
+#content-inner{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* ********************************************************************************** */
+
+
+/* BLOCKS STYLE ********************************************************************* */
+
+/* Language Flag -------------------------------------------------------------------- */
+
+.flags{
+	float:left;
+}
+
+.flags .dropdown dl{ 
+	float:left;
+}
+
+.dropdown dt a{
+	background-repeat:no-repeat;
+	background-position: left center;
+	padding-right:0;
+	padding-left:20px;
+}
+
+.dropdown dd ul{ 
+	right:0px;
+}
+
+.dropdown span.flag{
+	margin-left:0;
+	margin-right:10px;
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Top Navigation ------------------------------------------------------------------- */
+
+.dm-menu {
+	float: right !important;
+}
+
+.dm-menu li {
+	float:right !important;
+}
+
+.dm-menu a {
+	border-left: 1px solid #4BA51B !important;
+	border-right:1px solid #20560C !important;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Banner AD ------------------------------------------------------------------------ */
+
+.block-ad-banner .block-content{
+	float:left;
+}
+
+.block-ad-banner .block-content .top{
+	background:url(../images/buy-property-rtl.png) no-repeat;
+	padding:6px 8px 9px 0;
+}
+
+.block-ad-banner .block-content .middle{
+	background:url(../images/sell-property-rtl.png) no-repeat;
+	padding:6px 8px 8px 0;
+}
+
+.block-ad-banner .block-content .bottom{
+	background:url(../images/rent-property-rtl.png) no-repeat;
+	padding:6px 8px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Footer AD ------------------------------------------------------------------------ */
+
+.block-ad-footer{
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Property Agent AD ---------------------------------------------------------------- */
+
+.block-ad-agent .block-body{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Tab Panel ------------------------------------------------------------------------ */
+
+.usual ul li{ 
+	float:right;
+}
+
+.usual ul li a{
+	margin:0px -1px 0 4px;
+}
+
+.usual-content{
+  clear:right;
+  border-radius: 6px 0 6px 6px;
+  -moz-border-radius: 6px 0 6px 6px;
+  -webkit-border-radius: 6px 0 6px 6px;
+}			
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Realestate Banner Search --------------------------------------------------------- */
+
+.block-search .block-content{
+	float:right;
+}
+
+.block-search .col{
+	padding: 0 0 3px 12px;
+	float:right;
+}
+
+.block-search .col.last{
+	padding: 0 0 0 8px;
+}
+
+.block-search p{
+	padding: 4px 0 1px 8px;
+}
+
+.block-search p.name{
+	float:right;
+}
+
+.block-search .ui-widget .ui-button{ 
+	margin: 2px -1px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Realestate Agent Search ---------------------------------------------------------- */
+
+.block-agent-search .block-content{
+	padding:5px 5px 0 0;
+}
+
+.block-agent-search .block-content .agent-bg{
+	background-repeat:no-repeat;
+	background-position: right 5px;
+	padding: 10px 10px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Realestate Sidebar Search -------------------------------------------------------- */
+
+.block-sidebar-search .block-content-1 input[type="text"]{
+	float:left;
+}
+
+
+.block-sidebar-search .block-content-2 select{
+	float:right;
+}
+
+.block-sidebar-search .block-content-2 select.last{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Featured Property ---------------------------------------------------------------- */
+
+.block-featured .block-body{
+	padding: 10px 8px 10px 0;
+}
+
+.block-featured .col{
+	margin: 5px 10px 12px 30px;
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Featured Property Gallery -------------------------------------------------------- */
+
+.block-featured-gallery .col{
+	float:right;
+	margin:0 6px 5px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* ********************************************************************************** */
+
+
+/* PRODUCT MODULES ****************************************************************** */
+
+/* Global Module Style -------------------------------------------------------------- */
+
+.mod .col{
+	padding: 0 0 3px 12px;
+	float:right;
+}
+
+.mod .img-wrapper .photo-count-container{
+	left:0;
+	right:5px;
+}
+
+.mod .social{
+	float:left;
+	text-align:left;
+}
+
+.mod .list{
+	margin:5px 10px 5px 0;
+	float:right;
+}
+
+.mod .list ul li{
+	background-image:url(../images/list-arrow-rtl.gif);
+	background-position:97% 7px;
+	background-repeat:no-repeat;
+	padding:0 20px 0 0;
+}
+
+.mod .thumb{
+	margin: 0 0 0 10px;
+	float:right;
+}
+
+.mod .more a {
+	background: url(../images/arrow-2-rtl.gif);
+	background-repeat:no-repeat;
+	background-position:right center;
+	float:right;
+	padding: 0 15px 0 0;
+	clear:right;
+}
+
+.mod .chart .label{
+	float:right;
+	clear:left;
+}
+
+.mod .chart .value{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Product Advance Search ----------------------------------------------------------- */
+
+.mod-advance-search .ui-widget .ui-button{ 
+	margin-left: 0px;
+	margin-right: -1px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Product Agent Search ------------------------------------------------------------- */
+
+.mod-agent-search{
+	float:right;
+}
+
+.mod-agent-search-result .list{
+	float:right;
+	margin:0 0 5px 5px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Product List --------------------------------------------------------------------- */
+
+.products-list .list-header .header-row .header-left{
+	padding:2px 5px 2px 0;
+}
+
+.products-list .list-header .header-row .header-right{
+	padding:2px 0 2px 5px;
+	text-align:left;
+	margin: 0 0 0 5px;
+}
+
+.products-list .left-content{
+	float:right;
+}
+
+.products-list .right-content{
+	float:left;
+}
+
+.products-list .list-footer .footer-left{
+	margin: 12px 5px 10px 0;
+	float:right;
+}
+
+.products-list .list-footer .footer-right{
+	float:left;
+	text-align:left;
+	padding: 0 10px 0 5px;
+}
+
+.products-options li{
+	background-position: 99% 4px;
+	padding:7px 27px 2px 0;
+}
+
+.products-featured{
+	background-position:25% -7px;
+}
+
+.products-available,
+.products-not-available{
+	background-position: 99% center;
+	padding-left:0;
+	padding-right:20px;
+}
+
+.products-write-review a{
+	background-repeat:no-repeat;
+	background-position:right 0;
+	padding:0 20px 2px 0;
+}
+
+.products-vote span{
+	margin-right:8px;
+}
+
+.products-vote span input[type="button"]{
+	margin: 0 0 -5px 4px;
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Product Details ------------------------------------------------------------------ */
+
+.mod-details .nav-bar .nav-row .nav-col.first{
+	text-align:right;
+}
+
+.mod-details .nav-bar .nav-row .nav-col.last{
+	text-align:left;
+}
+
+.mod-details .nav-bar .no-link{
+	background-repeat:no-repeat;
+	background-position:right center;
+	padding-left:0;
+	padding-right:20px;
+}
+
+.mod-details .nav-bar .prev a{
+	background-repeat:no-repeat;
+	background-position:right 0;
+	padding-left:0;
+	padding-right:20px;		
+}
+
+.mod-details .nav-bar .next a{
+	background-repeat:no-repeat;
+	background-position:right 0;
+	padding-right:0;
+	padding-left:20px;
+}
+
+.mod-details .nav-bar .search a{
+	background-repeat:no-repeat;
+	background-position:right center;
+	padding-left:0;
+	padding-right:20px;
+}
+
+.mod-details .nav-bar .save a{
+	background-repeat:no-repeat;
+	background-position:right 0;
+	padding-left:0px;
+	padding-right:20px;
+}
+
+.mod-details h1{
+	float:right;
+	margin: 10px 0 10px 20px;
+}
+
+.mod-details .products-type{
+	float:right;
+}
+
+.mod-details .products-info{
+	float:right;
+}
+
+.mod-details .products-info.right{
+	float:left;
+	text-align:left;
+}
+
+.mod-details .products-info.right .products-vote span{
+	padding-right:0;
+	padding-left:18px;
+}
+
+.mod-details .products-feature{
+	float:right;
+}
+
+.mod-details .products-details .content .details-info li,
+.mod-details .products-details .content .details-info ul li {
+	margin-left:0 !important;
+	margin-right:10px !important;
+	padding-left:0px !important;
+	padding-right:10px !important;
+}
+
+.mod-details .products-details-header h4.icon{
+	background-repeat:no-repeat;
+	background-position: 99% center;
+	padding: 8px 30px 8px 0;
+}
+
+.mod-details .products-feature .label{
+	float:right;
+	margin-right:0px;
+	margin-left:2px;
+}
+
+.mod-details .products-feature .value{
+	float:right;
+}
+
+.mod-details .additional-thumb{
+	margin: 0 18px 18px 0;
+}
+
+.mod-details .products-legend{
+	float:left;
+}
+
+.mod-details .products-legend .legend-icon{
+	float:right;
+	padding:0 10px 0 0;
+}
+
+.mod-details .products-features{
+	float:right;
+	margin-right:0;
+	margin-left:10px;
+	text-align:right;
+}
+
+.mod-details .tab-element,
+.mod-details .tab-value{
+	float:right;
+}
+
+.mod-details .tab-value{
+	margin-left:0;
+	margin-right:10px;
+}
+
+/* Box Chart Start -- */
+
+.products-chart .chart-desc .label{
+	float:right;
+}
+
+.products-chart .chart-desc .value{
+	float:left;
+}
+
+/* Box Chart End -- */
+
+/* Box Chart Settings for Other Chart -- */
+
+.products-chart.summary-chart{
+	float:left;
+}
+
+.products-chart.products-availability{
+	float:right;
+}
+
+/* Agent Box Start -- */
+
+.products-agent{
+	float:left;
+	clear:left;
+}
+
+.products-agent .avatar{
+	margin-right:0;
+	margin-left:15px;
+	float:right;
+}
+
+.products-agent .pkg-img{
+	float:right;
+}
+
+.products-agent .company-logo{
+	float:right;
+	margin:6px 0 0 15px;
+}
+
+.products-agent .company-info{
+	float:right;
+}
+
+.products-agent a.agent-email{
+	background-repeat:no-repeat;
+	background-position: right 4px;
+	padding-left:0;
+	padding-right:25px;
+}
+
+/* Agent Box End -- */
+
+/* ----------------------------------------------------------------------------------- */
+
+/* Product Details Middle Tab -------------------------------------------------------- */
+
+.products-middle-tab li { 
+	float:right;
+}
+
+.products-middle-tab ul a {
+	margin:0 -1px 0 4px;
+}
+
+.products-middle-tab-area .products-slideshow{
+	float:right;
+}
+
+.products-middle-tab-area .match-container{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Product Match -------------------------------------------------------------------- */
+
+.products-match .products-review{
+	float:left;
+	text-align:left;
+}
+
+.products-match .products-review .products-write-review{
+	text-align:left;
+	margin: 4px 0 0 2px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Details Page Slideshow ----------------------------------------------------------- */
+
+.products-slideshow .switch {
+    padding: 16px 5px 5px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Itinerary List ------------------------------------------------------------------- */
+
+div.itinerary_main_body_block_clild_body_box2_child1{
+	padding-left:0px;
+	padding-right:10px;
+}
+
+.itinerary-header{
+	margin-left:0px;
+	margin-right:5px;
+}
+
+.itinerary-price{
+	text-align:left;
+	padding-right:0;
+	padding-left:10px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Review Tab ----------------------------------------------------------------------- */
+
+div.review-box-img{
+	float:right;
+	margin:5px 5px 5px 12px;
+}
+
+div.review-box-title{
+	float:right;
+}
+
+div.review-box-desc{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Invoice Module ------------------------------------------------------------------- */
+
+.invoice .invoice-chart .div-hr .div-vr-2{
+	border-left:0;
+	border-right:1px solid #D6D6D6;
+}
+
+.invoice .invoice-chart .div-hr.amount-hr{
+	text-align:left
+}
+
+.invoice .item-title{
+	padding:10px 5px 10px 0;
+}
+
+.invoice .due-balance{
+	padding:10px 0 10px 5px;
+	text-align:left;
+}
+
+.invoice a.remove-btn{
+	float:left;
+	padding:1px 18px 0 5px;
+	background-repeat:no-repeat;
+	background-position: right center;
+}
+
+.invoice-login-area{
+	margin: 20px 20px 0 0;
+}
+
+.invoice-btn-container{
+	padding:10px 15px 5px 0;
+}
+
+h1.status-paid,
+h1.status-unpaid,
+h1.status-calcel{
+	text-align:right;
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Other Button --------------------------------------------------------------------- */
+
+.other-btn a{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* ___________________________________________________________________________________
+   
+   New CSS used by Developer
+   ___________________________________________________________________________________ */
+

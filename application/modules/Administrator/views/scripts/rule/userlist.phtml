@@ -1,0 +1,151 @@
+<script type="text/javascript">
+	$(function() {
+		$(".row").sortable({
+			connectWith: '.row'
+		});
+		
+		$(".portlet").addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
+			.find(".portlet-header")
+				.addClass("ui-widget-header ui-corner-all")
+				.prepend('<span class="ui-icon ui-icon-minusthick"></span>')
+				.end()
+			.find(".portlet-content");
+
+		$(".portlet-header .ui-icon").click(function() {
+			$(this).toggleClass("ui-icon-minusthick").toggleClass("ui-icon-plusthick");
+			$(this).parents(".portlet:first").find(".portlet-content").toggle();
+		});
+		
+		$("#accordion").accordion( {
+			collapsible:true,
+			heightStyle: "content"
+		});
+	});
+	
+$(document).ready(function() {
+	$('a.tSelectAll').click(function() {
+		$(this).parent().find('input[type="checkbox"]').each(function() {
+			$(this).attr('checked', true);
+		});
+	});
+	$('a.tDeselectAll').click(function() {
+		$(this).parent().find('input[type="checkbox"]').each(function() {
+			$(this).attr('checked', false);
+		});
+	});
+	
+	$('input.btn_1').click(function() {
+		var val = '';
+		var allVal = '';
+		var ajax_loader = $(this).parent().find('#ajax_loader');
+		var user_id = $("#user_id").val();
+		$(this).parent().parent().find('input[type="checkbox"]').each(function() {			
+			allVal += $(this).attr('value')+',';
+		});
+		$(this).parent().parent().find('input[type="checkbox"]:checked').each(function() {			
+			val += $(this).attr('value')+',';
+		});
+		ajax_loader.html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="16" />');
+		$.ajax({
+			  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'rule', 'action'     => 'userupdate' ), 'adminrout',    true) ?>",
+			  type: 'POST',
+			  data: { privileges: val, user_id: user_id, allVal:allVal },			
+			  success: function(response)
+			  {
+			  	var json_arr = eval("("+response+")");
+				var msg = json_arr.msg;
+			  	ajax_loader.html('');
+				$.fx.speeds._default = 1000;						
+				$('#dialog_container').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'fade',
+					hide: 'explode',
+					buttons: { "Ok": function() { $(this).dialog("close"); } },
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{
+								$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('destroy');
+							}, 10000);
+						  }
+				});
+			  }
+		});		
+	});
+});
+</script>
+
+<div id="container" class="permission-settings">
+
+<div class="title-container">
+	<div class="edit-user"><h1><?php echo $this->translator->translator('permisson_rule_user_setting_page'); ?></h1></div> <div class="userid label"><?php echo ' ('.$this->user[0]['username']; ?> - <?php echo $this->user[0]['title']." ".$this->user[0]['firstName']." ".$this->user[0]['lastName'].')'; ?></div>
+</div>
+
+<div class="content-container">
+	<?php if (!$this->allow()) : ?>
+    <div class="grid_12 t_a_bottom">
+            <?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+   	</div>
+    <?php else : ?>
+        <div class="settings-area">
+        <?php if ($this->user[0]['status'] == 0) : ?>
+            <div class="grid_12 t_a_bottom">
+                <?php echo $this->translator->translator('rule_user_desc'); ?> : <b><?php echo $this->user[0]['username']; ?> - <?php echo $this->user[0]['title']." ".$this->user[0]['firstName']." ".$this->user[0]['lastName']; ?></b><br />
+                <?php echo $this->translator->translator('rule_user_is_not_actived'); ?>
+            </div>
+            <?php else : ?>
+                <p>
+                    <?php echo $this->translator->translator('rule_user_desc'); ?><br />
+                    <span class="label"><?php echo $this->translator->translator('rule_user_guide'); ?></span><input type="hidden" name="user_id" id="user_id" value="<?php echo $this->user_id; ?>" />
+                </p>
+                <div class="clr"></div>
+        
+                <div id="accordion">
+                    <?php	
+                        foreach ($this->modules as $module) : 				
+                    ?>
+                        <h3><a href="#"><?php  echo $module;  ?></a></h3>
+                        <div>					
+                            <?php $resources = $this->ruleLoader()->getResources($module); if ($resources) : ?>
+                                <div class="row">
+                                    <?php for ($i = 0; $i < count($resources); $i++) : ?>
+                                        <div class="portlet">
+                                            <div class="portlet-header tab_header_1">
+                                                <?php echo stripslashes($resources[$i]['resource_description']); ?>
+                                            </div>	
+                                            <div class="portlet-content grid_panel_text">
+                                                <a class="tSelectAll" href="javascript: void(0)"><?php echo $this->translator->translator('rule_role_select_all'); ?></a> | <a class="tDeselectAll" href="javascript: void(0)"><?php echo $this->translator->translator('rule_role_deselect_all'); ?></a>
+                                                <hr />
+                                                <?php 
+                                                    $privileges = $this->ruleLoader()->getPrivilegesByUser($resources[$i], $this->user[0]['user_id']); 
+                                                    
+                                                    foreach ($privileges as $priv) :
+                                                ?>
+                                                <input type="checkbox" name="privileges[]" value="<?php echo $priv['privilege_id']; ?>_<?php echo $resources[$i]['module_name']; ?>:<?php echo $resources[$i]['controller_name']; ?>"<?php if ($priv['allow'] == null || $priv['allow'] == 0) : ?> <?php else : ?> checked="checked"<?php endif; ?> /> <?php echo stripslashes($priv['privilege_description']); ?><br />
+                                                
+                                                <?php endforeach; ?>
+                                               	<hr />
+                                                <div><?php if ($this->allow('userupdate','rule','Administrator')) : ?><input type="button" name="save" id="save" value="<?php echo $this->translator->translator('common_save'); ?>"  class="btn_1" /><?php endif; ?>&nbsp;<span id="ajax_loader"></span></div>
+                                            </div>									
+                                        </div>
+                                        <?php
+                                            if(($i+1) % 3 == 0)
+                                            {
+                                                echo '</div><div class="row" >';
+                                            }
+                                        ?>
+                                    <?php endfor; ?>
+                                </div>
+                            <?php endif; ?>						
+                        </div>
+                    <?php 	
+                    endforeach; 
+                    ?>		
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg','User List'); ?>"></div>
+</div>

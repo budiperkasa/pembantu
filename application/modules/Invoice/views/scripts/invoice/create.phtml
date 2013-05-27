@@ -1,0 +1,203 @@
+<?php
+$this->headTitle()->headTitle($this->translator->translator('invoice_create_page_meta_title'),'SET');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jtruncate/jquery.jtruncate.pack.js');
+if($this->invoice_arr)
+{
+	 $front_template = Zend_Registry::get('front_template');
+?>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	text_truncate();
+	$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Invoice','controller' => 'invoice', 'action'     => 'email' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { send_mail : 'yes'},
+				beforeSend: function(){						
+						$('#actionMessage').html(succMsgDesign("<?php echo $this->translator->translator('invoice_create_page_email_processing'); ?><img src='application/layouts/scripts/<?php echo $front_template["theme_folder"]; ?>/images/loader/ajax-loader-email.gif' />"));		
+					 },
+				success: function(response){					
+					//alert(response);
+					var json_arr = eval("("+response+")");		
+					//$('#actionMessage').html(json_arr.invoice_arr.templates_desc);		
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));										
+						
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}					
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	/*$('a.print_btn').each(function()
+   {		 
+	  // We make use of the .each() loop to gain access to each element via the "this" keyword...
+	  $(this).qtip(
+	  {
+		 content: {
+			// Set the text to an image HTML string with the correct src URL to the loading image you want to use
+			text: '<img class="throbber" src="images/ajax_loader7.gif" alt="Loading..." />',
+			ajax: {
+			   url: "<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'invoice', 'action'     => 'print' , 'invoice_id' => '' ), 'adminrout',    true) ?>"+$(this).attr('rel') // Use the rel attribute of each element for the url to load
+			},
+			title: {
+			   text: "<?php echo $this->translator->translator('invoice_list_invoice_preview'); ?>", // Give the tooltip a title using each elements text
+			   button: true
+			}
+		 },
+		 position: {			 	
+			at: 'center', // Position the tooltip above the link
+			my: 'center',
+			target: $(window),
+			viewport: $(window) // Keep the tooltip on-screen at all times
+		 },
+		 show: {
+			event: 'click',
+			effect: function() { $(this).show(100); } ,
+			modal: true,
+			solo: true // Only show one tooltip at a time
+		 },
+		 hide: {
+			event: 'unfocus',
+			effect: function() { $(this).hide(100); }
+		 },
+		 style: {
+			classes: 'ui-tooltip-wiki ui-tooltip-light ui-tooltip-shadow',
+			tip: false
+		 }
+	  })
+	  
+	  // Make sure it doesn't follow the link when we click it
+	  .click(function() { return false; });
+   });*/
+   
+   $('a.print_btn').click(function (event){
+	
+			var width = 1200;
+    		var height = 700;
+			var left = parseInt((screen.availWidth/2) - (width/2));
+   			var top = parseInt((screen.availHeight/2) - (height/2));
+			var windowSizeArray = [ "width="+width+",height="+height+",left="+left+",top="+top+"screenX=" + left + ",screenY=" + top + ",scrollbars=yes",
+									"width="+width+",height="+height+",scrollbars=yes" ];
+			var url = "<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'invoice', 'action'     => 'print' , 'invoice_id' => '' ), 'adminrout',    true) ?>"+$(this).attr('rel');
+			var windowName = "popUp";
+			var windowSize = windowSizeArray[0];
+
+			window.open(url, windowName, windowSize);
+
+			event.preventDefault();
+
+		});
+		
+		$('#full_payment').change(function() {
+			var self = this;
+			if($(self).val() != null && $(self).val() != '')
+			{
+				var data = 	$(self).val();
+				var data_arr = 		data.split('_');	
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'invoice', 'action'     => 'frontpay' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { payment_id: data_arr[0], invoice_id: data_arr[1]},
+						beforeSend: function(){
+							$('#full_payment_link').html('<img src="application/layouts/scripts/<?php echo $front_template["theme_folder"]; ?>/images/loader/ajax-loader-email.gif" height="16"  border="0" />');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								var payment_link	=	json_arr.payment_data;
+								var payment_logo	=	json_arr.payment_info.logo;
+								var input_type		=	json_arr.input_type;
+								//alert(payment_logo);
+								var	html_data	=	(input_type == 'link') ? '<a href="'+payment_link+'" target="_blank"><img src="data/frontImages/gateway/gateway_logo/'+payment_logo+'" width="140" border="0" /></a>' : payment_link;
+								$('#full_payment_link').html(html_data);
+							}
+							else
+							{
+								openMsgDialog(json_arr.msg);
+								$('#full_payment_link').html('');
+							}							
+						},
+						error: function(xhr, status, error){
+							closeLoaderDialog();
+							$('#full_payment_link').html('');
+							var msg = "Error! " + xhr.status + " " + error;
+							openMsgDialog(msg);
+						}
+				});			
+			}
+			else
+			{
+				$('#full_payment_link').html('');
+			}
+			
+		});
+});
+function text_truncate()
+{
+	$('span.jTruncate').jTruncate({  
+		length:  90,  
+		minTrail: 0,  
+		moreText: "[<?php echo html_entity_decode($this->translator->translator('common_see_all'), ENT_QUOTES, "UTF-8"); ?>]",  
+		lessText: "[<?php echo html_entity_decode($this->translator->translator('common_hide'), ENT_QUOTES, "UTF-8"); ?>]",  
+		ellipsisText: "",  
+		moreAni: "fast",  
+		lessAni: 2000  
+	});
+}
+</script>
+<?php
+	$payment_status = $this->invoice_arr['payment_status'];
+	$gateway_db = new Paymentgateway_Model_DbTable_Gateway();
+	$gateway_info	=	$gateway_db->getAllActiveGateway('ASC');
+	$payment_status .=	'<div><span class="mod-label">'.$this->translator->translator('invoice_setting_pay_to').'</span> <select name="full_payment" id="full_payment" >
+							<option value="">'.$this->translator->translator('common_select').'</option>';
+						foreach($gateway_info as $key => $value)
+						{
+							$payment_status .=	'<option value="'.$this->escape($value['id']).'_'.$this->escape($this->invoice_arr['invoice_id']).'">'.$this->escape($value['name']).'</option>';
+						}
+	$payment_status .=	'</select></div><div id="full_payment_link"></div>';
+?>
+<div class="mod">
+<div id="actionMessage"></div>
+<div class="clear">&nbsp;</div>
+<div>
+	<?php
+		$invoice_desc = str_replace('%'.Eicra_File_Constants::INVOICE_ID.'%',$this->invoice_arr['invoice_id'], str_replace('%'.Eicra_File_Constants::INVOICE_PAYMENT_STATUS.'%',$payment_status,$this->invoice_arr['invoice_desc']));
+		echo $this->escape($invoice_desc);
+	?>
+</div>
+<div class="clear btn-container">
+    <span class="form-button ui-widget-content-1"><a href="javascript:void(0);" class="print_btn" rel="<?php echo $this->escape($this->invoice_arr['invoice_id']); ?>" ><?php echo $this->translator->translator('invoice_print'); ?></a></span>
+    <!--<span class="form-button ui-widget-content-1"><a href="<?php //echo $payment_link; ?>"><?php //echo $this->translator->translator('invoice_payment'); ?></a></span> -->
+</div>
+</div>
+<?php
+}
+else
+{
+	if($this->msg)
+	{
+?>
+	<div id="actionMessage" class="errMess"><?php echo $this->msg; ?></div>
+<?php
+	}
+?>
+	<div class="infoMess"><?php echo  strip_tags($this->translator->translator('invoice_no_invoice_found')); ?></div>
+<?php
+}	
+?>

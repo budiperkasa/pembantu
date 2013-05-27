@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource	   for="backend"	name="country"	description="Geo Country" 		langKey="permisson_geo_country">
+		<privilege for="dashboard"  name="list" 	description="View Country list" langKey="permisson_geo_country_list"  />		
+		<privilege 					name="add" 		description="Add New Country" 	langKey="permisson_geo_country_add"  />
+		<privilege 					name="edit" 	description="Edit Country" 		langKey="permisson_geo_country_edit"  />
+		<privilege					name="delete" 	description="Delete Country" 	langKey="permisson_geo_country_delete"  />	
+	</resource>		
+	
+	<resource	   for="backend"	name="state"	description="Geo State" 		langKey="permisson_geo_state">
+		<privilege for="dashboard"  name="list" 	description="View State list" 	langKey="permisson_geo_state_list"  />		
+		<privilege 					name="add" 		description="Add New State" 	langKey="permisson_geo_state_add"  />
+		<privilege 					name="edit" 	description="Edit State" 		langKey="permisson_geo_state_edit"  />
+		<privilege					name="delete" 	description="Delete State" 		langKey="permisson_geo_state_delete"  />	
+	</resource>	
+	
+	<resource	   for="backend"	name="city"		description="Geo City" 			langKey="permisson_geo_city">
+		<privilege for="dashboard"  name="list" 	description="View City list" 	langKey="permisson_geo_city_list"  />		
+		<privilege 					name="add" 		description="Add New City" 		langKey="permisson_geo_city_add"  />
+		<privilege 					name="edit" 	description="Edit City" 		langKey="permisson_geo_city_edit"  />
+		<privilege					name="delete" 	description="Delete City" 		langKey="permisson_geo_city_delete"  />	
+	</resource>	
+</permissions>

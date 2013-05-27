@@ -1,0 +1,107 @@
+<?php 
+class news_home_content_latest
+{
+	protected	$_group = 1;
+	protected	$_limit = 4;  // Show number of news in Block
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator  = Zend_Registry::get('translator');
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+?>
+
+<div class="block block-news">
+	<div class="block-heading">
+    	<div class="symbol"><?php echo $this->translator->translator('block_news_title','', '', $this->_front_template['theme_folder']); ?></div>
+    </div>
+    
+	<div class="block-body">
+		<?php
+       	try
+        {
+			$translator = Zend_Registry::get('translator');
+			$get_group = new News_Model_DbTable_NewsGroup();
+			$groupInfo	=	$get_group->getGroupName($this->_group);
+			$news_home_content_latest = new News_Model_DbTable_Page();
+			$news_home_content_latest_data = $news_home_content_latest->getAllPageInfo($this->_group,$groupInfo,$this->_limit);
+			if($news_home_content_latest_data)
+			{ 
+				foreach($news_home_content_latest_data as $partial_entry)
+				{
+					//print_r($partial_entry);
+					$pageInfo = $news_home_content_latest->getPageInfo($partial_entry->id);
+					
+					//Breaking News
+					 $selectMenu = $this->_DBconn->select()
+											->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+											->where('ma.module_name = ?', 'News')
+											->where('ma.controller_name = ?', 'frontend')
+											->where('ma.action_name = ?', 'view')
+											->limit(1);
+					$assign_menu =  $selectMenu->query()->fetchAll();
+					$selectMenuTitle = $this->_DBconn->select()
+											->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+											->where('m.menu_id = ?', $assign_menu[0]['menu_id'])
+											->limit(1);
+					$menuTitle =  $selectMenuTitle->query()->fetchAll();
+					$selectCatTitle = $this->_DBconn->select()
+											->from(array('nc' => Zend_Registry::get('dbPrefix').'news_category'), array('nc.category_title'))
+											->where('nc.id = ?', $pageInfo['category_id'])
+											->limit(1);
+					$catTitle =  $selectCatTitle->query()->fetchAll();	
+				?>
+					<div class="block-content">
+						<img src="data/frontImages/news/page_thumb/<?php echo $this->_view->escape($partial_entry->page_thumb); ?>" width="80" border="0"  class="thumb"/>
+						<span class="block-title"><a href="<?php echo $this->_view->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->_view->escape($menuTitle[0]['menu_title']),'category_id' => $this->_view->escape($catTitle[0]['category_title']) ,'page_id'=> $this->_view->escape($partial_entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',true);  ?>" title="<?php echo $this->_view->escape($partial_entry->page_title); ?>"><?php echo $this->truncate($this->_view->escape($partial_entry->page_name),0,15); ?></a></span><br />
+						<?php echo $this->truncate($this->_view->escape(strip_tags($partial_entry->page_desc)),0,12); ?><br />
+						<span class="date"><?php echo strftime("%d-%m-%Y [%I:%M %p]",strtotime($partial_entry->page_date)); ?></span>
+					</div>
+					<div class="seperator"></div>
+				<?php
+				}
+			}
+        }
+        catch(Exception $e)
+        {
+            echo $e->getMessage();
+        }
+        ?>					
+		<span class="more"><a href="<?php echo $this->_view->escape($menuTitle[0]['menu_title']); ?>"><?php echo $translator->translator('block_news_more','', '', $this->_front_template['theme_folder']); ?></a></span>
+	</div>
+</div>
+
+<?php
+	}
+}
+
+try
+{
+	$box_class = new news_home_content_latest($this);
+	$box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo '<div>You have to create menu first.</div>';	
+}
+?>

@@ -1,0 +1,161 @@
+<?php
+$version = Zend_Registry::get('version');  
+
+if($this->groupInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->groupInfo['meta_keywords']); }	
+if($this->groupInfo['meta_desc']){ $this->headMeta()->setName('description',$this->groupInfo['meta_desc']); }
+if($this->groupInfo['news_name']){ $this->headTitle()->headTitle($this->groupInfo['news_name'],'SET')->setSeparator(' - ')->headTitle($this->groupInfo['meta_title']); }
+ 
+$allow_obj = new News_View_Helper_Allow();
+if (!$allow_obj->allowRule('list',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : 
+?>
+<script>
+$(document).ready(function(){		
+		var links = "<?php echo $this->baseUrl().'/Event-Cal/'.$this->escape($this->menu_id); ?>/";
+		$( "#datepicker" ).datepicker({	
+			dateFormat:'yy-MM-dd',
+			monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+			dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+			defaultDate:'+<?php echo $this->escape($this->yearAdd); ?>y +<?php echo $this->escape($this->monthAdd); ?>m +<?php echo $this->escape($this->dayAdd); ?>d',	
+			onSelect: function( dateText, inst ) {;
+				var date_arr = dateText.split('-');
+				document.location.href= links+date_arr[0]+"/"+date_arr[1]+"/"+date_arr[2];
+			},
+			onChangeMonthYear: function(year, month, inst) { 
+				
+			}
+		});
+		allFunctions();			
+	});
+function allFunctions()
+{	
+	$('a.ui-state-default').unbind( 'mouseover' );
+	$('a.ui-state-default').mouseover(function() {
+		var self = this;
+		var monthArray = <?php echo $this->translator->translator("common_calender_monthNames"); ?>;
+		var day = parseInt($(self).text());
+		var year = parseInt($( "span.ui-datepicker-year" ).text());
+		var monthText = $( "span.ui-datepicker-month" ).text();
+		for(var i = 0; i < 12; i++)
+		{
+			if(monthArray[i] == monthText)
+			{
+				var month = (i+1);
+			}
+		}
+		var dates = year+'-'+month+'-'+day;		
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'News','controller' => 'event', 'action'     => 'tooltip' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { dates : dates ,group_id : '<?php echo $this->groupInfo["id"]; ?>'},
+				beforeSend: function(){						
+							//openTooltipDialog('<div align="center"><img src="data/adminImages/loginImages/load.gif" border="0" width="31" height="31" /></div>');
+						 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");										
+					if(json_arr.status == 'ok')
+					{
+						var result = 	json_arr.result;
+						var input = '';
+						for(var i = 0; i < result.length; i++)
+						{
+							input += '<b>'+stripslashes(result[i]['page_name'])+'</b><br />';
+							input += result[i]['page_date']+'<br />';
+							input += stripslashes(result[i]['page_desc'])+'<br /><br />';
+							openTooltipDialog(input);
+						}															
+					}
+					else
+					{
+						openTooltipDialog('<?php echo $this->translator->translator("news_event_no_data_found"); ?>');
+					}					
+				}
+		});
+	});
+}
+
+function stripslashes(str) 
+{
+	str=str.replace(/\\'/g,'\'');
+	str=str.replace(/\\"/g,'"');
+	str=str.replace(/\\0/g,'\0');
+	str=str.replace(/\\\\/g,'\\');
+	return str;
+}
+
+function openTooltipDialog(msg)
+ {
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		width: 230,
+		show: 'fade',
+		resizable: true,	
+		open: function(event, ui)
+			 {
+				/*setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);*/
+			  }
+	});
+ }
+</script>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('news_event_summary_dialog'); ?>"></div>
+<div class="mod mod-news">
+    <div class="news-icon">
+        <h1><?php echo $this->escape($this->menu_id); ?></h1>
+    </div>
+	<div class="clear">&nbsp;</div>
+
+    <div class="news-desc">
+        <!-- News Info Start -->
+            <?php
+                $filters = new Zend_Filter_StripTags();
+                
+                foreach($this->event_list as $entry)
+                {
+            ?>
+            <div class="mod-container">
+                <div class="calendar">
+                    <div class="month"><?php echo date("M",strtotime($entry['page_date'])); ?></div>
+                    <h1><?php echo $this->numbers(date("d",strtotime($entry['page_date']))); ?></h1>
+                    <div class="year"><?php echo $this->numbers(date("Y",strtotime($entry['page_date']))); ?></div>
+                </div>
+                <h4><a title="<?php echo $this->escape($entry['page_title']); ?>" href="<?php echo $this->url(array('module'=>'News','controller'=>'event','action'=>'details','menu_id' => $this->menu_id ,'page_id' => $this->escape($entry['page_title'])),'Event-Details/:menu_id/:page_id',false);  ?>"><?php echo $this->escape($entry['page_name']); ?></a></h4>
+                <div class="date"><?php echo $this->translator->translator('common_posted_date_title'); ?> <?php echo $this->numbers($this->escape($entry['page_date'])); ?> <?php echo $this->translator->translator('news_frontend_posted_by_title'); ?> <?php echo $this->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']); ?></div>
+                
+                <img src="data/frontImages/news/page_thumb/<?php echo $this->escape($entry['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> class="thumb" border="0" />
+                <?php $desc = $filters->filter($entry['page_desc']);
+                echo $this->viewHelper->truncate($desc,$this->groupInfo['news_desc_truncate']);  ?>
+                
+                <div class="more"><a href="<?php echo $this->url(array('module'=>'News','controller'=>'event','action'=>'details','menu_id' => $this->menu_id ,'page_id'=> $this->escape($entry['page_title'])),'Event-Details/:menu_id/:page_id',false);  ?>"><?php echo $this->translator->translator('common_readmore'); ?> &raquo;</a></div>
+            </div>
+            <?php
+            }
+            ?>
+            <div class="clear">
+                <?php echo $this->paginationControl($this->event_list, 'Sliding', 'event/pagination-flickr.phtml'); ?>
+            </div>
+        <!-- News Info End -->
+        
+        <!-- News Calendar Start -->
+        <?php
+            if($this->groupInfo['calendar_on_off'] == '0')
+            {			
+        ?>    
+			<div id="datepicker"></div>
+        <?php
+            }
+        ?>	
+        <!-- News Calendar End -->
+    </div>
+</div>
+<?php endif; ?>

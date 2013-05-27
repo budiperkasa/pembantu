@@ -1,0 +1,35 @@
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else :
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/syntex-highliter/jquery.syntax.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/syntex-highliter/jquery.syntax.cache.js');
+?>
+<script type="text/javascript">
+	$(function() {
+		jQuery.syntax();
+	});
+</script>
+
+<div class="title-container">
+	<div class="log"><h1><?php echo $this->translator->translator('Utility_log_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<pre class="syntax brush-diff">
+		<?php
+            if($this->file_content)
+            {
+                echo nl2br($this->file_content);
+            }
+            else
+            {
+                echo $this->translator->translator('utility_log_file_not_found');
+            }
+        ?>
+  	</pre>
+</div>
+<?php endif; ?>	
+</div>

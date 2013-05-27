@@ -1,0 +1,58 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();
+$module = $frontController->getRequest()->getModuleName();
+$controller = $frontController->getRequest()->getControllerName();
+$action = $frontController->getRequest()->getActionName();
+$menu_id = $frontController->getRequest()->getParam('menu_id');
+$property_owner = $frontController->getRequest()->getParam('property_owner');
+
+$pagination_path = ($menu_id) ? 'Property-List-Agent/:menu_id/:page' : 'Agent-Property-List/:property_owner/:page';
+
+if($this->last > 1)
+{
+$translator = Zend_Registry::get('translator');
+?>
+
+
+<div class="flickr-pagination-container">
+		<ul id="pagination-flickr">
+			<!-- First page link -->
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php if(($menu_id)){ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'page' => $this->first),$pagination_path,true); }else{ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'property_owner' => $property_owner,'page' => $this->first),$pagination_path,true); } ?>"><?php echo $translator->translator('pagination_start'); ?></a></li>
+			<?php else: ?>
+					<li class="previous-off"><?php echo $translator->translator('pagination_start'); ?></li> 
+			<?php endif; ?>
+		
+			<!-- Previous page link -->
+		
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php if(($menu_id)){ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'page' => $this->previous),$pagination_path,true); }else{ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'property_owner' => $property_owner,'page' => $this->previous),$pagination_path,true); } ?>">&lt; <?php echo $translator->translator('pagination_previous'); ?></a></li>
+			<?php else: ?>
+				<li class="previous-off">&lt; <?php echo $translator->translator('pagination_previous'); ?></li>
+			<?php endif; ?>
+			<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<li><a href="<?php if(($menu_id)){ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'page' => $page),$pagination_path,true); }else{ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'property_owner' => $property_owner,'page' => $page),$pagination_path,true); } ?>"><?php echo $page; ?></a></li>
+				<?php else: ?>
+					<li class="active"><?php echo $page; ?></li>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php if(($menu_id)){ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'page' => $this->next),$pagination_path,true); }else{ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'property_owner' => $property_owner,'page' => $this->next),$pagination_path,true); }  ?>"><?php echo $translator->translator('pagination_next'); ?> &gt;</a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_next'); ?> &gt;</li>
+			<?php endif; ?>
+			<!-- Last page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php if(($menu_id)){ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'page' => $this->last),$pagination_path,true); }else{ echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'property_owner' => $property_owner,'page' => $this->last),$pagination_path,true); } ?>"><?php echo $translator->translator('pagination_end'); ?></a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_end'); ?></li>
+			<?php endif; ?>
+            	<li>&nbsp; <span class="current_page"><?php echo $translator->translator('pagination_Page'); ?> <?php echo $this->current; ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->last; ?></span></li>
+		</ul>
+</div>
+<?php
+ }
+?>

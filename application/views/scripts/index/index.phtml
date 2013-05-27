@@ -1,0 +1,30 @@
+<style>
+    
+
+    span#zf-name
+    {
+        color: #91BE3F;
+    }
+
+    
+
+    div#more-information
+    {        
+        height: 100%;
+    }
+</style>
+<div style="text-align:left;">
+    <h1>Welcome <span id="zf-name"> Eicra CMS Script </span></h1>
+
+    <h3>Please login </h3>
+
+    <div id="more-information" class="link_0"  >
+        <p style="text-align:left;">
+            <H1> <?php echo $this->click ;?><H2> <br />
+            
+            <a href="<?php echo $this->url(array('controller'=>'index', 'action'=>'signup'));?>"> Signup Form</a>
+            <br> <a href="<?php echo $this->url(array('controller'=>'Administrator', 'action'=>'login'));?>"> Admin Login Form</a>
+			<br> <a href="<?php echo $this->url(array('controller'=>'Members'));?>"> Members</a>
+        </p>
+    </div>
+</div>

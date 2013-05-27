@@ -1,0 +1,49 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('poll_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('listgrp','backendgrp','Poll')) : ?>
+            <li <?php if($getAction == 'listgrp' && strtolower($getController) == 'backendgrp'){ ?> class="poll-group selected"<?php }else{ ?>class="poll-group"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Poll','controller'=>'backendgrp', 'action'=>'listgrp'),'adminrout',true);?>"><?php echo $translator->translator('poll_menu1'); ?></a>
+            </li>	
+            <?php endif; ?>
+            
+            <?php if ($this->allow('addgrp','backendgrp','Poll')) : ?>
+            <li <?php if($getAction == 'addgrp' && strtolower($getController) == 'backendgrp'){ ?> class="poll-group-add selected"<?php }else{ ?>class="poll-group-add"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Poll','controller'=>'backendgrp', 'action'=>'addgrp'),'adminrout',true);?>" ><?php echo $translator->translator('poll_menu1-1'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Poll')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'backend'){ ?> class="poll-cat selected"<?php }else{ ?>class="poll-cat"<?php } ?>>
+           		<a href="<?php echo $this->url(array('module' => 'Poll','controller'=>'backend', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('poll_menu2'); ?></a>
+			</li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('add','backend','Poll')) : ?>
+            <li <?php if($getAction == 'add' && strtolower($getController) == 'backend'){ ?> class="poll-cat-add selected"<?php }else{ ?>class="poll-cat-add"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Poll','controller'=>'backend', 'action'=>'add'),'adminrout',true);?>"><?php echo $translator->translator('poll_menu2-2'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','backendpoll','Poll')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'backendpoll'){ ?> class="poll-list selected"<?php }else{ ?>class="poll-list"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module'=> 'Poll', 'controller' => 'backendpoll', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('poll_menu3'); ?></a>
+			</li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('add','backendpoll','Poll')) : ?>
+            <li <?php if($getAction == 'add' && strtolower($getController) == 'backendpoll'){ ?> class="poll-list-add selected last"<?php }else{ ?>class="poll-list-add last"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module'=> 'Poll', 'controller' => 'backendpoll', 'action'     => 'add' ),'adminrout',true) ?>"><?php echo $translator->translator('poll_menu3-3'); ?></a>	
+            </li>
+            <?php endif; ?>
+        </ul>
+	</div>
+</div>

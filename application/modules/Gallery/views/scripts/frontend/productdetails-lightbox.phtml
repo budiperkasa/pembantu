@@ -1,0 +1,232 @@
+<?php
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/pirobox/css_pirobox/demo5/style.css'); 
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/pirobox/pirobox.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.js');
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+if(!empty($this->view_datas['meta_keywords'])){ $this->headMeta()->setName('keywords',$this->view_datas['meta_keywords']); }
+if(!empty($this->view_datas['meta_desc'])) { $this->headMeta()->setName('description',$this->view_datas['meta_desc']); }
+if(!empty($this->view_datas['product_name'])) { $this->headTitle()->headTitle($this->escape($this->view_datas['product_name']),'SET')->setSeparator(' - ')->headTitle($this->view_datas['meta_title']); }
+?>
+
+				  		<div style="padding-top:18px;" class="module_title"> &nbsp;<?php $menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); echo $this->escape($menu_name); ?></div>
+						<br /><br />
+<table width="100%">
+	<tr>
+		<td valign="top">
+			<?php
+				if($this->group_datas['gallery_type'] == 'video' || $this->group_datas['gallery_type'] == 'music')
+				{
+					//echo $this->headScript()->appendFile($this->baseUrl().'/js/jquery/media/jquery.metadata.js');
+					echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/media/jquery.media.js');
+					$product_file_val_arr = explode(',',$this->view_datas['product_file']);	
+									
+				?>
+					<script type="text/javascript">
+						$(document).ready(function() {
+							$('.media_gallery').media({
+								width:		'<?php echo $this->escape($this->group_datas["img_big_width"]);?>',
+								height:		'<?php echo $this->escape($this->group_datas["img_big_height"]);?>',
+								flvPlayer:     'js/jquery/media/mediaplayer.swf', 
+								mp3Player:     'js/jquery/media/mediaplayer.swf'
+							});
+						});
+					</script>
+					<table width="100%">
+						<tr>
+							<?php
+							if(!empty($this->view_datas['product_file']))
+							{
+								$cnt = 1;
+								foreach($product_file_val_arr as $key=>$value)
+								{
+										$file_ext = Eicra_File_Utility::getExtension($this->escape($value));		
+										$light_box_image = $this->baseUrl().'/data/frontImages/gallery/video_file/'.$this->escape($value); 
+										switch($file_ext)
+										{
+											case 'swf':
+											case 'flv':
+											case 'mp3':
+												$href = 'js/jquery/media/mediaplayer.swf?file='.$light_box_image;
+												break;
+											case 'wmv':
+											case 'avi':
+											case 'mpg':
+											case '3g2':
+											case 'ram':										
+												$href = $light_box_image;
+												break;
+											default:
+												$href = $light_box_image;
+												break;
+										}
+								?>
+								<td align="center" >
+									<a class="media_gallery" href="<?php echo $href; ?>"><?php echo $this->escape($value); ?></a>
+								</td>
+								<?php
+									if($cnt % $this->escape($this->group_datas["file_col_num"]) == 0)
+									{
+										echo '</tr><tr>';
+									}
+									$cnt++;
+								}
+							 }
+							 else
+							 {
+							?>
+								<td align="center">
+									<?php echo stripslashes($this->view_datas['product_desc']); ?>
+								</td>
+							<?php
+							 }
+							?>
+						</tr>
+					</table>
+				<?php
+				}
+				else
+				{
+				?>
+				<script type="text/javascript">
+					$(document).ready(function() {
+						$('.pirobox').piroBox({
+								my_speed: 300, //animation speed
+								bg_alpha: 0.7, //background opacity
+								slideShow : false, // true == slideshow on, false == slideshow off
+								slideSpeed : 4, //slideshow duration in seconds(3 to 6 Recommended)
+								close_all : '.piro_close,.piro_overlay'// add class .piro_overlay(with comma)if you want overlay click close piroBox
+					
+						});
+						$('a.change_img').click(function() {
+							var self = this;
+							var rel = $(self).attr('rel');
+							$('a.pirobox').attr('href','data/frontImages/gallery/product_image/'+rel);
+							$('a.pirobox').children("img:nth-child(1)").attr('src','data/frontImages/gallery/product_image/'+rel);
+						});
+						$('img[title]').qtip({			
+							position: { my: 'bottom left', at: 'top center' },
+							show: {  target: false, event: 'mouseover', effect: function(offset) { /*$(this).slideDown(200);*/ $(this).show(300); } },
+							hide: {  event: 'mouseout' , effect: function(offset) { /*$(this).slideUp(200);*/ $(this).hide(300); } },
+							style: { classes: 'ui-tooltip-frontend' }
+						});
+					});
+					</script>
+				<table width="100%"  border="0" cellpadding="0" cellspacing="0">
+					<tr>
+						<td align="center">
+						<?php
+							if($this->escape($this->view_datas['product_thumb_primary']))
+							{ 
+								$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($this->view_datas['product_thumb_primary']); 
+							}
+							else
+							{ 
+								if($this->escape($this->view_datas['product_thumb']))
+								{
+									$product_thumb_val_arr = explode(',',$this->view_datas['product_thumb']);
+									$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($product_thumb_val_arr[0]); 
+								}
+								else
+								{
+									if($this->escape($this->view_datas['product_file_primary']))
+									{
+										$thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($this->view_datas['product_file_primary']); 
+									}
+									else
+									{
+										$product_file_val_arr = explode(',',$this->view_datas['product_file']);
+										$thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+									}
+								}		
+							}
+							 
+							if($this->escape($this->view_datas['product_file_primary']))
+							{
+								$light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($this->view_datas['product_file_primary']); 
+							}
+							else
+							{
+								$product_file_val_arr = explode(',',$this->view_datas['product_file']);
+								$light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+							}
+							
+							 $title_data = '<b>'.$this->translator->translator('gallery_common_name').'</b> '.$this->escape($this->view_datas['product_name']); 
+							 if($this->escape($this->view_datas['product_code']))
+							 { 
+								$title_data .= '<br /><b>'.$this->translator->translator('gallery_common_code').' </b>'.$this->escape($this->view_datas['product_code']); 
+							 } 
+							 if($this->escape($this->view_datas['product_price']))
+							 { 
+								$title_data .= '<br /><b>'.$this->translator->translator('gallery_common_price').'</b> '.$this->escape($this->view_datas['product_price']).'&nbsp;'.$currency->getSymbol(); 
+							 }
+							 if($this->escape($this->view_datas['product_desc']))
+							 {  
+								$title_data .= '<br /><b>'.$this->translator->translator('gallery_common_desc').' </b>'.$this->escape(strip_tags($this->view_datas['product_desc']));
+							 }
+						?>
+						<?php 						
+							if($this->group_datas['img_big_resize_func'] != 'OriginalSize')
+							{
+								if($this->group_datas['img_big_width'] && ($this->group_datas['img_big_resize_func'] == 'resizeToWidth' || $this->group_datas['img_big_resize_func'] == 'resize'))
+								{ 
+									$width = 'width="'.$this->escape($this->group_datas['img_big_width']).'"'; 
+								} 
+								if($this->group_datas['img_big_height'] && ($this->group_datas['img_big_resize_func'] == 'resizeToHeight' || $this->group_datas['img_big_resize_func'] == 'resize'))
+								{ 
+									$height = 'height="'.$this->escape($this->group_datas['img_big_height']).'"';
+								} 
+							}
+						?>
+						<a class="pirobox" href="<?php echo $light_box_image; ?>" title="<?php echo $this->escape($this->view_datas['product_name']); ?>"><img title="<?php echo $title_data; ?>" style="padding:5px;border:1px solid #CCCCCC;background-color:#FCFCFC;" src="<?php echo $light_box_image; ?>" <?php echo $width." ".$height; ?> /></a>
+						
+						</td>
+					</tr>
+					<tr>
+					  <td>&nbsp;</td>
+					</tr>
+					<tr>
+					  <td height="4" bgcolor="#7EAD21"></td>
+					</tr>
+					<tr>
+					  <td>&nbsp;</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<?php
+								$product_file_arr = explode(',',$this->view_datas['product_file']);
+								foreach($product_file_arr as $key=>$value)
+								{
+							?>
+								<a href="javascript:void(0);" style="text-decoration:none;" class="change_img" rel="<?php echo $value; ?>" title="<?php echo $this->escape($this->view_datas['product_name']); ?>" ><img style="padding:5px;border:1px solid #CCCCCC;background-color:#FCFCFC;" src="<?php echo 'data/frontImages/gallery/product_image/'.$value; ?>" <?php if($this->group_datas['file_thumb_width'] && $this->group_datas['file_thumb_resize_func'] != 'resizeToHeight'){ echo 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; } if($this->group_datas['file_thumb_height'] && $this->group_datas['file_thumb_resize_func'] != 'resizeToWidth'){ echo 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; } ?> /> </a>&nbsp;
+							<?php
+								}
+							?>
+						</td>
+					</tr>				
+				</table>
+			<?php
+				}
+			?>
+		</td>
+		<?php
+		if($this->group_datas['category_panel'] == '1')
+		{
+				$categoryPanel = new Gallery_View_Helper_CategoryPanel();
+				
+		?>
+		<td width="18%" valign="top" bgcolor="#EDECE4">
+			 <div class="category_header" style="padding-top:10px;">&nbsp;<u><a href="<?php echo $this->url(array('module' => 'Gallery','controller' =>'frontend', 'action' => 'view',menu_id => $this->menu_id ),$this->escape($this->menu_id)); ?>"><?php echo 'Gallery Category'; ?></a></u></div>
+			 <div>&nbsp;</div>
+			  <div style="width:140px; overflow:auto;" class="news_category_1">
+				<?php echo $categoryPanel->getSubCategory('0',$this,$this->group_datas['id'],null,$this->menu_id); ?>
+			</div>
+		</td>
+		<?php
+		}
+		?>
+	</tr>
+</table>

@@ -1,0 +1,119 @@
+<?php
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.js');
+
+if(!empty($this->group_datas['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->group_datas['meta_keywords']);}
+if(!empty($this->group_datas['meta_desc'])) { $this->headMeta()->setName('description',$this->group_datas['meta_desc']); }
+if(!empty($this->group_datas['gallery_name'])) { $this->headTitle()->headTitle($this->group_datas['gallery_name'],'SET')->setSeparator(' - ')->headTitle($this->group_datas['meta_title']); }
+
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$front_template = Zend_Registry::get('front_template');
+?>
+<?php 
+$allow_obj = new Gallery_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+<div class="mod mod-gallery">
+    <div class="chart-icon">
+        <h1><?php $menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); echo $this->escape($menu_name); ?></h1>
+    </div>
+	<div class="clear">&nbsp;</div>
+  	<div class="gallery-chart">
+        <div class="chart-header">
+            <div class="chart-col-1">
+                <?php echo $this->translator->translator('gallery_chart_product_image'); ?>
+            </div>
+            <div class="chart-col-1 col-2">
+                <?php echo $this->translator->translator('gallery_chart_product_menu_items'); ?>
+            </div>
+            <div class="chart-col-1 col-3">
+                <?php echo $this->translator->translator('gallery_chart_product_code'); ?>
+            </div>
+            
+            <div class="chart-col-1 col-4">
+                <?php echo $this->translator->translator('gallery_chart_product_price'); ?>
+            </div>
+            
+        </div>
+            
+		<?php
+            $i =1 ;
+            $check_child = new Gallery_View_Helper_SubCategory();
+            foreach ($this->view_datas as $entry=>$value): 			
+            if($this->group_datas['category_on_off'] == '1')
+            {
+                $col_num =  $this->escape($this->group_datas['cat_col_num']);
+                if($check_child->checkChild($value['id'],$value['group_id']))
+                {
+                    $link = $this->url( array('module' => 'Gallery','controller' =>'chart','action' => 'categories','menu_id' => $this->escape($this->menu_id),'parent' => $this->escape($value['category_title'])), 'Chart-Category/:menu_id/:parent',    false);
+                }
+                else
+                {
+                    $link = $this->url( array('module' => 'Gallery','controller' =>'chart','action' => 'viewproduct','menu_id' => $this->escape($this->menu_id),'parent' => $this->escape($value['category_title']),'group_id' => $this->escape($value['group_id']) ), 'Chart-Product/:menu_id/:parent/:group_id',    false);
+                }
+            }
+            else
+            {
+                $col_num =  $this->escape($this->group_datas['file_col_num']);
+            }
+            
+            if($value['featured'] == '1')
+            {
+                $style = 'style="background: #FF0000;"';
+            }
+            else
+            {
+                $style = "";
+            }
+            $row_class = ($i % 2 == 0) ? 'chart-bg' : '';	
+            
+        ?>
+        <div class="chart-body <?php echo $row_class; ?>">
+            <div class="chart-col-1" >
+                <?php
+                if($this->escape($value['category_thumb']))
+                {
+                ?>
+                <img src="data/frontImages/gallery/category_thumb/<?php echo $this->escape($value['category_thumb']); ?>" height="60" class="thumb"/>
+                <?php
+                }
+                else
+                {
+                ?>
+                <img src="application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_property_img/no_image.png" height="60" class="thumb"/>
+                <?php
+                }
+                ?>
+            </div>
+            <div class="chart-col-1 col-2" >
+                <a href="<?php echo $link; ?>" title="<?php echo $this->escape($value['category_title']); ?>" class="preview" link=""><?php echo $this->escape($value['category_name']); ?></a><br />
+                <?php echo truncate($this->escape($value['category_desc']), 0, 40); ?>
+            </div>
+            <div class="chart-col-1 col-3">
+                <?php echo $this->escape($value['category_code']); ?>
+            </div>
+            
+            <div class="chart-col-1 col-4">
+                <?php echo $this->escape($value['category_price']).$currency->getSymbol(); ?>
+            </div>
+        </div>
+        <?php
+            $i++;
+            endforeach;		  
+        ?>
+  	</div>
+	<div class="clear">&nbsp;</div>
+    <div>
+        <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'chart/view-pagination-flickr.phtml'); ?>
+    </div>
+</div>
+<?php endif; ?>

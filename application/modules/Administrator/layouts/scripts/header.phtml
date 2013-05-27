@@ -1,0 +1,158 @@
+<?php
+ $modules_license = new Administrator_Controller_Helper_ModuleLoader();
+ $auth = Zend_Auth::getInstance ();
+   if ($auth->hasIdentity ())
+	{
+		$globalIdentity = $auth->getIdentity ();
+		$role_id = $globalIdentity->role_id;			
+		$role = $globalIdentity->role_name;;
+	}	
+	$global_conf = Zend_Registry::get('global_conf');
+	$license = new Zend_Session_Namespace('License');
+	$validation_data = $license->license_data; 	
+?>
+<?php
+	if ($auth->hasIdentity ())
+	{
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	//Variable que almacena el arreglo que se mostrara en el dropdown
+	var ddData = [
+		{
+			text: "<?php echo $this->translator->translator('admin_header_menu_user_profile'); ?>",
+			value: 0,
+			link_value: "<?php echo $this->url(array('module' => 'Members','controller'=>'index', 'action'=>'profile'), 'adminrout',    true);?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/user.png"
+		}
+		<?php if ($this->allow('update','global','Settings')) : ?>,
+		{
+			text: "<?php echo $this->translator->translator('admin_header_menu_global_settings'); ?>",
+			value: 1,
+			link_value: "<?php echo $this->url(array('module' => 'Settings','controller'=>'global', 'action'=>'update'), 'adminrout',    true);?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/global-setting.png"
+		}
+		<?php endif;  ?>
+		<?php if ($this->allow('update','backend','Contact') && $modules_license->checkModulesLicense('Contact')) : ?>,
+		{
+			text: "<?php echo $this->translator->translator('admin_header_menu_update_contact'); ?>",
+			value: 2,
+			link_value: "<?php echo $this->url(array('module' => 'Contact','controller'=>'backend', 'action'=>'update'), 'adminrout',    true);?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/contact.png"
+		}
+		<?php endif;  ?>
+		<?php if ($this->allow('language','backend','Editors')) : ?>,
+		{
+			text: "<?php echo $this->translator->translator('admin_menu_language'); ?>",
+			value: 3,
+			link_value: "<?php echo $this->url(array('module' => 'Editors','controller'=>'backend', 'action'=>'language'), 'adminrout',    true);?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/flag.png"
+		}
+		<?php endif;  ?>
+		<?php if ($this->allow('template','backend','Editors')) : ?>,
+		{
+			text: "<?php echo $this->translator->translator('admin_menu_template'); ?>",
+			value: 4,
+			link_value: "<?php echo $this->url( array('module'=> 'Editors', 'controller' => 'backend', 'action'     => 'template' ), 'adminrout',    true) ?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/editor.png"
+		}
+		<?php endif;  ?>
+		<?php if ($this->allow('css','backend','Editors')) : ?>,
+		{
+			text: "<?php echo $this->translator->translator('admin_menu_css'); ?>",
+			value: 5,
+			link_value: "<?php echo $this->url( array('module'=> 'Editors', 'controller' => 'backend', 'action'     => 'css' ), 'adminrout',    true) ?>",
+			//description: "",
+			imageSrc: "application/modules/Administrator/layouts/scripts/images/tools/css.png"
+		}
+		<?php endif;  ?>
+	];
+	
+	var dIndex = null;
+	
+	for(var i = 0; i < ddData.length; i++)
+	{
+		var dLink = ddData[i].link_value;
+		var cLink	=	"<?php echo $this->url(); ?>";
+		var rgxp = new RegExp(dLink, "g");
+		if(cLink.match(rgxp) != null)
+		{
+			dIndex = ddData[i].value;					
+			break;
+		}
+	}
+	
+	//Dropdown Básico
+	$('#dropdownBasico').ddslick({
+		data: ddData,
+		width: 220,		
+		selectText: "<img src='application/modules/Administrator/layouts/scripts/images/tools/settings.png' class='option'><?php echo $this->translator->translator('administrator_header_menu_default', '', 'Administrator'); ?>",
+		defaultSelectedIndex: dIndex,
+		truncateDescription: true,
+		imagePosition: "left",
+		showSelectedHTML: true,
+		clickOffToClose: true,
+		onSelected: function(data){
+			//Llama función que hace algo
+			//console.log(data);
+			window.location.href = data.selectedData.link_value;
+		}
+	});
+	
+	$("table.highlighter tr:nth-child(even)").addClass("even");
+    $("table.highlighter tr:nth-child(odd)").addClass("odd");
+});
+</script>
+<?php 
+}        	
+?>
+<div id="topbar">
+	<span class="quick-link">
+    <ul>    	
+        <?php
+			if ($auth->hasIdentity ())
+			{
+		?>
+        	<li class="welcome first"><?php if ($auth->hasIdentity ()){ echo $this->translator->translator('admin_header_welcome_language')." ".$globalIdentity->username; } ?></li>
+        	<li class="user"><?php echo $this->translator->translator('admin_header_login_language'); ?>&nbsp;<a href="<?php echo $this->url(array('module' => 'Members','controller'=>'index', 'action'=>'profile'), 'adminrout', true);?>"><?php echo $role; ?></a></li>
+        	<li class="logout"><a href="<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'login', 'action'     => 'logout' ), 'adminrout',    true) ?>"><?php echo $this->translator->translator('admin_header_logout_link'); ?></a></li>
+			<li class="preview"><a href="<?php echo $this->serverUrl().$this->baseUrl(); ?>" target="_blank"><?php echo $this->translator->translator('admin_header_frontend_link'); ?></a></li>            
+		<?php 
+		}        	
+		?>
+	</ul>
+    </span>
+	<span><?php echo $this->partial('partial/change_lang.phtml'); ?></span>
+</div>
+
+<div id="header">
+	<img src="<?php if(empty($global_conf['admin_header_logo'])){ echo $validation_data['vendor_logo']; }else{ echo $global_conf['admin_header_logo']; } ?>" class="logo" height="70px"/><h1><?php if ($auth->hasIdentity ()){ echo $this->translator->translator('administrator_controls_title',$role); }else{ echo $this->translator->translator('administrator_control_title'); } ?></h1>
+   <?php
+		if ($auth->hasIdentity ())
+		{
+	?>
+    <div id="dropdownBasico"></div>
+	<?php 
+		}        	
+	?>
+</div>
+
+<?php	
+	if ($auth->hasIdentity ())
+	{
+?>
+<div>
+<?php			
+	echo $this->layout()->render('top-menu');						
+?>
+</div>
+<?php
+	}		  
+?>
+

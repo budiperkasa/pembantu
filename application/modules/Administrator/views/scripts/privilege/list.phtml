@@ -1,0 +1,331 @@
+<?php  echo $this->headTitle($this->translator->translator('privilege_list_page_title')); ?>
+<style type="text/css">	
+	.portlet-content div{padding-top:8px; margin-top:3px;}
+</style>
+
+<script type="text/javascript">
+	function stripslashes(str) 
+	{
+		str=str.replace(/\\'/g,'\'');
+		str=str.replace(/\\"/g,'"');
+		str=str.replace(/\\0/g,'\0');
+		str=str.replace(/\\\\/g,'\\');
+		return str;
+	}
+	function allFinction()
+	{
+		$(".row").sortable({
+			connectWith: '.row'
+		});
+		
+		$(".portlet").addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
+			.find(".portlet-header")
+				.addClass("ui-widget-header ui-corner-all")
+				.prepend('<span class="ui-icon ui-icon-minusthick"></span>')
+				.end()
+			.find(".portlet-content");
+
+		$(".portlet-header .ui-icon").click(function() {
+			$(this).toggleClass("ui-icon-minusthick").toggleClass("ui-icon-plusthick");
+			$(this).parents(".portlet:first").find(".portlet-content").toggle();
+		});
+		
+		$('a.tResourceAction').unbind('click');
+		$('a.tResourceAction').click(function() {
+			var self = this;
+			var label = $(self).attr('alt');
+			
+			$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="16" />');
+			switch (label) 
+			{
+				case '+':	
+					<?php if ($this->allow('add', 'resource')) : ?>				
+					$.ajax({
+						  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'resource', 'action'     => 'add' ), 'adminrout',    true) ?>",
+						  type: 'POST',
+						  data: { mc: $(self).attr('rel'), description: $(self).attr('desc') },					  
+						  success: function(response){						  							  	
+							var json_arr = eval("("+response+")");
+							//alert(json_arr.msg);
+							if(json_arr.status = 'ok')
+							{								
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_delete.png" border="0" width="20" height="20" title="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" />')								
+										.attr('alt', '-')
+										.attr('rel', json_arr.id);
+								var msg = json_arr.msg;
+							}
+							else
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_add.png" border="0" width="20" height="20" title="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" />');
+								var msg = json_arr.msg;
+							}	
+							openMsgDialog(stripslashes(msg));	
+						  }
+						});							
+						<?php endif; ?>
+					break;
+				case '-':
+					<?php if ($this->allow('delete', 'resource')) : ?>
+					$.ajax({
+						  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'resource', 'action'  => 'delete' ), 'adminrout',    true) ?>",
+						  type: 'POST',
+						  data: { id: $(self).attr('rel') },
+						  success: function(response)
+						  {
+							var json_arr = eval("("+response+")");
+							//alert(json_arr.msg);
+							if(json_arr.status = 'ok')
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_add.png" border="0" width="20" height="20" title="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" />')
+										.attr('alt', '+')
+										.attr('rel', json_arr.data.mc).attr('title', json_arr.data.description);
+								var msg = json_arr.msg;
+							}
+							else
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_delete.png" border="0" width="20" height="20" title="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" />');
+								var msg = json_arr.msg;
+							}
+							openMsgDialog(stripslashes(msg));
+						  }
+					  });
+					  <?php endif; ?>
+					break;
+			}
+		});
+		
+		$('a.tPrivilegeAction').unbind('click');
+		$('a.tPrivilegeAction').click(function() {
+			var self = this;
+			var label = $(self).attr('alt');
+				
+			$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="16" />');
+			switch (label) 
+			{
+				case '+':
+					<?php if ($this->allow('add')) : ?>
+					$.ajax({
+						  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'privilege', 'action'     => 'add' ), 'adminrout',    true) ?>",
+						  type: 'POST',
+						  data: { mca: $(self).attr('rel'), description: $(self).attr('desc') },					  
+						  success: function(response){
+							var json_arr = eval("("+response+")");
+							//alert(response);
+							if(json_arr.status = 'ok')
+							{								
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_delete.png" border="0" width="16" height="16" title="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" />')								
+										.attr('alt', '-')
+										.attr('rel', json_arr.id);
+								var msg = json_arr.msg;
+							}
+							else
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_add.png" border="0" width="16" height="16" title="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" />');
+								var msg = json_arr.msg;
+							}	
+							openMsgDialog(stripslashes(msg));
+						  }
+						});
+						<?php endif; ?>
+					break;
+				case '-':
+					<?php if ($this->allow('delete')) : ?>
+					$.ajax({
+						  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'privilege', 'action'  => 'delete' ), 'adminrout',    true) ?>",
+						  type: 'POST',
+						  data: { id: $(self).attr('rel') },
+						  success: function(response)
+						  {
+							var json_arr = eval("("+response+")");
+							//alert(json_arr.msg);
+							if(json_arr.status = 'ok')
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_add.png" border="0" width="16" height="16" title="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_add_resource'); ?>" />')
+										.attr('alt', '+')
+										.attr('rel', json_arr.data.mca).attr('title', json_arr.data.description);
+								var msg = json_arr.msg;
+							}
+							else
+							{
+								$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/ajax_delete.png" border="0" width="16" height="16" title="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" alt="<?php echo $this->translator->translator('privilege_list_delete_resource'); ?>" />');
+								var msg = json_arr.msg;
+							}
+							openMsgDialog(stripslashes(msg));
+						  }
+					  });
+					  <?php endif; ?>
+					break;
+			}
+		});
+	}
+	
+	function setResources(module, id_suffix)
+	{
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Administrator', 'controller' => 'privilege', 'action'     => 'resources' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { module : module},
+				beforeSend: function(){						
+						id_suffix.html('<center><img src="application/modules/Administrator/layouts/scripts/images/loader/loader.gif" border="0"></center>');
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+									
+					if(json_arr.status == 'ok')
+					{
+							id_suffix.html(putHTML(json_arr.return_data));	
+							allFinction();				
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+					}
+				},
+				error: function(xhr, status, error){
+					
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(msg);
+				}
+		});
+	}
+	
+	$(function() {
+		
+		allFinction();
+		
+		$("#accordion").accordion( {
+			collapsible:true,
+			heightStyle: "content",
+			active: false,
+			beforeActivate: function(event, ui) { 
+				ui.newPanel.html('');
+			},
+			activate: function(event, ui) { 										
+				var module = ui.newHeader.text(); //$('#header_'+ui.options.active).text();
+				
+				if(module)
+				{					
+					setResources(module, ui.newPanel);
+				}									
+			 }
+		});
+	});
+	
+	function putHTML(data)
+	{
+		var html = '<div class="row">';
+									for(var i = 0; i < data.length; i++)
+									{
+								html +=	'<div class="portlet">'+
+											'<div class="portlet-header tab_header_1">'+
+											
+												'<div  style="float:left;width:30px;">';
+													if(data[i].perm)
+													{
+												html +=	'<a href="javascript: void(0)" rel="'+data[i].rel+'" class="t_a_link tResourceAction" alt="'+data[i].a_alt+'" desc="'+data[i].description+'">'+
+															'<img src="application/modules/Administrator/layouts/scripts/images/tools/'+data[i].img+'" border="0" width="20" height="20" title="'+data[i].title+'" alt="'+data[i].img_alt+'" />'+
+														'</a>';
+													}
+										html +=	'</div>'+ data[i].description +
+											'</div>'+
+																							
+											'<div class="portlet-content grid_panel_text">';
+												for(var j = 0; j < data[i].privileges.length; j++)
+												{
+											html +=	'<div style="width:275px;float:left;"><span>- '+data[i].privileges[j].description+'</span></div>'+
+													'<div style="float:left;">'+
+														'<a href="javascript: void(0)" class="tPrivilegeAction" rel="'+data[i].privileges[j].rel+'" alt="'+data[i].privileges[j].a_alt+'" desc="'+data[i].privileges[j].description+'" >'+
+															'<img src="application/modules/Administrator/layouts/scripts/images/tools/'+data[i].privileges[j].img+'" border="0" width="16" height="16" title="'+data[i].privileges[j].title+'" alt="'+data[i].privileges[j].img_alt+'" />'+
+														'</a>'+
+													'</div>';
+												}
+									html +=	'</div>'+
+												
+																					
+										'</div>';
+										if((i+1) % 3 == 0)
+										{
+											html +=	'</div><div class="row" >';
+										}
+									}
+						html +=	'</div>';	
+		return html;
+	}
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_container').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'explode',
+					resizable: true,				
+					buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{									
+								if($('#' + event.target.id).dialog('isOpen'))
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+								}
+							}, 10000);
+						  }
+				});
+	}		
+	
+</script> 
+
+<div id="container" class="permission-settings">
+
+<div class="title-container">
+	<div class="privilege-setting"><h1><?php echo $this->translator->translator('permisson_privilege_setting_page'); ?></h1></div>
+</div>
+
+<div class="content-container">		
+	<?php if (!$this->allow('list')) : ?>		
+		<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('previlege_Access_deny_desc'); ?>
+	</div>
+	<?php else : ?>
+		<p>
+			<span class="label"><?php echo $this->translator->translator('permisson_privilege_desc'); ?></span>
+		</p>
+		
+		
+		<?php
+			echo ''.$this->paginationControl($this->modules, 'Sliding', 'privilege/pagination-flickr.phtml').'';
+		?>
+        
+        
+        
+        <div class="clr"></div>
+		<div id="accordion">			
+			<?php	
+			foreach ($this->modules as $key => $module) : 
+			?>		
+				
+                <h3><a href="#" id="header_<?php echo $key; ?>"><?php  echo $module;  ?></a></h3>
+                
+                <div id="content_<?php echo $key; ?>" >
+                    <?php echo $module; ?>		
+                </div>
+               
+                
+			<?php 	
+			endforeach;
+			?>
+            
+		</div>	
+        
+        
+		<?php
+			echo $this->paginationControl($this->modules, 'Sliding', 'privilege/pagination-flickr.phtml'); 	 
+		?>
+        
+
+        
+	<?php endif; ?>
+</div><!-- End demo -->
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg','Privilege'); ?>"></div>
+</div>

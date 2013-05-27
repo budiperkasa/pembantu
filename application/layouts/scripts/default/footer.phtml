@@ -1,0 +1,68 @@
+<?php 
+$is_frontend = new Eicra_Model_DbTable_Frontend();
+$front_template = Zend_Registry::get('front_template'); 
+$this->translator = Zend_Registry::get('translator');
+$global_conf = Zend_Registry::get('global_conf');
+?>
+
+<footer id="footer">
+	<?php
+    if($is_frontend->isFrontend())
+        {
+    ?>
+    <div class="top-part">
+        <div class="container">
+            <div class="widget">
+                <?php echo $this->partial('blocks/news_home_content_eventCalendar.phtml'); ?>
+            </div>
+            
+            <div class="widget">
+                <?php echo $this->partial('blocks/gallery_home_content_videoPlayer.phtml'); ?>
+            </div>
+            
+            <div class="widget">
+                <?php echo $this->partial('blocks/contact_sidebar_quick.phtml'); ?>
+            </div>
+        </div>
+    </div>
+    <?php
+        }
+    ?>
+    <div class="bottom-part">
+        <div class="container">
+            <div class="links">
+                <span><?php echo $this->translator->translator('front_footer_title','', '', $front_template['theme_folder']); ?></span>
+                <ul>
+                    <li class="first"><a href="<?php echo $this->serverUrl().$this->baseUrl(); ?>"><?php echo $this->translator->translator('front_footer_home','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="About-Us"><?php echo $this->translator->translator('front_footer_aboutus','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="News"><?php echo $this->translator->translator('front_footer_productsgallery','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="Feedback"><?php echo $this->translator->translator('front_footer_feedback','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="Sign-Up"><?php echo $this->translator->translator('front_footer_registration','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="Site-Map"><?php echo $this->translator->translator('front_footer_sitemap','', '', $front_template['theme_folder']); ?></a></li>
+                    <li><a href="Contact-Us"><?php echo $this->translator->translator('front_footer_contact','', '', $front_template['theme_folder']); ?></a></li>
+                </ul>
+            </div>
+            
+            <div class="copyright">
+                <?php echo $this->translator->translator('common_footer_copy_right'); ?> <?php echo date("Y"); ?> <?php echo $this->translator->translator('common_footer_all_right'); ?> &nbsp;<a href="http://www.<?php if(!empty($global_conf['frontend_footer_url'])){ echo $global_conf['frontend_footer_url']; }else if(!empty($validation_data['vendor_domain'])){  echo $validation_data['vendor_domain']; }else{ echo 'eicra.com'; } ?>" target="_blank" title="<?php if(!empty($global_conf['frontend_footer'])){ echo $global_conf['frontend_footer']; }else if($validation_data['footer_name']){ echo $validation_data['footer_name']; }else{ echo 'Eicra Soft Ltd'; } ?>"><?php echo $this->translator->translator('common_footer_web_develop_label'); ?></a>
+                              
+                <?php if(!empty($global_conf['frontend_footer'])){ echo $global_conf['frontend_footer']; }else if($validation_data['footer_name']){ echo $validation_data['footer_name']; }else{ echo 'Eicra Soft Ltd'; } ?>
+                                      
+                <?php echo $this->translator->translator('common_vesrion_label'); ?> <?php echo Eicra_License_Version::getVersion(); ?>
+            </div>
+            
+            <div class="social">
+                <?php echo $this->translator->translator('front_footer_social','', '', $front_template['theme_folder']); ?><br><br>
+                <a href="http://www.facebook.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/facebook.png" width="20" height="20" border="0" title="Facebook"></a>
+                <a href="http://www.twitter.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/twitter.png" width="20" height="20" border="0" title="Twitter"></a>
+                <a href="http://www.youtube.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/youtube.png" width="20" height="20" border="0" title="Youtube"></a>
+                <a href="http://www.flickr.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/flickr.png" width="20" height="20" border="0" title="Flickr"></a>
+                <a href="http://www.delicious.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/delicious.png" width="20" height="20" border="0" title="Delicious"></a>
+                <a href="http://www.stumbleupon.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/stumbleupon.png" width="20" height="20" border="0" title="Stumbleupon"></a>
+                <a href="http://www.digg.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/digg.png" width="20" height="20" border="0" title="Digg"></a>
+                <a href="http://feeds.feedburner.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/rss.png" width="20" height="20" border="0" title="RSS"></a>
+                <a href="https://plus.google.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/google-plus-one.png" width="32" height="20" border="0" title="Google +1"></a>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,17 @@
+<?php
+$translator = Zend_Registry::get('translator'); 
+?>
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('article_menu_name'); ?></div></div>
+    <div class="nav-body">
+    	<ul  id="toc">
+        	<li class="article-info">
+            	<a href="#generalInfo"><?php echo $translator->translator('article_menu_general_info'); ?></a>
+            </li>
+            
+            <li class="article-meta last">
+            	<a href="#metadata"><?php echo $translator->translator('article_menu_meta_info'); ?></a>
+            </li>
+        </ul>
+	</div>
+</div>

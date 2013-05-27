@@ -1,0 +1,1554 @@
+<?php
+$version = Zend_Registry::get('version'); 
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+$ckLicense = $version->checkModulesLicense();
+if($ckLicense == true)
+{			
+	$license = new Zend_Session_Namespace('License');
+	$validation_data = $license->license_data;		
+}
+$this->GlobalSettingsForm->setEditor($this->serverUrl().$this->baseUrl());
+$this->GlobalSettingsForm->getEditor();	
+$site_url = (str_replace('http://', '', $this->serverUrl()) == 'localhost') ? 'localhost.com' : str_replace('http://', '', $this->serverUrl());
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	$('#site_url').val("<?php echo $site_url; ?>");
+	
+	$("select[name='file_mime_type[]']").change(function(){
+			var self = this;
+			var val_arr = $(self).val();			
+			if($.inArray('All',val_arr) > -1)
+			{
+				$(self).val('All');
+			}			
+		});
+	
+	
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+	
+	if($('input[name="image_renaming_enable"]:checked').val() == '2')
+	{
+		$('input[name="image_renaming_prefix"]').removeAttr('readonly');
+		$('input[name="image_renaming_prefix"]').css('background', '#FFF');
+	}
+	else
+	{
+		$('input[name="image_renaming_prefix"]').attr('readonly', true);
+		$('input[name="image_renaming_prefix"]').css('background', '#CCC');
+	}
+	
+	$('input[name="image_renaming_enable"]').click(function(){
+			if($(this).val() == '2')
+			{
+				$('input[name="image_renaming_prefix"]').removeAttr('readonly');
+				$('input[name="image_renaming_prefix"]').css('background', '#FFF');
+				$('input[name="image_renaming_prefix"]').focus();
+			}
+			else
+			{
+				$('input[name="image_renaming_prefix"]').attr('readonly', true);
+				$('input[name="image_renaming_prefix"]').css('background', '#CCC');				
+			}		
+		});
+	
+	disablePayment();
+	imageThumbnil();
+	deleteFiles("<?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+	/********************************POPUP IMAGE MANAGER****************************************/
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'explode',
+			resizable: true,				
+			buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 12000);
+				  }
+		});
+	}
+	
+	$("#upload-form").dialog({
+		autoOpen: false,
+		width: 750,
+		height: 600,
+		show: 'fade',			
+		modal: true
+	});	
+
+	$('a.upload_btn').click(function() {
+		var self = this;
+		var src = $("#i-upload-form").attr("src");	
+		$("#i-upload-form").attr("src", '');
+		$("#i-upload-form").html('');
+		var rel = $(self).attr('rel');	
+		var file_content = $('#'+rel).val();	
+		file_content = 	file_content.replace('data/adminImages/headerImages/', '');
+		$('input[name="file_content"]').val(file_content);		
+		$('input[name="primary_file_field"]').val(rel);		
+		$("#popupForm").attr("action", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action' => 'manager' ), 'adminrout',    true) ?>");
+		$('#upload-form').dialog('open');		
+		$('#popupForm').submit();		
+	});	
+	
+	$('a.no_img_btn').click(function() {
+		$("#admin_header_logo").val('');
+		$("#selected_file_admin_header_logo").html('');
+		
+	});
+	
+	$('a.no_img_admin_favicon_btn').click(function() {
+		$("#admin_favicon").val('');
+		$("#selected_file_admin_favicon").html('');
+		
+	});
+	
+	$('a.no_img_frontend_favicon_btn').click(function() {
+		$("#frontend_favicon").val('');
+		$("#selected_file_frontend_favicon").html('');
+		
+	});
+	
+	$('a.select_file_btn').click(function() {		 
+		
+			var currentIFrame = $('#i-upload-form');
+			var selected_files = currentIFrame.contents().find("input[name='selected_files']").val();
+			var primary_file_field = currentIFrame.contents().find("input[name='primary_file_field']").val();
+			var file_path	=	currentIFrame.contents().find("input[name='file_path']").val();
+			var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+			
+			if(selected_files_arr.length == '0')
+			{
+				var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';				
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var img_code = '';
+				var file_name = selected_files_arr[0];				
+				
+				var img_path = file_path +'/'+ selected_files_arr[0]; 	
+				
+				var del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'+img_path+'"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>';
+				var img_code = '<div class="upload-img box"><span><span class="thumb"><img src="'+img_path+'" width="45" height="35" class="bdr" /></span><br /><br />&nbsp;'+del_link+'&nbsp;&nbsp;&nbsp;</span></div>';
+						
+				$('#selected_file_'+primary_file_field).html(img_code);		
+				$('#'+primary_file_field).val(img_path);		
+				$("#i-upload-form").attr("src", ''); 							
+				$("#upload-form").dialog('option','hide','explode').dialog('close');				
+				deleteFiles("<?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+				imageThumbnil();
+			}
+		});
+	
+	/*$('a.upload_admin_fav_btn').click(function() {
+		var src = $("#i-upload-form").attr("src");		
+		$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Settings','controller' => 'global', 'action'     => 'uploadfile','type' => 'admin_favicon' ), 'adminrout',    true) ?>");			
+		$('#upload-form').dialog('open');		
+	});		
+		
+	$('a.upload_frontend_fav_btn').click(function() {
+		var src = $("#i-upload-form").attr("src");		
+		$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Settings','controller' => 'global', 'action'     => 'uploadfile','type' => 'frontend_favicon' ), 'adminrout',    true) ?>");			
+		$('#upload-form').dialog('open');		
+	});	*/	
+	
+	$('a.close_dialog_btn').click(function() {	
+		$("#i-upload-form").attr('src', '');
+		$("#i-upload-form").html('');	 
+		$("#upload-form").dialog('option','hide','explode').dialog('close');			
+	});
+	
+	/************************************POPUP IMAGE MANAGER******************************************/
+	
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+		$("#admin_header_logo").val('<?php echo $this->escape($this->admin_header_logo); ?>');
+		var admin_header_logo_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="<?php echo $this->escape($this->admin_header_logo); ?>"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>';
+		$("#selected_file_admin_header_logo").html('<div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->admin_header_logo); ?>" width="45" height="35" /></span><br /><br />&nbsp;'+admin_header_logo_del_link+'&nbsp;&nbsp;&nbsp;</span></div>');
+		$("#admin_favicon").val('<?php echo $this->escape($this->admin_favicon); ?>');
+		var admin_favicon_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="<?php echo $this->escape($this->admin_favicon); ?>"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>';
+		$("#selected_file_admin_favicon").html('<div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->admin_favicon); ?>" width="45" height="35" /></span><br /><br />&nbsp;'+admin_favicon_del_link+'&nbsp;&nbsp;&nbsp;</span></div>');
+		$("#frontend_favicon").val('<?php echo $this->escape($this->frontend_favicon); ?>');
+		var frontend_favicon_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="<?php echo $this->escape($this->frontend_favicon); ?>"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>';
+		$("#selected_file_frontend_favicon").html('<div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->frontend_favicon); ?>" width="45" height="35" /></span><br /><br />&nbsp;'+frontend_favicon_del_link+'&nbsp;&nbsp;&nbsp;</span></div>');
+		deleteFiles("<?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+		imageThumbnil();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');	
+		$('#file_mime_type_err').html('');	
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});	
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openPerfectTab(key_arr)
+	{
+		var err_id = '';
+		var sel = null;
+		var getTab = false;
+		
+		for(var i = 1; i <= $('#tabs').children('ul:first').children('li').length ; i++)
+		{				
+			for(var j= 0; j < key_arr.length; j++)
+			{	
+				err_id = '#'+key_arr[j].key+'_err';	
+				if($('#tabs-'+i+':has('+err_id+')').html())
+				{
+					sel = (i - 1);				
+					$("#tabs").tabs({ active: sel }).find(".ui-tabs-nav").sortable({axis:'xy'});	
+					$('#'+key_arr[j].key).focus();
+					getTab = true;
+					break;							
+				}
+			}
+			if(getTab == true)
+			{
+				break;
+			}
+		}
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'explode',
+					resizable: false,				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+				if($('input[name="'+filename+'[]"]').is(':checkbox'))
+				{
+					var val_arr = [];
+					$('input[name="'+filename+'[]"]:checkbox:checked').each(function(i){
+					 val_arr[i] = $(this).val();
+					});
+					filevalue = (val_arr[0] != null) ? val_arr.join(',') : null;					
+				}
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] = (tinyMCE.get(filename)) ? tinyMCE.get(filename).getContent() : filevalue;			
+		});
+		return fieldObj;
+	}
+	
+	$('a.save_data_btn').click(function() {			
+			
+		var formData = getFormData();
+			formData.id  = '<?php echo '1'; ?>';
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Settings','controller' => 'Global', 'action'     => 'update' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						//$('#actionMessage').attr('class','seccMess');
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));														
+					}
+					else if(json_arr.status == 'errV')
+					{
+						//$('#actionMessage').attr('class','errMess');
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+						openPerfectTab(json_arr.msg);
+					}
+					else
+					{						
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					//$('#actionMessage').attr('class','errMess');
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});		
+	
+});
+
+
+/************************************************IMAGE THUMBNIL START************************************************/
+function imageThumbnil()
+{	
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '0', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+}
+/************************************************IMAGE THUMBNIL END************************************************/
+
+function disablePayment()
+{
+	//alert($('input[name="payment_system"]:checked').val());
+	if($('input[name="payment_system"]:checked').val() == 'Off')
+	{
+		$('input[name="payment_logo_url"]').attr('readonly', true);
+		$('input[name="payment_logo_url"]').css('background', '#EEEEEE');
+		$('input[name="payment_logo_url"]').css('color', '#E2E2E2');
+		$('textarea[name="payment_pay_to_text"]').attr('readonly', true);
+		$('textarea[name="payment_pay_to_text"]').css('background', '#EEEEEE');
+		$('textarea[name="payment_pay_to_text"]').css('color', '#E2E2E2');
+		$('input[name="price_margine[]"]').attr('disabled', true);
+	}
+	
+	$('input[name="payment_system"]').click(function(){
+		var val = $(this).val();
+		var status = (val == "On") ? false : true;
+		var css_background = (val == "On") ?  '#FFFFFF' : '#EEEEEE';
+		var css_font = (val == "On") ? '#000000' : '#E2E2E2';
+		$('input[name="payment_logo_url"]').attr('readonly', status);
+		$('input[name="payment_logo_url"]').css('background', css_background);
+		$('input[name="payment_logo_url"]').css('color', css_font);
+		$('textarea[name="payment_pay_to_text"]').attr('readonly', status);
+		$('textarea[name="payment_pay_to_text"]').css('background', css_background);
+		$('textarea[name="payment_pay_to_text"]').css('color', css_font);
+		$('input[name="price_margine[]"]').attr('disabled', status);
+	});
+}
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="settings"><h1><?php echo $this->translator->translator('settings_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('settings_page_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">	
+	<form name="formSettings" id="formSettings" method="post" >		
+        <div id="actionMessage"></div>
+            <div id="button_top_bar"></div>
+          	<div id="generalInfo">
+            	<div id="generalInfo">
+					<div id="tabs">
+                    <ul>
+                        <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('settings_tab1'); ?></a></li>
+                        <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('settings_tab2'); ?></a></li>
+                        <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('settings_tab3'); ?></a></li>
+                        <li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('settings_tab4'); ?></a></li>
+						<li><a href="<?php echo $tab_base_link; ?>#tabs-5"><?php echo $this->translator->translator('settings_tab5'); ?></a></li>
+						<li><a href="<?php echo $tab_base_link; ?>#tabs-6"><?php echo $this->translator->translator('settings_tab6'); ?></a></li>
+                    </ul>
+                    <div id="tabs-1">
+                    	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_conf_site'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->site_title->getLabel(); if($this->GlobalSettingsForm->site_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->site_title; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->site_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="site_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->site_name->getLabel(); if($this->GlobalSettingsForm->site_name->isRequired()){ ?><span class="required">*</span><?php } ?>  
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->site_name; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->site_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="site_name_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->site_url->getLabel(); if($this->GlobalSettingsForm->site_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->site_url; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->site_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="site_url_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->default_country->getLabel(); if($this->GlobalSettingsForm->default_country->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->default_country; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->default_country->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="default_country_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->default_language->getLabel(); if($this->GlobalSettingsForm->default_language->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->default_language;	?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->default_language->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="default_language_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->default_locale->getLabel(); if($this->GlobalSettingsForm->default_locale->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->default_locale; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->default_locale->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="default_locale_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->seo_on->getLabel(); if($this->GlobalSettingsForm->seo_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->seo_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->seo_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="seo_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->site_direction->getLabel(); if($this->GlobalSettingsForm->site_direction->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->site_direction; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->site_direction->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="site_direction_err"></div>
+                                </div>
+                            </div>
+                            
+                      	</div>
+						</fieldset>
+                        
+                        <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_price_margine_title'); ?></legend>
+                        
+                       	<div class="form">
+                        	<div class="form-row">                            
+                            	<div class="label">
+                                    <?php echo $this->GlobalSettingsForm->payment_system->getLabel(); if($this->GlobalSettingsForm->payment_system->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->payment_system; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->payment_system->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="payment_system_err"></div>
+                                </div>
+                         	</div>
+                            <div class="form-row">                            
+                            	<div class="label">
+                                    <?php echo $this->GlobalSettingsForm->payment_logo_url->getLabel(); if($this->GlobalSettingsForm->payment_logo_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->payment_logo_url; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->payment_logo_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="payment_logo_url_err"></div>
+                                </div>
+                          </div>
+                          <div class="form-row">   
+                            	<div class="label">
+                                    <?php echo $this->GlobalSettingsForm->payment_pay_to_text->getLabel(); if($this->GlobalSettingsForm->payment_pay_to_text->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->payment_pay_to_text; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->payment_pay_to_text->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="payment_pay_to_text_err"></div>
+                                </div>
+                           </div> 
+                           <div class="form-row"> 
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->price_margine->getLabel(); if($this->GlobalSettingsForm->price_margine->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->price_margine; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->price_margine->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="price_margine_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                        </fieldset>
+                        
+                        <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_conf_meta'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->meta_key->getLabel(); if($this->GlobalSettingsForm->meta_key->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->meta_key;	 ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->meta_key->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_key_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->meta_desc->getLabel(); if($this->GlobalSettingsForm->meta_key->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->meta_desc; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->meta_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_desc_err"></div>
+                                </div>
+                            </div>
+                            
+                     	</div>
+                        </fieldset> 
+                    </div>
+                    
+                    <div id="tabs-2">
+                    	<fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_conf_email'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->global_email->getLabel();  if($this->GlobalSettingsForm->global_email->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->global_email; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->global_email->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="global_email_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->payment_email->getLabel();  if($this->GlobalSettingsForm->payment_email->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->payment_email; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->payment_email->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="payment_email_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_mailer_protocol->getLabel();  if($this->GlobalSettingsForm->email_mailer_protocol->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_mailer_protocol; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_mailer_protocol->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_mailer_protocol_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_from->getLabel();  if($this->GlobalSettingsForm->email_smtp_from->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_from; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_from->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_from_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_host->getLabel();  if($this->GlobalSettingsForm->email_smtp_host->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_host; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_host->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_host_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_username->getLabel();  if($this->GlobalSettingsForm->email_smtp_username->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_username; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_username->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_username_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_password->getLabel();  if($this->GlobalSettingsForm->email_smtp_password->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_password; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_password->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_password_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_port->getLabel();  if($this->GlobalSettingsForm->email_smtp_port->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_port; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_port->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_port_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_wordrap->getLabel();  if($this->GlobalSettingsForm->email_smtp_wordrap->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->email_smtp_wordrap;	 ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->email_smtp_wordrap->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="email_smtp_wordrap_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                        </fieldset>
+                    </div>
+                    <div id="tabs-3">
+                    	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_conf_header'); ?></legend>
+                        
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->admin_header_logo->getLabel(); if($this->GlobalSettingsForm->admin_header_logo->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                               	
+                                <div class="img-upload">
+                                    <span class="select-btn ui-widget-content-1"><a href="javascript:  void(0);" class="upload_btn" rel="admin_header_logo"><span class="icon upload"><?php echo $this->translator->translator('common_upload'); ?></span></a></span>
+                                </div>
+                                
+                                <div class="img">
+                                    <?php echo $this->GlobalSettingsForm->admin_header_logo; ?>&nbsp;&nbsp;<span id="selected_file_admin_header_logo"><?php if(!empty($this->admin_header_logo)){ $admin_header_logo_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'.$this->escape($this->admin_header_logo).'">'.$this->translator->translator("common_delete").'</a>'; ?><div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->admin_header_logo); ?>" width="45" height="35" class="bdr"/></span><br /><br />&nbsp;<?php echo $admin_header_logo_del_link; ?>&nbsp;&nbsp;&nbsp;</span></div><?php } ?></span>
+                                </div>
+                                                         
+                                <div class="no-img">                                	
+                                  	<span class="other-btn ui-widget-content-1"><a href="javascript: void(0);" class="no_img_btn"><span class="icon delete"><?php echo $this->translator->translator('common_no_image'); ?></span></a></span>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->admin_header_logo->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="admin_header_logo_err"></div>
+                                </div>
+                            </div>                     
+                            
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->admin_favicon->getLabel(); if($this->GlobalSettingsForm->admin_favicon->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                               	
+                                <div class="img-upload">
+                                    <span class="select-btn ui-widget-content-1"><a href="javascript:  void(0);" class="upload_admin_fav_btn upload_btn" rel="admin_favicon"><span class="icon upload"><?php echo $this->translator->translator('common_upload'); ?></span></a></span>
+                                </div>
+                                
+                                <div class="img">
+                                    <?php echo $this->GlobalSettingsForm->admin_favicon; ?>&nbsp;&nbsp;<span id="selected_file_admin_favicon"><?php if(!empty($this->admin_favicon)){  $admin_favicon_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'.$this->escape($this->admin_favicon).'">'.$this->translator->translator("common_delete").'</a>'; ?><div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->admin_favicon); ?>" width="45" height="35" class="bdr" /></span><br /><br />&nbsp;<?php echo $admin_favicon_del_link; ?>&nbsp;&nbsp;&nbsp;</span></div><?php } ?></span>
+                                </div>
+                                                         
+                                <div class="no-img">                                	
+                                  	<span class="other-btn ui-widget-content-1"><a href="javascript: void(0);" class="no_img_admin_favicon_btn"><span class="icon delete"><?php echo $this->translator->translator('common_no_image'); ?></span></a></span>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->admin_favicon->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="admin_favicon_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->frontend_favicon->getLabel(); if($this->GlobalSettingsForm->frontend_favicon->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                               	
+                                <div class="img-upload">
+                                    <span class="select-btn  ui-widget-content-1"><a href="javascript:  void(0);" class="upload_frontend_fav_btn upload_btn" rel="frontend_favicon"><span class="icon upload"><?php echo $this->translator->translator('common_upload'); ?></span></a></span>
+                                </div>
+                                
+                                <div class="img">
+                                    <?php echo $this->GlobalSettingsForm->frontend_favicon; ?>&nbsp;&nbsp;<span id="selected_file_frontend_favicon"><?php if(!empty($this->frontend_favicon)){ $frontend_favicon_del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'.$this->escape($this->frontend_favicon).'">'.$this->translator->translator("common_delete").'</a>'; ?><div class="upload-img box"><span><span class="thumb"><img src="<?php echo $this->escape($this->frontend_favicon); ?>" width="45" height="35" class="bdr" /></span><br /><br />&nbsp;<?php echo $frontend_favicon_del_link; ?>&nbsp;&nbsp;&nbsp;</span></div><?php } ?></span>
+                                </div>
+                                                         
+                                <div class="no-img">                                	
+                                  	<span class="other-btn ui-widget-content-1"><a href="javascript: void(0);" class="no_img_frontend_favicon_btn"><span class="icon delete"><?php echo $this->translator->translator('common_no_image'); ?></span></a></span>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->frontend_favicon->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="frontend_favicon_err"></div>
+                                </div>
+                            </div>
+                            
+                     	</div>
+                        </fieldset>
+                        
+                        <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('settings_conf_footer'); ?></legend>
+                        <?php
+							if( $ckLicense == true)
+							{						
+								$valid = ($ckLicense == true && $validation_data['license_footer'] == '1') ? true : false;					
+							}
+							else
+
+							{
+								$valid = true;
+							}
+						  if($valid  == true)
+						  {
+					  	?>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->admin_footer->getLabel(); if($this->GlobalSettingsForm->admin_footer->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->admin_footer; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->admin_footer->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="admin_footer_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->admin_footer_url->getLabel(); if($this->GlobalSettingsForm->admin_footer_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->admin_footer_url; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->admin_footer_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="admin_footer_url_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->frontend_footer->getLabel(); if($this->GlobalSettingsForm->frontend_footer->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->frontend_footer; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->frontend_footer->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="frontend_footer_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->GlobalSettingsForm->frontend_footer_url->getLabel(); if($this->GlobalSettingsForm->frontend_footer_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->GlobalSettingsForm->frontend_footer_url; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->frontend_footer_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="frontend_footer_url_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                        <?php
+							 }
+							 else
+							 {
+								echo $this->translator->translator('footer_licrnse','http://'.$validation_data['vendor_domain']);
+							 }
+						?>
+                        </fieldset>
+                    </div>
+                    
+                    <div id="tabs-4">
+                    	<fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->translator->translator('settings_conf_javascript_code'); ?></legend>
+                        <input type="hidden" id="last_id" name="last_id" value="" /><input type="hidden" id="article_name_field" name="article_name_field" value="" />
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label article-label">
+                                    <?php echo $this->GlobalSettingsForm->analytics_code->getLabel();  if($this->GlobalSettingsForm->analytics_code->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                    
+                                <div class="field article-field">
+                                    <div class="left-float"><?php echo $this->GlobalSettingsForm->analytics_code; ?></div>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->analytics_code->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <span id="loaderLink_analytics_code"><a href="javascript:void(0);" onClick="loadTinyMCE('analytics_code');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator('common_editor_open'); ?>" alt="<?php echo $this->translator->translator('common_editor_open'); ?>" ></a></span>
+                                    <div class="input-errors" id="global_email_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                        
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label article-label">
+                                    <?php echo $this->GlobalSettingsForm->hit_counter_code->getLabel();  if($this->GlobalSettingsForm->hit_counter_code->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                    
+                                <div class="field article-field">
+                                    <div class="left-float"><?php echo $this->GlobalSettingsForm->hit_counter_code; ?></div>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->hit_counter_code->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <span id="loaderLink_hit_counter_code"><a href="javascript:void(0);" onClick="loadTinyMCE('hit_counter_code');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator('common_editor_open'); ?>" alt="<?php echo $this->translator->translator('common_editor_open'); ?>" ></a></span>
+                                    <div class="input-errors" id="hit_counter_code_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+						</fieldset>
+                    </div>
+					
+					
+					<div id="tabs-5">
+                    	<fieldset class="fieldset last">
+                        	<legend class="legend"><?php echo $this->translator->translator('settings_conf_security'); ?></legend>
+							
+							<div class="form">	
+													
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->login_ip_checking->getLabel(); if($this->GlobalSettingsForm->login_ip_checking->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->login_ip_checking; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->login_ip_checking->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="login_ip_checking_err"></div>
+									</div>
+								</div>				
+								
+							</div>
+									<?php echo $this->translator->translator('settings_conf_security_caution'); ?>
+							
+							<div class="form">	
+													
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->captcha_enable->getLabel(); if($this->GlobalSettingsForm->captcha_enable->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->captcha_enable; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->captcha_enable->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="captcha_enable_err"></div>
+									</div>
+								</div>	
+								
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->image_renaming_enable->getLabel(); if($this->GlobalSettingsForm->image_renaming_enable->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->image_renaming_enable; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->image_renaming_enable->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="image_renaming_enable_err"></div>
+									</div>
+								</div>	
+								
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->image_renaming_prefix->getLabel(); if($this->GlobalSettingsForm->image_renaming_prefix->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->image_renaming_prefix; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->image_renaming_prefix->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="image_renaming_prefix_err"></div>
+									</div>
+								</div>	
+                                
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->file_mime_type->getLabel(); if($this->GlobalSettingsForm->file_mime_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->file_mime_type; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->file_mime_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="file_mime_type_err"></div>
+									</div>
+								</div>		
+                                
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->file_archive_type->getLabel(); if($this->GlobalSettingsForm->file_archive_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->file_archive_type; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->file_archive_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="file_archive_type_err"></div>
+									</div>
+								</div>	
+                                
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->file_archive_not_supported_file_type->getLabel(); if($this->GlobalSettingsForm->file_archive_not_supported_file_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->file_archive_not_supported_file_type; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->file_archive_not_supported_file_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="file_archive_not_supported_file_type_err"></div>
+									</div>
+								</div>			
+								
+							</div>
+							
+						</fieldset>
+					</div>
+                    
+                    <div id="tabs-6">
+                    	<fieldset class="fieldset">
+                        	<legend class="legend"><?php echo $this->translator->translator('settings_conf_watermark_class_check'); ?></legend>                  	                      
+                      
+                          <h6><?php echo $this->translator->translator('settings_conf_watermark_class_check_label'); ?></h6>
+                      
+                          <p><?php echo $this->translator->translator('settings_conf_watermark_class_check_desc'); ?></p>
+                          <br />
+                          	<?php
+								$minimum_requirements = true;
+								$animated_gifs = true;
+							?>
+                            	<table width="100%" border="0" cellspacing="0" cellpadding="1" align="center" class="highlighter">
+                                		<tr class="label">
+                                            <td width="29%"><?php echo $this->translator->translator('settings_conf_watermark_class_check_table_header_name'); ?></td>
+                                            <td width="16%" align="center"><?php echo $this->translator->translator('settings_conf_watermark_class_check_table_header_result'); ?></td>
+                                            <td width="55%"><?php echo $this->translator->translator('settings_conf_watermark_class_check_table_header_memo'); ?></td>
+                                  		</tr>
+                        			
+                                    	<tr>
+                                            <td><?php echo $this->translator->translator('settings_conf_watermark_class_check_name_value_gd'); ?></td>
+                                            <?php
+                                            if (extension_loaded('gd')) {
+                                              $class = 'ok';
+                                              $gd_info = gd_info();
+                                            } else {
+                                              $class = 'bad';
+                                              $minimum_requirements = false;
+                                            }
+                                            ?>
+                                            <td class="<?php echo $class;?>" align="center">
+                                              <?php echo $class == 'ok' ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/un-writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" />';?>
+                                            </td>
+                                            <td>
+                                              <?php echo $this->translator->translator('settings_conf_watermark_class_check_memo_value_gd'); ?>
+                                            </td>
+										</tr>
+                        
+                                      	<tr>
+                                            <td><?php echo $this->translator->translator('settings_conf_watermark_class_check_name_value_type'); ?></td>
+                                            <?php
+                                            if (isset($gd_info) && $gd_info['FreeType Support']) {
+                                              $class = 'ok';
+                                            } else {
+                                              $class = 'bad';
+                                              $minimum_requirements = false;
+                                            }
+                                            ?>
+                                            <td class="<?php echo $class;?>" align="center">
+                                              <?php echo $class == 'ok' ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/un-writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" />';?>
+                                            </td>
+                                            <td>
+                                              <?php echo $this->translator->translator('settings_conf_watermark_class_check_memo_value_type'); ?>
+                                            </td>
+                                      	</tr>
+                        
+                              			<tr>
+                                            <td><?php echo $this->translator->translator('settings_conf_watermark_class_check_name_value_sys_func'); ?></td>
+                                            <?php
+                                            if (function_exists('system')) {
+                                              $class = 'ok';
+                                            } else {
+                                              $class = 'bad';
+                                              $animated_gifs = false;
+                                            }
+                                            ?>
+                                            <td class="<?php echo $class;?>" align="center">
+                                              <?php echo $class == 'ok' ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/un-writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" />';?>
+                                            </td>
+                                            <td>
+                                              <?php echo $this->translator->translator('settings_conf_watermark_class_check_memo_value_sys_func'); ?>
+                                            </td>
+                              			</tr>
+                        
+                              			<tr>
+                                            <td><?php echo $this->translator->translator('settings_conf_watermark_class_check_name_value_safe_mode'); ?></td>
+                                            <?php
+                                            if (ini_get('safe_mode')) {
+                                              $class = 'bad';
+                                              $animated_gifs = false;
+                                            } else {
+                                              $class = 'ok';
+                                            }
+                                            ?>
+                                            <td class="<?php echo $class;?>" align="center">
+                                              <?php echo $class == 'ok' ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/un-writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" />';?>
+                                            </td>
+                                            <td>
+                                              <?php echo $this->translator->translator('settings_conf_watermark_class_check_memo_value_safe_mode'); ?>
+                                            </td>
+                             			</tr>
+                        
+                                  		<tr>
+                                            <td><?php echo $this->translator->translator('settings_conf_watermark_class_check_name_value_imagemagick'); ?></td>
+                                            <?php
+                                            ob_start();
+                                            // Try and execute the convert app.
+                                            system("convert -version");
+                                            $output = ob_get_contents();
+                                            ob_end_clean();
+                                    
+                                            if (stripos($output, 'ImageMagick') !== false) {
+                                              $class = 'ok';
+                                            } else {
+                                              $class = 'bad';
+                                              $animated_gifs = false;
+                                            }
+                                            ?>
+                                            <td class="<?php echo $class;?>" align="center">
+                                              <?php echo $class == 'ok' ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_pass').'" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/un-writable.png" title="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" alt="'.$this->translator->translator('settings_conf_watermark_class_check_fail').'" />';?>
+                                            </td>
+                                            <td>
+                                              <?php echo $this->translator->translator('settings_conf_watermark_class_check_memo_value_imagemagick'); ?>
+                                            </td>
+                                  		</tr>
+                            	</table>
+                            <br />
+                            
+                            <h6><?php echo $this->translator->translator('settings_conf_watermark_class_check_conclusion_header'); ?></h6>
+
+                            <ul>
+                              <li>
+                                <?php
+                                if ($minimum_requirements) {
+                                  echo $this->translator->translator('settings_conf_watermark_class_check_minimum_requirements_success');
+                                } else {
+                                  echo $this->translator->translator('settings_conf_watermark_class_check_minimum_requirements_err');
+                                }
+                                ?>
+                              </li>
+                              <li>
+                                <?php
+                                if ($minimum_requirements && $animated_gifs) {
+                                  echo $this->translator->translator('settings_conf_watermark_class_check_animated_gifs_success');
+                                } else {
+                                  echo $this->translator->translator('settings_conf_watermark_class_check_animated_gifs_err');
+                                }
+                                ?>
+                              </li>
+                            </ul>
+						</fieldset>
+                        
+                    	<fieldset class="fieldset">
+                        	<legend class="legend"><?php echo $this->translator->translator('settings_conf_watermark'); ?></legend>
+							
+							<div class="form">	
+													
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_enabled->getLabel(); if($this->GlobalSettingsForm->watermark_enabled->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_enabled; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_enabled->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_enabled_err"></div>
+									</div>
+								</div>										
+								
+								<!--<div class="form-row">
+									<div class="label">
+										<?php //echo $this->GlobalSettingsForm->watermark_on_edit->getLabel(); if($this->GlobalSettingsForm->watermark_on_edit->isRequired()){ ?><span class="required">*</span><?php //} ?>
+									</div>
+									
+									<div class="field">
+										<?php //echo $this->GlobalSettingsForm->watermark_on_edit; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php //echo $this->escape($this->GlobalSettingsForm->watermark_on_edit->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_on_edit_err"></div>
+									</div>
+								</div>-->	
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_place_inside->getLabel(); if($this->GlobalSettingsForm->watermark_place_inside->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_place_inside; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_place_inside->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_place_inside_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_background_color->getLabel(); if($this->GlobalSettingsForm->watermark_background_color->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_background_color; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_background_color->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_background_color_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_background_transparency->getLabel(); if($this->GlobalSettingsForm->watermark_background_transparency->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_background_transparency; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_background_transparency->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_background_transparency_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_height->getLabel(); if($this->GlobalSettingsForm->watermark_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_height; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_height_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_position->getLabel(); if($this->GlobalSettingsForm->watermark_position->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_position; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_position->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_position_err"></div>
+									</div>
+								</div>
+								
+							</div>
+							
+						</fieldset>
+                        
+                        <fieldset class="fieldset">
+                        	<legend class="legend"><?php echo $this->translator->translator('settings_conf_watermark_icon'); ?></legend>
+							
+							<div class="form">	
+													
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_show->getLabel(); if($this->GlobalSettingsForm->watermark_icons_show->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_show; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_show->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_show_err"></div>
+									</div>
+								</div>										
+								
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_files->getLabel(); if($this->GlobalSettingsForm->watermark_icons_files->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_files; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_files->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_files_err"></div>
+									</div>
+								</div>	
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_max_height_percentage->getLabel(); if($this->GlobalSettingsForm->watermark_icons_max_height_percentage->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_max_height_percentage; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_max_height_percentage->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_max_height_percentage_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_align->getLabel(); if($this->GlobalSettingsForm->watermark_icons_align->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_align; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_align->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_align_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_vertical_align->getLabel(); if($this->GlobalSettingsForm->watermark_icons_vertical_align->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_vertical_align; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_vertical_align->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_vertical_align_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_offset_x->getLabel(); if($this->GlobalSettingsForm->watermark_icons_offset_x->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_offset_x; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_offset_x->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_offset_x_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_offset_y->getLabel(); if($this->GlobalSettingsForm->watermark_icons_offset_y->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_offset_y; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_offset_y->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_offset_y_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_spacing->getLabel(); if($this->GlobalSettingsForm->watermark_icons_spacing->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_spacing; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_spacing->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_spacing_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_jpeg_quality->getLabel(); if($this->GlobalSettingsForm->watermark_icons_jpeg_quality->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_icons_jpeg_quality; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_icons_jpeg_quality->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_icons_jpeg_quality_err"></div>
+									</div>
+								</div>
+								
+							</div>
+							
+						</fieldset>
+                        
+                        <fieldset class="fieldset last">
+                        	<legend class="legend"><?php echo $this->translator->translator('settings_conf_watermark_text'); ?></legend>
+							
+							<div class="form">	
+													
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_show->getLabel(); if($this->GlobalSettingsForm->watermark_text_show->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_show; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_show->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_show_err"></div>
+									</div>
+								</div>										
+								
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_value->getLabel(); if($this->GlobalSettingsForm->watermark_text_value->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_value; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_value->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_value_err"></div>
+									</div>
+								</div>	
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_align->getLabel(); if($this->GlobalSettingsForm->watermark_text_align->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_align; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_align->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_align_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_offset_x->getLabel(); if($this->GlobalSettingsForm->watermark_text_offset_x->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_offset_x; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_offset_x->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_offset_x_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_offset_y->getLabel(); if($this->GlobalSettingsForm->watermark_text_offset_y->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_offset_y; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_offset_y->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_offset_y_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_spacing->getLabel(); if($this->GlobalSettingsForm->watermark_text_spacing->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_spacing; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_spacing->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_spacing_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_fonts_directory->getLabel(); if($this->GlobalSettingsForm->watermark_text_fonts_directory->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_fonts_directory; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_fonts_directory->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_fonts_directory_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_font->getLabel(); if($this->GlobalSettingsForm->watermark_text_font->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_font; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_font->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_font_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_size->getLabel(); if($this->GlobalSettingsForm->watermark_text_size->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_size; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_size->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_size_err"></div>
+									</div>
+								</div>		
+                                
+                                <div class="form-row">
+									<div class="label">
+										<?php echo $this->GlobalSettingsForm->watermark_text_color->getLabel(); if($this->GlobalSettingsForm->watermark_text_color->isRequired()){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php echo $this->GlobalSettingsForm->watermark_text_color; ?>
+										<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->GlobalSettingsForm->watermark_text_color->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+										<div class="input-errors" id="watermark_text_color_err"></div>
+									</div>
+								</div>
+								
+							</div>
+							
+						</fieldset>
+					</div>
+					
+					</div>
+                </div>
+            </div>
+    </form>
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('settings_page_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('settings_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="save_data_btn"><span class="icon save"><?php echo $this->translator->translator('settings_page_save'); ?></span></a></span>
+    </div>
+</div>
+<?php endif; ?>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('settings_page_name')); ?>"></div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>"><div id="progressbar" style="height:22px;margin-top:30px;"></div></div>
+<div id="upload-form" title="<?php echo $this->translator->translator('settings_page_dialog'); ?>">
+	<div>
+    	<form id="popupForm" target="i-upload-form" method="post" action="" >
+            <input type="hidden" name="table_name" value="global_setting"/>
+            <input type="hidden" name="primary_id_field" value="id"/>
+            <input type="hidden" name="primary_id_field_value" value=""/>   
+            <input type="hidden" name="primary_file_field" value=""/> 
+           	<input type="hidden" name="file_content"  value=""/>       
+            <input type="hidden" name="file_path_field" value="file_path"/>
+            <input type="hidden" name="file_extension_field" value="file_extension"/>
+            <input type="hidden" name="file_max_size_field" value="file_max_size"/>
+    	</form>
+		<iframe id="i-upload-form" name="i-upload-form" src="" class="iframe-article"></iframe>        
+	</div>
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="select_file_btn"><span class="icon insert"><?php echo $this->translator->translator('settings_page_insert'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+    </div>
+</div>
+</div>

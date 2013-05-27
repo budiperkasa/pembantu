@@ -1,0 +1,230 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.css');
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$currencySymbol = $currency->getSymbol();
+$currencyShortName = $currency->getShortName();
+
+if($this->invoice_info)
+{	
+
+	$payment_db = new Paymentgateway_Model_DbTable_Gateway();
+	$payment_info = $payment_db->getDefaultGateway();	
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+   $('a.print_btn').each(function()
+   {		 
+	  // We make use of the .each() loop to gain access to each element via the "this" keyword...
+	  $(this).qtip(
+	  {
+		 content: {
+			// Set the text to an image HTML string with the correct src URL to the loading image you want to use
+			text: '<img class="throbber" src="images/ajax_loader7.gif" alt="Loading..." />',
+			ajax: {
+			   url: "<?php echo $this->url( array('module'=> 'Flight', 'controller' => 'invoice', 'action'     => 'print' , 'invoice_id' => '' ), 'adminrout',    true) ?>"+$(this).attr('rel') // Use the rel attribute of each element for the url to load
+			},
+			title: {
+			   text: "<?php echo $this->translator->translator('flight_invoice_list_invoice_preview'); ?>", // Give the tooltip a title using each elements text
+			   button: true
+			}
+		 },
+		 position: {			 	
+			at: 'center', // Position the tooltip above the link
+			my: 'center',
+			target: $(window),
+			viewport: $(window) // Keep the tooltip on-screen at all times
+		 },
+		 show: {
+			event: 'click',
+			effect: function() { $(this).show(100); } ,
+			modal: true,
+			solo: true // Only show one tooltip at a time
+		 },
+		 hide: {
+			event: 'unfocus',
+			effect: function() { $(this).hide(100); }
+		 },
+		 style: {
+			classes: 'ui-tooltip-wiki ui-tooltip-light ui-tooltip-shadow',
+			tip: false
+		 }
+	  })	  
+	  // Make sure it doesn't follow the link when we click it
+	  .click(function() { return false; });
+   });
+});
+</script>
+<style type="text/css">
+/*******************************************************Tooltip Style START********************************************************************/
+	.ui-tooltip-wiki
+	{
+	   max-width: 700px;
+	   height:500px;
+	   overflow:auto;	  
+	}
+	 
+   .ui-tooltip-wiki .ui-tooltip-content
+   {
+	  padding: 10px;
+	  
+	  line-height: 12.5px;
+   }
+ 
+   .ui-tooltip-wiki h1{
+	  margin: 0 0 7px;
+ 
+	  font-size: 1.5em;
+	  line-height: 1em;
+   }
+ 
+   .ui-tooltip-wiki img
+   { 
+	padding: 0 10px 0 0; 
+   }
+   
+   .ui-tooltip-wiki p{ margin-bottom: 9px; }
+   .ui-tooltip-wiki .note{ margin-bottom: 0; font-style: italic; color: #888; }
+   
+	/*******************************************************Tooltip Style END*********************************************************************/
+</style>
+<table width="100%" border="0" cellspacing="0">
+  <tbody>
+  
+<?php
+		foreach($this->invoice_info as $invoices)
+		{
+			$invoiceItems_db = new Flight_Model_DbTable_InvoiceItems();
+			$invoiceItems_info = $invoiceItems_db->getInvoiceItemsInfo($invoices['user_id'],$invoices['id']);
+			if($this->escape($invoices['status']) != '0')
+			{
+?>
+	<tr>
+		<td>
+	<table width="100%" border="0" cellspacing="0">
+  		<tbody>
+		<tr>
+			<td align="left"  style="border:1px solid #cccccc;border-bottom:0px;border-right:0px;padding-left:5px;"><?php echo '<b>'.$this->translator->translator("flight_invoice_id_title").'</b>: #'.$invoices['id']; ?></td>
+			<td  align="right" style="border:1px solid #cccccc;border-bottom:0px;border-left:0px;padding-right:5px;"><?php echo '<b>'.$this->translator->translator("flight_invoice_date_title").'</b>: '.$invoices['invoice_create_date']; ?></td>
+		  </tr>
+		<tr>
+			<td width="77%" align="center" style="border:1px solid #cccccc;border-bottom:0px;border-right:0px;"><?php echo '<b>'.$this->translator->translator("flight_invoice_desc_title").'</b>'; ?></td>
+			<td  align="center" style="border:1px solid #cccccc;border-bottom:0px;"><?php echo '<b>'.$this->translator->translator("flight_invoice_amount_title").'</b>'; ?></td>
+		  </tr>
+<?php
+				$total_amount = 0;
+				$total_tax = 0;		
+				foreach($invoiceItems_info as $invoiceItems)
+				{
+				$item_info = Zend_Json::decode($invoiceItems['object_value']);		
+		?>			
+				<tr>
+						<td style="border:1px solid #cccccc;border-bottom:0px;border-right:0px;">
+						<table width="100%">
+							<tr>
+								<td><img src="data/frontImages/flight/airlines/<?php echo $item_info['airline_infos']['airlines_pic']; ?>" height="60" title="<?php echo $item_info['airline_infos']['airlines']; ?>" /></td>
+								<td>
+								<?php echo $item_info['FlightInfoExResult'][0]['originName'].', '.$item_info['FlightInfoExResult'][0]['originCity'].' --> '.$item_info['FlightInfoExResult'][0]['destinationName'].', '.$item_info['FlightInfoExResult'][0]['destinationCity']; ?>
+								<br />
+								<?php echo '<strong>'.$this->translator->translator("flight_AirlineFlightSchedules_page_table_depart").' :</strong> '.$item_info['FlightInfoExResult'][0]['filed_departuretime']; ?>
+								<br  />
+								<?php echo '<strong>'.$this->translator->translator("flight_AirlineFlightSchedules_page_table_arive").' :</strong> '.$item_info['FlightInfoExResult'][0]['estimatedarrivaltime']; ?>
+								<br  />
+								<?php echo '<strong>'.$this->translator->translator("flight_AirlineFlightSchedules_page_table_class").' :</strong> '.$item_info['airline_price_info']['classType']; ?>
+								</td>
+							</tr>
+						</table>	
+						<td style="border:1px solid #cccccc;border-bottom:0px;">
+							<table border="0" width="100%">
+								<tr>
+									<td width="50%"><?php echo $this->translator->translator("flight_AirlineFlightSchedules_page_table_adult").' ('.$item_info['airline_price_info']['adult_no'].')'; ?> :</td><td width="50%"><?php echo $currencySymbol.($item_info['airline_price_info']['adult_price']*$item_info['airline_price_info']['adult_no']).$currencyShortName; ?></td>
+								</tr>
+								<tr>
+									<td><?php echo $this->translator->translator("flight_AirlineFlightSchedules_page_table_child").' ('.$item_info['airline_price_info']['child_no'].')'; ?> :</td><td><?php echo $currencySymbol.($item_info['airline_price_info']['child_price']*$item_info['airline_price_info']['child_no']).$currencyShortName; ?></td>
+								</tr>
+								<tr>
+									<td><?php echo $this->translator->translator("flight_AirlineFlightSchedules_page_table_infant").' ('.$item_info['airline_price_info']['infant_no'].')'; ?> :</td><td><?php echo $currencySymbol.($item_info['airline_price_info']['infant_price']*$item_info['airline_price_info']['infant_no']).$currencyShortName; ?></td>
+								</tr>
+							</table>
+						</td>
+					  </tr>
+					  <tr>
+						<td style="border:1px solid #cccccc;border-bottom:0px;border-right:0px;"></td>
+						<td style="border:1px solid #cccccc;border-bottom:0px;">
+							<table border="0" width="100%">
+								<tr>
+									<td width="50%"> <?php echo $this->translator->translator("flight_invoice_total_tax_title"); ?></td><td width="50%"><?php $total_tax += $item_info['airline_price_info']['total_tax'];  echo $currencySymbol.$item_info['airline_price_info']['total_tax'].$currencyShortName; ?></td>
+								</tr>
+							</table>
+						</td>
+					  </tr>
+					  <tr>
+						<td style="border:1px solid #cccccc;border-bottom:0px;border-right:0px;"></td>
+						<td style="border:1px solid #cccccc;border-bottom:0px;">
+							<table border="0" width="100%">
+								<tr>
+									<td width="50%"> <?php echo $this->translator->translator("flight_invoice_sub_total_title"); ?></td><td width="50%"><?php $sub_total = $item_info['airline_price_info']['adult_price']*$item_info['airline_price_info']['adult_no']+$item_info['airline_price_info']['child_price']*$item_info['airline_price_info']['child_no']+$item_info['airline_price_info']['infant_price']*$item_info['airline_price_info']['infant_no']; echo $currencySymbol.$sub_total.$currencyShortName; $total_amount += $sub_total; ?></td>
+								</tr>
+							</table>
+						</td>
+					  </tr>	 
+        <?php					
+			}
+			
+			switch(strtolower($payment_info['name']))
+			{
+				case 'paypal':
+					$total_price = $total_amount+$total_tax;
+					$currency_name = ($payment_info['curency']) ? $payment_info['curency'] : $currencyShortName;
+					$payment_link = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business='.$payment_info['email'].'&item_name=Invoice-'.$invoices['id'].'&item_number=1&amount='.$total_price.'&no_shipping=0&no_note=1&currency_code='.$currency_name.'&bn=PP%2dBuyNowBF&charset=UTF%2d8 target=_blank';
+				break;
+				default:
+					$total_price = $total_amount+$total_tax;
+					$currency_name = ($payment_info['curency']) ? $payment_info['curency'] : $currencyShortName;
+					$payment_link = 'https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business='.$payment_info['email'].'&item_name=Invoice-'.$invoices['id'].'&item_number=1&amount='.$total_price.'&no_shipping=0&no_note=1&currency_code='.$currency_name.'&bn=PP%2dBuyNowBF&charset=UTF%2d8 target=_blank';
+				break;
+			}			
+         ?>
+					<tr>
+					<td style="border:1px solid #cccccc;border-right:0px;padding-left:10px;font-weight:bold;"><?php if($this->escape($invoices['status']) == '1'){ echo $this->translator->translator('common_paid_language'); }else if($this->escape($invoices['status']) == '2'){ echo $this->translator->translator('common_unpaid_language'); }else if($this->escape($invoices['status']) == '0'){ echo $this->translator->translator('common_cancelled_language'); }  ?></td>
+					<td style="border:1px solid #cccccc;">
+						<table border="0" width="100%">
+							<tr>
+								<td width="50%"> <?php echo $this->translator->translator("flight_invoice_total_title"); ?></td><td width="50%"><?php echo $currencySymbol.($total_amount+$total_tax).$currencyShortName; ?></td>
+							</tr>
+						</table>
+					</td>
+				  </tr>
+				 
+				  <tr>
+					<td colspan="2">
+						<table width="100%">
+							<tr>
+							<td align="right">
+								<div class="form_button ui-widget-content-1" style="width:120px;" align="right"><a href="javascript:void(0);" class="print_btn" rel="<?php echo $invoices['id']; ?>" ><?php echo $this->translator->translator('flight_invoice_print'); ?></a></div></td>
+								<td width="10%">&nbsp;</td>
+							<td align="left">
+							 <?php if($this->escape($invoices['status']) != '1'){ ?>
+								<div class="form_button ui-widget-content-1" style="width:120px;" align="right"><a href="<?php echo $payment_link; ?>"><?php echo $this->translator->translator('flight_invoice_payment'); ?></a></div>
+							 <?php } ?>
+							</td>
+							</tr>
+						</table>
+					</td>
+				  </tr>
+				
+				</tbody>
+		</table>
+		</td>
+	</tr>
+<?php
+			}
+		}
+?>
+
+  </tbody>
+</table>
+<?php		
+}
+?>

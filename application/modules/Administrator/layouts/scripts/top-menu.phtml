@@ -1,0 +1,92 @@
+<?php
+$menu_session_arr = (Eicra_Global_Variable::getSession()->admin_top_menu) ? Eicra_Global_Variable::getSession()->admin_top_menu : '';
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$style_direction = ($locale_direction == 'rtl') ? '_'.$locale_direction : '';
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/megamenu.css', "screen", false);
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/js/mobile.js');
+
+if($locale_direction == 'rtl')
+{
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/megamenu'.$style_direction.'.css');	
+}
+?>
+<!--[if lt IE 9]>
+<?php echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/ie/ie.css', "screen", true); ?>
+<![endif]-->
+<?php
+if(empty($menu_session_arr) || empty($menu_session_arr['complete']))
+{
+	$admin_menu_obj	=	new Administrator_View_Helper_Menu($this);
+	$menu_session_arr	=	$admin_menu_obj->getMenu();
+	unset($menu_session_arr['complete']);
+}
+else
+{
+	unset($menu_session_arr['complete']);
+}
+	
+function printSubMenu($menus_arr, $view)
+{
+	$menu_code = '';
+	if(!empty($menus_arr) && !empty($menus_arr[0]))
+	{
+		foreach($menus_arr as $menus_key => $menus)
+		{
+			$parent_class = (!empty($menus['sub_menu']) && !empty($menus['sub_menu'][0])) ? 'parent' : '';	
+			$li_class = (!empty($menus['menu_li_class'])) ? $menus['menu_li_class'] : '';	
+			$menu_target	=		(!empty($menus['menu_target'])) ? $menus['menu_target'] : '';
+			if(preg_match('@^(?:http://)?([^/]+)@i', $menus['menu_link']))
+			{
+				$menu_link = $menus['menu_link'];
+			}
+			else
+			{
+				$menu_link = ($menus['menu_link'] == 'javascript:void(0);') ? 'javascript:void(0);' : $view->baseUrl().$menus['menu_link'];							
+			}
+				$menu_code .= '<li '.$li_class.'>';
+					$menu_code .= '<a href="'.$menu_link.'" class="'.$parent_class.'" '.$menu_target.'>'.$menus['menu_name'].'</a>';
+					if(!empty($menus['sub_menu']) && !empty($menus['sub_menu'][0]))
+					{
+						$menu_code .= '<ul>';
+						$menu_code .= printSubMenu($menus['sub_menu'], $view);
+						$menu_code .= '</ul>';
+					}
+				$menu_code .= '</li>';				
+		}
+	}
+	return $menu_code;
+}
+?>
+<div class="wrapper_menu menu_dark_theme">	
+    <ul class="menu menu_black">
+        <?php if ($this->allow('index','index','Administrator')) : ?>
+            <li><a href="Dashboard"><?php echo $this->translator->translator('admin_menu_home'); ?></a></li>
+        <?php endif; ?>
+        <?php
+            foreach($menu_session_arr as $menu_session_key => $menus_arr)
+            {
+                $drop_class = ($menus_arr['menu_link'] == 'javascript:void(0);') ? 'drop' : '';	
+                $menu_link = ($menus_arr['menu_link'] == 'javascript:void(0);') ? 'javascript:void(0);' : $this->baseUrl().$menus_arr['menu_link'];					
+        ?>					
+            <li>
+                <a href="<?php echo $menus_arr['menu_link']; ?>" class="<?php echo $drop_class; ?>"><?php echo $menus_arr['menu_name']; ?></a>
+                <?php
+                    if(!empty($menus_arr['sub_menu']) && !empty($menus_arr['sub_menu'][0]))
+                    {
+                ?>
+                 <div class="dropdown_1column">
+                    <div class="col_1 firstcolumn">
+                        <ul class="levels">
+                            <?php echo printSubMenu($menus_arr['sub_menu'], $this); ?>
+                        </ul>
+                    </div>
+                </div>
+                <?php
+                    }
+                ?>
+            </li>							
+        <?php
+            }
+        ?>
+    </ul>
+</div>

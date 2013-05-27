@@ -1,0 +1,37 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('newsletter_menu_name'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('list','templates','Newsletter')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'templates'){ ?> class="newsletter-template selected"<?php }else{ ?>class="newsletter-template"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Newsletter','controller'=>'templates', 'action'=>'list'),'adminrout',true);?>" ><?php echo $translator->translator('newsletter_menu_manage_temp'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','formats','Newsletter')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'formats'){ ?> class="email-variable selected"<?php }else{ ?>class="email-variable"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Newsletter','controller'=>'formats', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('newsletter_menu_manage_email_variable'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','subscribers','Newsletter')) : ?>
+           	<li <?php if($getAction == 'list' && strtolower($getController) == 'subscribers'){ ?> class="subscriber-list selected"<?php }else{ ?>class="subscriber-list"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Newsletter','controller'=>'subscribers', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('newsletter_menu_subscriber_list'); ?></a>
+			</li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('send','templates','Newsletter')) : ?>
+            <li <?php if($getAction == 'send' && strtolower($getController) == 'templates'){ ?> class="newsletter-submit selected last"<?php }else{ ?>class="newsletter-submit last"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module'=> 'Newsletter', 'controller' => 'templates', 'action'     => 'send' ), 'adminrout',    true) ?>"><?php echo $translator->translator('newsletter_menu_send_newsletter'); ?></a>
+			</li>
+			<?php endif; ?>
+        </ul>
+	</div>
+</div>

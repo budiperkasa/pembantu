@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="search" for="frontend" description="Site Search" langKey="permisson_search">
+		<privilege  name="list" description="View the list of Site Search" langKey="permisson_search_list" img="permisson_search_list.jpg" />		
+	</resource>		
+</permissions>

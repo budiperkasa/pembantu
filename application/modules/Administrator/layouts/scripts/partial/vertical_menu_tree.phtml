@@ -1,0 +1,37 @@
+<?php 
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jqueryFileTree/jqueryFileTree.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/jqueryFileTree/jqueryFileTree.css');
+$translator = Zend_Registry::get('translator');		
+$front = Zend_Controller_Front::getInstance();
+$getAction = $front->getRequest()->getActionName();
+$getModule = $front->getRequest()->getModuleName();
+$getController = $front->getRequest()->getControllerName();	
+?>
+
+<script type="text/javascript"> 
+			
+$(document).ready( function() {
+	
+	$('#fileTreeDemo_1').fileTree({ root: 'root', script: "<?php echo $this->url( array('module' => 'Administrator','controller' => 'Index', 'action'     => 'tree', 'getAction' => $getAction, 'getController' => $getController, 'getModule' => $getModule ), 'adminrout',    true) ?>" , expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: "<?php echo $translator->translator('common_loading_language'); ?>"}, function(file) { 
+		document.location.href = file;
+	});
+	
+	/*$('#fileTreeDemo_2').fileTree({ root: '<?php echo $this->baseUrl(); ?>/images/', script: '<?php echo $this->baseUrl(); ?>/js/jquery/jqueryFileTree/connectors/jqueryFileTree.php', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, multiFolder: false }, function(file) { 
+		alert(file);
+	});
+	
+	$('#fileTreeDemo_3').fileTree({ root: '<?php echo $this->baseUrl(); ?>/images/', script: '<?php echo $this->baseUrl(); ?>/js/jquery/jqueryFileTree/connectors/jqueryFileTree.php', folderEvent: 'click', expandSpeed: 750, collapseSpeed: 750, expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: 'Un momento...' }, function(file) { 
+		alert(file);
+	});
+	
+	$('#fileTreeDemo_4').fileTree({ root: '<?php echo $this->baseUrl(); ?>/images/', script: '<?php echo $this->baseUrl(); ?>/js/jquery/jqueryFileTree/connectors/jqueryFileTree.php', folderEvent: 'dblclick', expandSpeed: 1, collapseSpeed: 1 }, function(file) { 
+		alert(file);
+	});*/
+	
+});
+</script>
+
+<div class="module-tree">
+    <div class="tree-header"><div class="tree-title"><?php echo $translator->translator('common_module_list'); ?></div></div>
+    <div id="fileTreeDemo_1" class="module-body treebody"></div>
+</div>

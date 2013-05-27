@@ -1,0 +1,263 @@
+<?php
+$version = Zend_Registry::get('version');
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'fade',
+			resizable: 'false',				
+			buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 10000);
+				  }
+		});
+	}
+		
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+		$('#thumb').val('');
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					/*var filearr = field.name.split('[]');
+					filename = filearr[0];*/					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+								
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+				fieldObj[filename] = filevalue;			
+			}	
+		});
+		return fieldObj;
+	}
+	
+	$('a.edit_setting_btn').click(function() {			
+		var formData = getFormData();
+		formData.id = "<?php echo $this->id;?>";
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Comment','controller' => 'backendsetting', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i <= json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{						
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+});
+</script>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="comments-setting"><h1><?php echo $this->translator->translator('comment_setting_list_page_edit_title'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Comment','controller' => 'backendsetting', 'action'     => 'list'), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_setting_btn"><span class="icon save"><?php echo $this->translator->translator('comment_setting_list_page_edit'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <div id="button_top_bar"></div>
+    <form name="formSetting" id="formSetting" method="post">
+   	<div id="generalInfo">
+        	<fieldset class="fieldset last">
+                <legend class="legend"><?php echo $this->translator->translator('comment_setting_edit_page_info'); ?></legend>
+                <div class="form">
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->settingForm->module->getLabel();  if($this->settingForm->module->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->settingForm->module; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->settingForm->module->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="module_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->settingForm->who_view->getLabel();  if($this->settingForm->who_view->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->settingForm->who_view; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->settingForm->who_view->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="who_view_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->settingForm->who_comment->getLabel();  if($this->settingForm->who_comment->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->settingForm->who_comment; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->settingForm->who_comment->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="who_comment_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->settingForm->publish_on_add->getLabel();  if($this->settingForm->publish_on_add->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->settingForm->publish_on_add; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->settingForm->publish_on_add->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="publish_on_add_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->settingForm->sorting_date->getLabel();  if($this->settingForm->sorting_date->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->settingForm->sorting_date; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->settingForm->sorting_date->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="sorting_date_err"></div>
+                        </div>
+                    </div>
+             	</div>
+			</fieldset>
+	</div>
+	</form>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('comment_setting_list_page_edit_title'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Comment','controller' => 'backendsetting', 'action'     => 'list'), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_setting_btn"><span class="icon save"><?php echo $this->translator->translator('comment_setting_list_page_edit'); ?></span></a></span>
+    </div>
+</div>
+<?php endif; ?>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg', $this->translator->translator('comment_setting_list_page_name')); ?>">
+</div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+</div>

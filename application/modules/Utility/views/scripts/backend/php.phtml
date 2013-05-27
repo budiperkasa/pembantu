@@ -1,0 +1,16 @@
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="php-info"><h1><?php echo $this->translator->translator('Utility_php_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<iframe src="<?php echo $this->url( array('module' => 'Utility','controller' => 'backend', 'action'   => 'php', 'info' => 'php' ), 'adminrout',    true); ?>" class="iframe-php-info"></iframe>
+</div>
+<?php endif; ?>	
+</div>

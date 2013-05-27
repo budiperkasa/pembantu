@@ -1,0 +1,76 @@
+<?php
+	$menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); 
+	$this->headTitle()->headTitle($menu_name,'SET');
+	if($this->translator->translator('sitemap_meta_key')) { $this->headMeta()->setName('keywords',$this->translator->translator('sitemap_meta_key')); }
+	if($this->translator->translator('sitemap_meta_desc')) { $this->headMeta()->setName('description',$this->translator->translator('sitemap_meta_desc'));	 }
+
+ function get_subMenu($parent,$view,$object)
+{
+	$subMenu = $object->getMenuData($parent,$view);
+	echo "<ul>";
+	foreach($subMenu as $subMenuData)
+	{
+		echo '<li><a href="'.$view->escape($subMenuData['link']).'" title="'.$view->escape($subMenuData['menu_title']).'" target="'.$view->escape($subMenuData['target']).'" >'.$view->escape($subMenuData['menu_name']).'&nbsp;';
+		if($object->checkChild($view->escape($subMenuData['menu_id']))){ echo '&raquo;'; } echo '</a>';
+		if($object->checkChild($view->escape($subMenuData['menu_id']))){ get_subMenu($view->escape($subMenuData['menu_id']),$view,$object); }
+		echo '</li>';
+	}
+	echo "</ul>";
+}
+?>
+
+<div class="mod">
+	<div class="sitemap-icon">
+        <h1><?php echo $this->escape($this->menu_id); ?></h1>
+    </div>
+    
+	<div class="clear">&nbsp;</div>
+
+	<?php   
+       $i = 1;
+        foreach ($this->view_datas as $entry): 
+        
+    ?>  
+    <div class="mod-sitemap">
+        <?php
+            if(!empty($entry['id']) )
+            {
+            ?>        
+            <fieldset>
+                <legend><?php echo $this->escape($entry['group_name']); ?></legend>
+                <ul class="parent-item">
+                    <?php
+                        
+                        $get_TopMainmenu = new Eicra_View_Helper_Menu($entry['id']);
+                        $MainMenu = $get_TopMainmenu->getMenuData('0',$this);
+                        if($MainMenu)
+                        {
+                        foreach($MainMenu as $MainMenuData)
+                        {	
+                    ?>
+                    <li class="child-item"><a href="<?php echo $this->escape($MainMenuData['link']); ?>" title="<?php echo $this->escape($MainMenuData['menu_title']); ?>" target="<?php echo $this->escape($MainMenuData['target']); ?>"><?php echo $this->escape($MainMenuData['menu_name']); ?>&nbsp; <?php if($get_TopMainmenu->checkChild($this->escape($MainMenuData['menu_id']))){ ?>&raquo;<?php } ?></a>
+                         <?php if($get_TopMainmenu->checkChild($this->escape($MainMenuData['menu_id']))){
+                            get_subMenu($this->escape($MainMenuData['menu_id']),$this,$get_TopMainmenu);
+                          ?>
+                           
+                         <?php } ?> 
+                    </li>
+                    <?php } 
+                    }
+                    ?>
+            	</ul>
+            </fieldset>	
+            <?php
+            }	
+        ?>
+    </div>
+	<?php
+            $i++;
+        endforeach;
+    ?>
+
+    <div class="clear"></div>
+    <div id="bottomPagination">
+        <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'sitemap/pagination-flickr.phtml'); ?>
+    </div>
+</div>

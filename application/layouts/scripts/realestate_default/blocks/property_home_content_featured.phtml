@@ -1,0 +1,162 @@
+<?php
+class property_featured_box
+{
+	protected	$_group = 1;
+	protected	$_limit = 3;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected	$_business_type_db;
+	protected	$_currency;
+	protected	$_cat_Info;
+	protected	$_mem_db;
+	protected	$_country_db;
+	protected	$_area_db;
+	protected	$_group_db;
+	protected	$translator;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator  = Zend_Registry::get('translator');
+		
+		//DD Class
+		$global_conf 		= Zend_Registry::get('global_conf');
+		$this->_currency 	= new Zend_Currency($global_conf['default_locale']);		
+		$this->_mem_db 		= new Members_Model_DbTable_MemberList();		
+		$this->_group_db 	= new Property_Model_DbTable_PropertyGroup();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+			$groupInfo	=	$this->_group_db->getGroupName($this->_group);
+			$this->_limit = $groupInfo['featured_file_num_per_page'];
+			$select = $this->_DBconn->select()
+						->from(array('pp' => Zend_Registry::get('dbPrefix').'property_page'), array('*'))
+						->where('pp.active = ?', '1')
+						->where('pp.featured = ?', '1')
+						//->where('pp.group_id = ?', $this->_group)
+						->order("pp.".$groupInfo['featured_file_sort']." ".$groupInfo['featured_file_order'])
+						->joinLeft(array('ct' => Zend_Registry::get('dbPrefix').'cities'), 'pp.area_id = ct.city_id', array('city' => 'ct.city'))
+						->limit($this->_limit);
+			$property_info =  $select->query()->fetchAll();			
+			$maximum_stars_digit = $this->translator->translator('maximum_stars_digit', '', 'Property');			
+?>
+	<script type="text/javascript">	
+		$(function() {
+			$('a.toggle_featured').click(function() {
+				var self = this;
+				$('#featured_list').slideToggle(500,function () {
+					var src = $(self).children("img").attr('src');
+					var input = (src == 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/round_arrow_down.gif') ? 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/round_arrow.gif' : 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/round_arrow_down.gif';
+					$(self).children("img").attr('src',input);
+				});
+				return false;
+			  });		
+		});
+	</script>
+
+<div class="block block-featured">
+	<div class="block-heading">
+    	<div class="symbol"><?php echo $this->translator->translator('block_featured_title','','', $this->_front_template['theme_folder']); ?></div>
+    </div>
+    
+    <div class="block-body">
+        <?php
+		if($property_info)
+		{
+            foreach($property_info as $entry)
+            {
+                $property_image_val_arr = explode(',',$entry['property_image']);
+                $property_image_no = (!empty($property_image_val_arr[0])) ? count($property_image_val_arr) : '0';
+                if($this->_view->escape($entry['property_primary_image']))
+                { 
+                    $thumb_image = 'data/frontImages/property/property_image/'.$this->_view->escape($entry['property_primary_image']); 
+                }
+                else
+                { 
+                    if($this->_view->escape($entry['property_image']))
+                    {					
+                        $thumb_image = 'data/frontImages/property/property_image/'.$this->_view->escape($property_image_val_arr[0]); 
+                    }
+                    else
+                    {
+                        $thumb_image = 'application/layouts/scripts/'.$this->_front_template['theme_folder'].'/images/mod_property_img/no_image.png';
+                    }		
+                }
+                if($groupInfo['file_thumb_width'] && $groupInfo['file_thumb_resize_func'] != 'resizeToHeight')
+                { 
+                    $width = 'width="'.$this->_view->escape($groupInfo['file_thumb_width']).'"'; 
+                }
+                else
+                {
+                    $width = '';
+                } 
+                if($groupInfo['file_thumb_height'] && $groupInfo['file_thumb_resize_func'] != 'resizeToWidth')
+                { 
+                    $height = 'height="'.$this->_view->escape($groupInfo['file_thumb_height']).'"'; 
+                } 
+                else
+                {
+                    $height = '';
+                }
+        ?>
+		<div class="col">
+        	<span class="block-title"><a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->_view->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>" title="<?php echo $this->_view->escape($entry['property_name']); ?>" link="" class="preview"><?php echo $this->truncate($this->_view->escape($entry['property_name']), 0, 3); ?></a></span>
+                               
+            <div class="img-wrapper">
+            	<a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->_view->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>" link="<?php echo $thumb_image; ?>"  title="<?php echo $this->_view->escape($entry['property_name']); ?>" width="250" class="preview"><img src="<?php echo $thumb_image; ?>"  height="115" border="0" class="thumb featured-img"/></a>
+                <div class="photo-count-container">
+                    <div class="photo-count"><a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->_view->escape($entry['property_title']), 'tab' => '1' ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_photo_no', $property_image_no, 'Property'); ?></a></div>
+                </div>
+            </div>
+           
+         	<div class="details">
+				<?php
+                    for($i = 1; $i < $maximum_stars_digit; $i++)
+                    {
+                        $property_stars = ($i <= $this->_view->escape($entry['stars'])) ? "<img src='application/layouts/scripts/".$this->_front_template['theme_folder']."/images/mod_property_img/star-small-active.png' border='0' />" : "<img src='application/layouts/scripts/".$this->_front_template['theme_folder']."/images/mod_property_img/star-small-inactive.png' border='0' />";
+                        echo $property_stars.'&nbsp;';
+                    }
+                ?>
+            	<br />
+            	<span class="price"><?php echo $this->translator->translator('partial_featured_property_price').' '.$this->_view->escape($entry['property_price']).' '.$this->_currency->getSymbol(); ?></span><br />
+            	<?php echo $this->translator->translator('partial_featured_property_location'); ?> <span class="location"><a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->_view->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>"><?php echo $this->_view->escape($entry['city']); ?></a></span><br />
+				<?php echo (int)$this->_view->escape($entry['feature_room_no']); ?> <?php echo $this->translator->translator('partial_featured_property_room'); ?><?php echo (int)$this->_view->escape($entry['feature_bathroom']); ?> <?php echo $this->translator->translator('partial_featured_property_bathroom'); ?>
+			</div>
+		</div>
+      <?php
+        }
+		}
+      ?>  		
+    </div>
+</div>
+
+<?php
+	}
+}
+
+try
+{
+	$property_featured_box_class = new property_featured_box($this);
+	$property_featured_box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

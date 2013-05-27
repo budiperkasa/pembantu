@@ -1,0 +1,869 @@
+<?php
+if(!empty($this->group_datas['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->group_datas['meta_keywords']);}
+if(!empty($this->group_datas['meta_desc'])) { $this->headMeta()->setName('description',$this->group_datas['meta_desc']); }
+if(!empty($this->group_datas['property_name'])) { $this->headTitle()->headTitle($this->group_datas['property_name'],'SET')->setSeparator(' - ')->headTitle($this->group_datas['meta_title']); }
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jtruncate/jquery.jtruncate.pack.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/css/jqueryCSS/table-sorter/pagination_table.css');
+$version = Zend_Registry::get('version');  
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jui-'.$version->getJQueryVersion().'/'.Zend_Registry::get('jtheme').'/jquery-ui-'.$version->getJQueryUIVersion().'.custom.min.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/jui-'.$version->getJQueryVersion().'/'.Zend_Registry::get('jtheme').'/jquery-ui-'.$version->getJQueryUIVersion().'.custom.css');
+
+$business_type_db = new Property_Model_DbTable_BusinessType();
+$cat_Info = new Property_Model_DbTable_Category();
+$mem_db = new Members_Model_DbTable_MemberList();
+$state_db = new Property_Model_DbTable_State();
+$area_db = new Property_Model_DbTable_Area();
+$country_db = new Property_Model_DbTable_Country();
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+?>
+<script type="text/javascript">
+(function( $ ) {
+	$.widget( "ui.combobox", {
+		_create: function() {
+			var self = this,
+				select = this.element.hide(),
+				selected = select.children( ":selected" ),
+				value = selected.val() ? selected.text() : "";
+			var input = $( "<input>" )
+				.insertAfter( select )
+				.val( value )
+				.autocomplete({
+					delay: 0,
+					minLength: 0,
+					source: function( request, response ) {
+						var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+						response( select.children( "option" ).map(function() {
+							var text = $( this ).text();
+							if ( this.value && ( !request.term || matcher.test(text) ) )
+								return {
+									label: text.replace(
+										new RegExp(
+											"(?![^&;]+;)(?!<[^<>]*)(" +
+											$.ui.autocomplete.escapeRegex(request.term) +
+											")(?![^<>]*>)(?![^&;]+;)", "gi"
+										), "<strong>$1</strong>" ),
+									value: text,
+									option: this
+								};
+						}) );
+					},
+					select: function( event, ui ) {
+						ui.item.option.selected = true;
+						self._trigger( "selected", event, {
+							item: ui.item.option
+						});
+					},
+					change: function( event, ui ) {
+						if ( !ui.item ) {
+							var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+								valid = false;
+							select.children( "option" ).each(function() {
+								if ( this.value.match( matcher ) ) {
+									this.selected = valid = true;
+									return false;
+								}
+							});
+							if ( !valid ) {
+								// remove invalid value, as it didn't match anything
+								//alert($( this ).val());
+								//$( this ).val( "" );
+								//select.val( "" );
+								select.append('<option value="'+$( this ).val()+'">'+$( this ).val()+'</option>');
+								select.val( $( this ).val() );
+								return false;
+							}
+						}
+					}
+				})
+				.addClass( "ui-widget ui-widget-content ui-corner-left" );
+
+			input.data( "autocomplete" )._renderItem = function( ul, item ) {
+				return $( "<li></li>" )
+					.data( "item.autocomplete", item )
+					.append( "<a>" + item.label + "</a>" )
+					.appendTo( ul );
+			};
+
+			$( "<span>&nbsp;</span>" )
+				.attr( "tabIndex", -1 )
+				.attr( "title", "Show All Items" )
+				.insertAfter( input )
+				.button({
+					icons: {
+						primary: "ui-icon-triangle-1-s"
+					},
+					text: false
+				})
+				.removeClass( "ui-corner-all" )
+				.addClass( "ui-corner-right ui-button-icon" )
+				.click(function() {
+					// close if already visible
+					if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+						input.autocomplete( "close" );
+						return;
+					}
+
+					// pass empty string as value to search for, displaying all results
+					input.autocomplete( "search", "" );
+					input.focus();
+				});
+		}
+	});
+})( jQuery );
+
+$(function() {
+	$( "#property_owner" ).combobox();		
+})
+
+$(function() {
+		
+		$( "#property_name" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						property_name: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.property_name,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return { }
+							}));
+						}
+					}
+				});
+			},
+			minLength: 2,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a style='font-size:12px;color:#2A3F00;font-weight:normal;'>" + item.pic+ " " + item.label  + item.owner + " " + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};
+		
+		$( "#post_code" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						post_code: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.post_code,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return { }
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a style='font-size:12px;color:#2A3F00;width:300px;font-weight:normal;'>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('property_post_code'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};
+		
+		$( "#property_price" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						property_price: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.price,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return { }
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );				
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a style='font-size:12px;color:#2A3F00;width:300px;font-weight:normal;'>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('price'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );				
+		};
+});
+
+$(document).ready(function() {
+
+		/****************************Sorting Table Start*********************/
+		var oTable = $("#sortTable").dataTable({
+					"bPaginate": true,
+					"aLengthMenu" : [ 10, 25, 50, 100 ],
+					"sPaginationType": "full_numbers",
+					"bDestroy":true,
+					"bLengthChange": true,
+					"bSearchable": true,
+					"bFilter": false,
+					"bSort": false,
+					"bInfo": false,
+					"bAutoWidth": true,
+					"bProcessing": false,
+					"bSortClasses": true,
+					"bStateSave": false,
+					"bServerSide": false,
+					"aaSorting": [[ 0, "asc" ]],				
+					"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+					"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+				}); 	
+				
+		/****************************Sorting Table End*********************/
+		text_truncate();
+			
+		function getFormData()
+		{
+			var fieldObj = {};
+			var filename = '';
+			var filevalue = '';
+			$.each($('#formSearch').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];
+					filevalue = $('#'+filename).val();
+				}
+				else
+				{
+					filename 	= 	field.name;
+					filevalue 	= 	field.value;
+				}			
+				fieldObj[filename] =  filevalue;			
+			});
+			return fieldObj;
+		}
+		
+		$('select.country_id').change(function() {	
+			if($('select.country_id option:selected').val() == 'any' || $('select.country_id option:selected').val() =='')
+			{
+				$('select.area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');	
+				$('select.state_id').html('<option value="any"><?php echo $this->translator->translator("property_select_state"); ?></option>');
+			}
+			else
+			{	
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' =>'Property','controller' => 'frontend', 'action'     => 'states' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('select.country_id option:selected').val() },
+					  beforeSend: function(){						
+								$('select.state_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+								$('select.area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');			
+								$('#state_id_err').html('<img src="images/ajax_loader7.gif" border="0" width="15" height="15" />');	
+							 },
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("property_select_state"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.states.length;i++)
+							{
+								option += '<option value="'+json_arr.states[i].state_id+'" >'+stripslashes(json_arr.states[i].state_name)+'</option>';
+							}
+							$('select.state_id').html(option);
+						}
+						else
+						{
+							$('select.state_id').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#state_id_err').html('');
+					  }
+				});
+			}
+		});
+		
+		$('select.state_id').change(function() {		
+					
+			if($('select.state_id option:selected').val() == 'any' || $('select.state_id option:selected').val() == '')
+			{
+				$('select.area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');
+			}
+			else
+			{
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' => 'Property', 'controller' => 'frontend', 'action'     => 'areas' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('select.state_id option:selected').val() },
+					  beforeSend: function(){						
+							$('select.area_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+							$('#area_id_err').html('<img src="images/ajax_loader7.gif" border="0" width="15" height="15" />');	
+							},
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.cities.length;i++)
+							{
+								option += '<option value="'+json_arr.cities[i].city_id+'" >'+stripslashes(json_arr.cities[i].city)+'</option>';
+							}
+							$('select.area_id').html(option);
+						}
+						else
+						{
+							$('select.area_id').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#area_id_err').html('');
+					  }
+				});
+			}
+		});	
+			
+		$('input.search_btn').click(function(){
+			var self = this;
+			var formData = getFormData();
+			
+			$.ajax({
+					 url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'search' ), 'adminrout',    true) ?>",
+					 type: 'POST',
+					 data: formData,
+					 beforeSend: function(){				 	
+						$('#loader_img').html('<img src="images/ajax_loader7.gif" width="12" height="12" border="0" />');
+					 },
+					 success: function(response) 
+					 {
+						//alert(response);
+						var json_arr = eval("("+response+")");
+											
+						if(json_arr.status == 'ok')
+						{						
+							putSearchResult(oTable,json_arr.search_data);	
+							text_truncate();				
+						}
+						else
+						{
+							oTable.fnClearTable();
+							//openMsgDialog(json_arr.msg);
+						}
+						$('#loader_img').html('');
+					 }				
+			});
+		});
+});
+function text_truncate()
+{
+	$('span.jTruncate').jTruncate({  
+		length:  300,  
+		minTrail: 0,  
+		moreText: "[<?php echo html_entity_decode($this->translator->translator('common_see_all'), ENT_QUOTES, "UTF-8"); ?>]",  
+		lessText: "[<?php echo html_entity_decode($this->translator->translator('common_hide'), ENT_QUOTES, "UTF-8"); ?>]",  
+		ellipsisText: "",  
+		moreAni: "fast",  
+		lessAni: 2000  
+	});
+}
+function stripslashes(str) 
+{
+	str=str.replace(/\\'/g,'\'');
+	str=str.replace(/\\"/g,'"');
+	str=str.replace(/\\0/g,'\0');
+	str=str.replace(/\\\\/g,'\\');
+	return str;
+}
+function putSearchResult(oTable,search_data)
+{	
+	oTable.fnDestroy();	
+	oTable = $("#sortTable").dataTable({
+				"bPaginate": true,
+				"aLengthMenu" : [ 10, 25, 50, 100 ],
+				"bDestroy":true,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": false,
+				"bSort": true,
+				"bInfo": true,
+				"sPaginationType": "full_numbers",
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			});
+	
+	oTable.fnClearTable();
+	
+	$('#bottomPagination').css('display','none');	
+		
+	for(var i =0; i < search_data.length; i++)
+	{	
+		var property_name = search_data[i].property_name;
+		property_name	= property_name.replace('_',' ');		
+			
+		var column = '<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" style="border:1px solid #CCCCCC;">'+
+						  '<tr>'+
+							'<td height="40" class="topbar_1" style="border-bottom:1px solid #D7D7D7"><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">'+
+							  '<tr>'+
+								'<td width="47%"><span class="property_details_title_2">'+stripslashes(property_name)+'</span><br />';
+								if(search_data[i].feature_room_no)
+								{
+									column += '<span class="unit_desc">'+search_data[i].feature_room_no+'<?php echo " ".$this->translator->translator("property_front_page_room").", ";?>';
+								}
+								if(search_data[i].feature_bathroom)
+								{
+									column += search_data[i].feature_bathroom+'<?php echo " ".$this->translator->translator("property_front_page_bathroom"); ?> </span></td>';
+								}
+								column += '<td width="33%"><span class="property_details_title_3"><?php echo $this->translator->translator("property_front_page_property_for"); ?>'+search_data[i].business_type+'</span></td>'+
+								'<td width="20%" align="right"><span class="property_details"><?php echo $this->translator->translator("property_front_page_price").$currency->getSymbol()." "; ?>'+search_data[i].price+'</span></td>'+
+							  '</tr>'+
+							'</table></td>'+
+						  '</tr>'+
+						  '<tr>'+
+							'<td>&nbsp;</td>'+
+						  '</tr>'+
+						  '<tr>'+
+							'<td><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">'+
+							  '<tr>'+
+								'<td><img src="'+search_data[i].thumb_image+'" '+search_data[i].width+' '+search_data[i].height+' style="border:1px solid #E8E8E8; padding:4px;" class="left_float"/>'+
+									'<div class="property_details_title_4">'+stripslashes(property_name)+'</div><br />'+
+									'<strong><?php echo $this->translator->translator("property_front_page_property_location"); ?></strong> '+stripslashes(search_data[i].state_name)+', '+stripslashes(search_data[i].city)+', '+stripslashes(search_data[i].post_code)+'.<br />'+
+									'<strong><?php echo $this->translator->translator("property_front_page_property_country"); ?></strong> '+stripslashes(search_data[i].country_name)+'<br />'+
+									'<strong><?php echo $this->translator->translator("property_front_page_property_desc"); ?></strong><span class="jTruncate">'+stripslashes(search_data[i].property_desc)+'</span></td>'+
+							  '</tr>'+
+							'</table></td>'+
+						  '</tr>'+
+						  '<tr>'+
+							'<td>&nbsp;</td>'+
+						  '</tr>'+						  
+						  '<tr>'+
+							'<td height="40" bgcolor="#F7F7F7"><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">'+
+							  '<tr>'+
+								'<td width="67%" class="property_details_opt"><a href="Property-details/'+stripslashes(search_data[i].property_title)+'/5"><?php echo $this->translator->translator("property_front_page_property_f_b"); ?></a> | <a href="Property-details/'+stripslashes(search_data[i].property_title)+'/2"><?php echo $this->translator->translator("property_front_page_property_fpan"); ?></a>  | <a href="Property-details/'+stripslashes(search_data[i].property_title)+'/3"><?php echo ucfirst(strtolower($this->translator->translator("property_front_page_property_map"))); ?></a>  | <a href="Property-details/'+stripslashes(search_data[i].property_title)+'/1"><?php echo $this->translator->translator("property_front_page_property_photo"); ?></a> | <a href="Email-To-Friend/'+stripslashes(search_data[i].property_title)+'/<?php echo $this->translator->translator("email_to_friend_form_id"); ?>"><?php echo $this->translator->translator("property_front_page_property_email_friend"); ?></a></td>'+
+								'<td width="17%">&nbsp;</td>'+
+								'<td width="16%"><table width="102" height="25" border="0" align="right" cellpadding="0" cellspacing="0">'+
+								  '<tr>'+
+									'<td class="property_more_btn"><a href="<?php echo $this->url(array("module" => "Property","controller" =>"frontend", "action" => "details","property_title" => "" ),"Property-details/:property_title",true); ?>/'+stripslashes(search_data[i].property_title)+'"><?php echo $this->translator->translator("property_front_page_property_more"); ?></a></td>'+
+								  '</tr>'+
+								'</table></td>'+
+							  '</tr>'+
+							'</table></td>'+
+						  '</tr>'+
+						'</table><br />';
+						
+		oTable.fnAddData([
+					column
+					 ]);							
+	}	
+}
+</script>
+<style type="text/css">	
+	.ui-button { margin-left: -1px; }
+	.ui-button-icon-only .ui-button-text { padding: 0.15em; } 
+	.ui-autocomplete-input { margin: 0; padding: 0.18em 0 0.17em 0.15em; width:270px; }
+
+	 
+	#post_code { width: 10em; }
+	#property_price { width: 7em; }
+	#property_name { width: 26em; }
+	a.truncate_more_link { color:#FF0000;}
+</style>
+<?php 
+$allow_obj = new Property_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+<table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+		<div style="float:left"><img src="data/frontImages/property/design_images/property_search.gif" width="60" height="60" /></div>
+		<div style="padding-top:20px;" class="property_search_title">&nbsp; <strong><?php echo $this->translator->translator('property_front_page_list'); ?></strong></div>
+		<br /><br />	</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+  </tr>
+  
+  <tr>
+    <td><form id="formSearch" name="formSearch" method="post" action="">
+      <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" style="border:1px solid #CCCCCC; background-color:#FBFBFB; padding:10px;">
+        <tr>
+          <td><table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+            <tr>
+              <td height="5"></td>
+            </tr>
+            <tr>
+              <td height="35" bgcolor="#F2F2F2"><table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="12%"><?php echo $this->translator->translator('property_list_page_search_name'); ?> </td>
+                  <td width="59%"><input type="text" name="property_name" id="property_name" value="<?php echo $this->post_datas['property_name']; ?>" size="50" style="width:300px;" /></td>
+                  <td width="8%"><?php echo $this->translator->translator('property_list_page_search_postcode'); ?> </td>
+                  <td width="21%"><input type="text" name="post_code" id="post_code" value="<?php echo $this->post_datas['post_code']; ?>" /></td>
+                </tr>
+              </table></td>
+            </tr>
+            <tr>
+              <td height="3"></td>
+            </tr>
+            <tr>
+              <td height="35" bgcolor="#F2F2F2"><table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="12%"><?php echo $this->translator->translator('property_list_page_search_price'); ?></td>
+                  <td width="27%"><input type="text" name="property_price" id="property_price" value="<?php echo $this->post_datas['property_price']; ?>" />
+                    <?php echo $currency->getSymbol(); ?></td>
+                  <td width="2%"><input type="hidden" name="active" id="active" value="1" /> </td>
+                  <td width="6%" ></td>
+                  <td width="8%"><?php echo $this->translator->translator('property_list_page_search_pro_type'); ?></td>
+                  <td width="16%">
+						<?php
+							$type_info = $business_type_db->getOptions($this->group_datas['id']);
+						?>
+						<select name="property_type" id="property_type">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($type_info as $info)
+							{
+						?>
+							<option value="<?php echo $info['id']; ?>" <?php if($this->post_datas['property_type'] == $info['id']){ echo 'selected="selected"'; } ?>><?php echo $this->escape($info['business_type']); ?></option>
+						<?php
+							}
+						?>
+						</select>
+				   </td>
+                  <td width="8%"><?php echo $this->translator->translator('property_list_page_search_category'); ?></td>
+                  <td width="21%">
+					  <?php
+							$cat_data = $cat_Info->getOptions($this->group_datas['id']);
+						?>
+						<select name="category_id" id="category_id">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($cat_data as $info)
+							{
+						?>
+							<option value="<?php echo $info['id']; ?>" <?php if($this->post_datas['category_id'] == $info['id']){ echo 'selected="selected"'; } ?>><?php echo $this->escape($info['category_name']); ?></option>
+						<?php
+							}
+						?>
+						</select>
+				  </td>
+                </tr>
+              </table></td>
+            </tr>
+            <tr>
+              <td height="3"></td>
+            </tr>
+            <tr>
+              <td height="35" bgcolor="#F2F2F2"><table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="12%"><?php echo $this->translator->translator('property_list_page_search_country'); ?> </td>
+                  <td width="28%">
+				  	<?php						
+						$country_data = $country_db->getCountryInfo();
+					?>
+					<select name="country_id" id="country_id" class="country_id" style="width:200px;">
+					<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+					<?php
+						
+						foreach($country_data as $key=>$value)
+						{
+					?>
+						<option value="<?php echo $key; ?>" <?php if($this->post_datas['country_id'] == $key){ echo 'selected="selected"'; } ?>><?php echo $this->escape($value); ?></option>
+					<?php
+						}
+					?>
+					</select>
+				  </td>
+                  <td width="10%" align="center"><?php echo $this->translator->translator('property_list_page_search_state'); ?> </td>
+                  <td width="21%">
+				  	<select name="state_id" id="state_id" class="state_id">
+						<option value="any"><?php echo $this->translator->translator('property_select_state'); ?></option>																			
+						<?php
+						if(!empty($this->post_datas['country_id']))
+						{
+							$all_states = $state_db->getSelectOptions($this->post_datas['country_id']);
+							foreach($all_states as $key=>$value)
+							{
+						?>
+								<option value="<?php echo $key; ?>" <?php if($this->post_datas['state_id'] == $key){ echo 'selected="selected"'; } ?>><?php echo $this->escape($value); ?></option>
+						<?php
+							}
+						}
+						?>
+					</select><span id="state_id_err"></span>                  
+				   </td>
+                  <td width="8%"><?php echo $this->translator->translator('property_list_page_search_area'); ?></td>
+                  <td width="21%">
+				  	<select name="area_id" id="area_id" class="area_id">
+					<option value="any"><?php echo $this->translator->translator('property_select_area'); ?></option>																			
+					<?php
+						if(!empty($this->post_datas['state_id']))
+						{
+							$all_areas = $area_db->getSelectOptions($this->post_datas['state_id']);
+							foreach($all_areas as $key=>$value)
+							{
+						?>
+								<option value="<?php echo $key; ?>" <?php if($this->post_datas['area_id'] == $key){ echo 'selected="selected"'; } ?>><?php echo $this->escape($value); ?></option>
+						<?php
+							}
+						}
+						?>
+					</select><span id="area_id_err"></span>
+				  </td>
+                  </tr>
+              </table></td>
+            </tr>
+            <tr>
+              <td height="3"></td>
+            </tr>
+            <tr>
+              <td height="35" bgcolor="#F2F2F2"><table width="99%" border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="12%"><?php echo $this->translator->translator('property_list_page_search_owner'); ?></td>
+                  <td width="59%">
+				  	<?php
+						$mem_data = $mem_db->getAllMembers();
+					?>
+					<span class="ui-widget">
+					<select name="property_owner" id="property_owner">
+					<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+					<?php
+						
+						foreach($mem_data as $key=>$value)
+						{
+					?>
+						<option value="<?php echo $key; ?>" <?php if($this->post_datas['property_owner'] == $key){ echo 'selected="selected"'; } ?>><?php echo $this->escape($value); ?></option>
+					<?php
+						}
+					?>
+					</select></span>
+				  </td>
+                  <td width="8%"><?php echo $this->translator->translator('property_list_page_search_room'); ?></td>
+                  <td width="21%">
+				  	<select name="feature_room_no" id="feature_room_no">
+					<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+					<?php
+						
+						for($i = 1; $i<=200;$i++)
+						{
+					?>
+						<option value="<?php echo $i; ?>" <?php if($this->post_datas['feature_room_no'] == $i){ echo 'selected="selected"'; } ?>><?php echo $this->escape($i); ?></option>
+					<?php
+						}
+					?>
+					</select>
+				  </td>
+                </tr>
+              </table></td>
+            </tr>
+            <tr>
+              <td id="loader_img">&nbsp;</td>
+            </tr>
+            <tr>
+              <td align="center"><input type="button" name="Submit" class="search_btn" value="<?php echo $this->translator->translator('property_front_page_search_button'); ?>" style="background:url(data/frontImages/property/design_images/property_search_btn.gif) no-repeat; width:200px; height:36px; border:0px; padding-bottom:2px; font-family:Arial, Helvetica, sans-serif; font-weight:bold; color:#FFFFFF;"/></td>
+            </tr>
+            <tr>
+              <td height="5"></td>
+            </tr>
+          </table></td>
+        </tr>
+      </table>
+        </form>    </td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+  	<td>
+		<table id="sortTable" width="100%" border="0" align="center" cellpadding="0" cellspacing="0" >
+			
+			<tbody>
+			  <?php
+			   
+			  	if(!empty($this->view_datas))
+				{
+					foreach($this->view_datas as $entry)
+					{
+						if($this->escape($entry['property_primary_image']))
+						{ 
+							$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($entry['property_primary_image']); 
+						}
+						else
+						{ 
+							if($this->escape($entry['property_image']))
+							{
+								$property_image_val_arr = explode(',',$entry['property_image']);
+								$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($property_image_val_arr[0]); 
+							}
+							else
+							{
+								$thumb_image = 'data/frontImages/property/design_images/no_image.jpg'; 
+							}		
+						}
+						if($this->group_datas['file_thumb_width'] && ($this->group_datas['file_thumb_resize_func'] == 'resizeToWidth' || $this->group_datas['file_thumb_resize_func'] == 'resize'))
+						{ 
+							$width = 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; 
+						}
+						else
+						{
+							$width = '';
+						} 
+						if($this->group_datas['file_thumb_height'] && ($this->group_datas['file_thumb_resize_func'] == 'resizeToHeight' || $this->group_datas['file_thumb_resize_func'] == 'resize'))
+						{ 
+							$height = 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; 
+						} 
+						else
+						{
+							$height = '';
+						}
+						?>
+						  <tr>
+							<td><table width="100%" border="0" align="center" cellpadding="0" cellspacing="0" style="border:1px solid #CCCCCC;margin-bottom:10px;">
+							  <tr>
+								<td height="40" class="topbar_1" style="border-bottom:1px solid #D7D7D7"><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+								  <tr>
+									<td width="47%"><span class="property_details_title_2"><?php echo $this->escape($entry['property_name']); ?></span><br />
+										<span class="unit_desc"><?php if(!empty($entry['feature_room_no'])){ echo (int)$this->escape($entry['feature_room_no']).' '.$this->translator->translator('property_front_page_room').', '; } if(!empty($entry['feature_bathroom'])){ echo (int)$this->escape($entry['feature_bathroom']).' '.$this->translator->translator('property_front_page_bathroom'); } ?> </span></td>
+									<td width="33%"><span class="property_details_title_3"><?php echo $this->translator->translator('property_front_page_property_for').$this->escape($entry['business_type']); ?></span></td>
+									<td width="20%" align="right"><span class="property_details"><?php if(!empty($entry['price'])){ echo $this->translator->translator('property_front_page_price').$currency->getSymbol().' '.$this->escape($entry['price']); } ?></span></td>
+								  </tr>
+								</table></td>
+							  </tr>
+							  <tr>
+								<td>&nbsp;</td>
+							  </tr>
+							  <tr>
+								<td><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+								  <tr>
+									<td><img src="<?php echo $thumb_image; ?>" <?php echo $width; ?> <?php echo $height; ?> style="border:1px solid #E8E8E8; padding:4px;" class="left_float"/>
+										<div class="property_details_title_4"><?php echo $this->escape($entry['property_name']); ?></div><br />
+										<strong><?php echo $this->translator->translator('property_front_page_property_location'); ?></strong><?php $states = $state_db->getStateInfo($entry['state_id']); $areas = $area_db->getAreaInfo($entry['area_id']); echo $this->escape($areas['city']).', '.$this->escape($states['state_name']).', '.$this->escape($entry['post_code']).'.'; ?><br />
+										<strong><?php echo $this->translator->translator('property_front_page_property_country'); ?></strong> <?php $countries = $country_db->getCountryName($entry['country_id']); echo $this->escape($countries['value']); ?><br />
+										<strong><?php echo $this->translator->translator('property_front_page_property_desc'); ?></strong><span class="jTruncate"><?php echo stripslashes($entry['property_desc']); ?></span></td>
+								  </tr>
+								</table></td>
+							  </tr>
+							  <tr>
+								<td>&nbsp;</td>
+							  </tr>
+							  
+							  <tr>
+								<td height="40" bgcolor="#F7F7F7"><table width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+								  <tr>
+									<td width="67%" class="property_details_opt"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 5 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_f_b'); ?></a> | <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 2 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_fpan'); ?></a>  | <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 3 ),'Property-details/:property_title/:tab',true); ?>"><?php echo ucfirst(strtolower($this->translator->translator('property_front_page_property_map'))); ?></a>  | <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 1 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_photo'); ?></a> | <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'emails', 'action' => 'friend','property_title' => $this->escape($entry['property_title']), 'form_id' => $this->translator->translator('email_to_friend_form_id') ),'Email-To-Friend/:property_title/:form_id',true); ?>"><?php echo $this->translator->translator('property_front_page_property_email_friend'); ?></a></td>
+									<td width="17%">&nbsp;</td>
+									<td width="16%"><table width="102" height="25" border="0" align="right" cellpadding="0" cellspacing="0">
+									  <tr>
+										<td class="property_more_btn"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>"><?php echo $this->translator->translator('property_front_page_property_more'); ?></a></td>
+									  </tr>
+									</table></td>
+								  </tr>
+								</table></td>
+							  </tr>
+							</table></td>
+						  </tr>			  
+			  <?php
+					}
+				}
+			  ?>
+
+			</tbody>
+		</table>
+	</td>
+  </tr>
+  <tr>
+  	<td id="bottomPagination">
+		
+	</td>
+  </tr>
+</table>
+<?php endif; ?>	

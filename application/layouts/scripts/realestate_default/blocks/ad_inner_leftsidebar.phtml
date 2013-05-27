@@ -1,0 +1,69 @@
+<?php
+class left_ad
+{
+	protected	$_id;
+	protected	$_order = '3';
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected   $_image_on = '0';
+	protected   $_group = '5';
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		
+		$helper_path = $this->_view->getHelpers();
+		$doc_view = $helper_path['Doctype']->view;
+		$catInfo = $doc_view->catInfo;
+		$this->_id = ($catInfo['id'])? $catInfo['id'] : '13';
+		
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$partial_Obj = new News_Controller_Helper_PartialAd();
+		$partial_info = $partial_Obj->getAdd($this->_id,$this->_order,$this->_group);
+	?>
+    <div class="block block-ad-sidebar">
+    	<div class="block-body">
+			<?php
+                if($partial_info)
+                {
+                    foreach($partial_info as $entry)
+                    {	
+                        if($this->_image_on != '1'){ echo stripslashes($entry['page_desc']); }else{ echo '<img src="data/frontImages/news/page_thumb/'.$this->_view->escape($entry['page_thumb']).'" />'; }
+            ?>
+		
+			<?php 
+                    } 
+                }
+            ?>
+    	</div>
+	</div>
+	<?php
+	}
+}
+
+try
+{
+	$left_ad_class = new left_ad($this);
+	$left_ad_class->class_body();
+}
+catch(Exception $e)
+{
+	echo 'You have to create menu first.';
+}
+?>

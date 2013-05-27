@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Manage Property Category" langKey="permisson_category">
+		<privilege for="dashboard" name="list" description="View the list of Category" langKey="permisson_category_list" />
+		<privilege for="dashboard" name="add" description="Create new Category" langKey="permisson_category_add" />
+		<privilege name="edit" description="Edit Category" langKey="permisson_category_edit" />
+		<privilege name="delete" description="Delete a Category" langKey="permisson_category_delete" />
+		<privilege name="featured" description="Featured Category" langKey="permisson_category_featured" />
+		<privilege name="publish" description="Active Deactive a Category" langKey="permisson_category_activeDeactive" />
+	</resource>
+	<resource name="backendgrp" for="backend" description="Manage Property Group" langKey="permisson_property_group">
+		<privilege for="dashboard" name="listgrp" description="View the list of Property Group" langKey="permisson_property_group_list" />
+		<privilege for="dashboard" name="addgrp" description="Create new Property Group" langKey="permisson_property_group_add" />
+		<privilege name="editgrp" description="Edit a Property Group" langKey="permisson_property_group_edit" />
+		<privilege name="deletegrp" description="Delete a Property Group" langKey="permisson_property_group_delete" />
+		<privilege name="publishgrp" description="Active Deactive a Property Group" langKey="permisson_property_group_activeDeactive" />
+		<privilege name="cronsetup" description="Cron Setup" langKey="permisson_property_group_acron_setup" />
+	</resource>	
+	
+	<resource name="backendpro" for="backend" description="Manage Property" langKey="permisson_property">
+		<privilege for="dashboard" name="list" description="View the list of Property" langKey="permisson_property_list" />
+		<privilege for="dashboard" name="add" description="Create new Property" langKey="permisson_property_add" />
+		<privilege name="edit" description="Edit Property" langKey="permisson_property_edit" />
+		<privilege name="delete" description="Delete a Property" langKey="permisson_property_delete" />
+		<privilege name="featured" description="Featured Property" langKey="permisson_property_featured" />
+		<privilege name="publish" description="Active Deactive a Property" langKey="permisson_property_activeDeactive" />
+		<privilege name="search" description="Search Property" langKey="permisson_property_search" />		
+		<privilege for="dashboard" name="saved" description="Saved Property List" langKey="permisson_property_saved" />
+		<privilege name="deletesaved" description="Saved Property Delete" langKey="permisson_property_saved_delete" />
+	</resource>
+	
+	<resource name="backendtype" for="backend" description="Manage Business Type" langKey="permisson_property_type">
+		<privilege for="dashboard" name="list" description="View list of Business Type" langKey="permisson_property_type_list" />
+		<privilege  name="add" description="Create new Business Type" langKey="permisson_property_type_add" />
+		<privilege name="edit" description="Edit Business Type" langKey="permisson_property_type_edit" />
+		<privilege name="delete" description="Delete Business Type" langKey="permisson_property_type_delete" />
+	</resource>
+	
+	<resource name="backendstate" for="backend" description="Manage States" langKey="permisson_property_state">
+		<privilege for="dashboard" name="list" description="View list of States" langKey="permisson_property_state_list" />
+		<privilege name="add" description="Create new States" langKey="permisson_property_state_add" />
+		<privilege name="edit" description="Edit States" langKey="permisson_property_state_edit" />
+		<privilege name="delete" description="Delete States" langKey="permisson_property_state_delete" />
+	</resource>
+	
+	<resource name="backendarea" for="backend" description="Manage Areas" langKey="permisson_property_area">
+		<privilege for="dashboard" name="list" description="View list of Areas" langKey="permisson_property_area_list" />
+		<privilege name="add" description="Create new Areas" langKey="permisson_property_area_add" />
+		<privilege name="edit" description="Edit Areas" langKey="permisson_property_area_edit" />
+		<privilege name="delete" description="Delete Areas" langKey="permisson_property_area_delete" />
+	</resource>
+	<resource name="frontend" for="frontend" description="Frontend Property" langKey="permisson_frontend_property">
+		<privilege name="group" description="View Property list of Group" langKey="permisson_property_front_group_list" img="permisson_property_front_group_list.jpg" />
+		<privilege name="view" description="View the list of Property" langKey="permisson_property_front_list" img="permisson_property_front_list.jpg" />
+		<privilege name="category" description="View the list of Property by category" langKey="permisson_property_front_list_by_category" img="permisson_property_front_list_by_category.jpg" />
+		<privilege name="details" description="View the Property Details" langKey="permisson_property_front_details" img="permisson_property_front_details.jpg" />
+		<privilege name="owners" description="Search Property Owners/agents" langKey="permisson_property_front_list_of_owners" img="permisson_property_front_list_of_owners.jpg" />
+		<privilege name="itinerarylist" description="View the list of Itinerary" langKey="permisson_property_front_list_of_itinerary" img="permisson_property_front_list_of_itinerary.jpg" />
+	</resource>
+	
+	<resource name="emails" for="frontend" description="Frontend Email To Friend" langKey="permisson_frontend_email_to_friend">
+		<privilege name="friend" description="View Email To Friend Form" langKey="permisson_friend_form_email_to_friend"  img="permisson_friend_form_email_to_friend.jpg" />
+		<privilege name="owner" description="View Contact Owner" langKey="permisson_contact_owner_form"  img="permisson_contact_owner_form.jpg" />
+		<privilege name="appointment" description="View Appointment Form" langKey="permisson_appointment_form"  img="permisson_appointment_form.jpg" />
+	</resource>
+	
+	<resource name="search" for="frontend" description="Advanced Search" langKey="permisson_frontend_advanced_search">
+		<privilege name="items" description="View Advanced Search" langKey="permisson_frontend_view_advanced_search"  img="permisson_frontend_view_advanced_search.jpg" />
+	</resource>
+	
+	<dbtable name="property_group" for="items">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="property_name" />
+	</dbtable>
+	<dbtable name="property_business_type" for="view">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="business_type" />
+	</dbtable>
+	<dbtable name="property_category" for="category">
+		<tablefield name="category_order" />
+		<tablefield name="id" />
+		<tablefield name="category_name" />
+	</dbtable>
+	<dbtable name="property_group" for="group">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="property_name" />
+	</dbtable>
+	<dbtable name="property_page" for="details">
+		<tablefield name="property_order" />
+		<tablefield name="id" />
+		<tablefield name="property_name" />
+	</dbtable>
+	<dbtable name="forms" for="friend">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="form_name" />
+	</dbtable>
+	<dbtable name="forms" for="owner">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="form_name" />
+	</dbtable>
+	<dbtable name="forms" for="appointment">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="form_name" />
+	</dbtable>
+</permissions>

@@ -1,0 +1,43 @@
+<?php echo $this->doctype(); ?> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head>  
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ 	<base href="<?php echo $this->serverUrl().$this->baseUrl().'/'; ?>" />
+  <?php echo $this->headMeta(); ?>
+  <?php echo $this->headTitle(); ?>
+   <?php   	
+   	$version = Zend_Registry::get('version');
+	echo $this->headLink()->setStylesheet('css/all.min.css'); 
+    echo $this->headLink()->setStylesheet('css/install.css'); 	
+	echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jui-'.$version->getJQueryVersion().'/ui-lightness/jquery-'.$version->getJQueryVersion().'.min.js');
+	echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jui-'.$version->getJQueryVersion().'/ui-lightness/jquery-ui-'.$version->getJQueryUIVersion().'.custom.min.js');	
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/jui-'.$version->getJQueryVersion().'/ui-lightness/jquery-ui-'.$version->getJQueryUIVersion().'.custom.css');		
+  ?>
+	
+</head> 
+<body id="e_a_install">
+	<div id="e_a_body_wrapper">		
+		<!-- Header -->
+		<div id="e_a_install_header" class="container_12">
+			<div class="grid_12">
+				<h1><?php echo $this->translator->translator('install_wizard'); ?></h1>
+			</div>
+		</div>
+		
+		<!-- Content -->
+		<div id="e_a_body_container" class="container_12">			
+			<?php echo $this->layout()->content ?>
+		</div>
+		
+
+		<!-- Footer -->
+		<div id="e_a_install_footer" class="container_12">
+	      	<div class="grid_12">
+	      		Powered by <a href="http://www.eicra.com">Eicrasoft Ltd</a>	<strong>Version: <?php echo Eicra_License_Version::getVersion(); ?></strong>
+	      	</div>
+	    </div>
+
+		
+	</div>
+</body>
+</html>

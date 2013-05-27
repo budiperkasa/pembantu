@@ -1,0 +1,570 @@
+<?php $tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri(); ?>
+<script type="text/javascript">
+$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+		
+		$('#full_payment').change(function() {
+			var self = this;
+			if($(self).val() != null && $(self).val() != '')
+			{
+				var data = 	$(self).val();
+				var data_arr = 		data.split('_');	
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'backend', 'action'     => 'fullpay' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { payment_id: data_arr[0], invoice_id: data_arr[1]},
+						beforeSend: function(){
+							$('#full_payment_link').html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								var payment_link	=	json_arr.payment_data;
+								var payment_logo	=	json_arr.payment_info.logo;
+								var input_type		=	json_arr.input_type;
+								//alert(payment_logo);
+								var	html_data	=	(input_type == 'link') ? '<a href="'+payment_link+'" target="_blank"><img src="data/frontImages/gateway/gateway_logo/'+payment_logo+'" width="140" /></a>' : payment_link;
+								$('#full_payment_link').html(html_data);
+								UPay_Pay();
+							}
+							else
+							{
+								openMsgDialog(json_arr.msg);
+								$('#full_payment_link').html('');
+							}							
+						},
+						error: function(xhr, status, error){
+							closeLoaderDialog();
+							$('#full_payment_link').html('');
+							var msg = "Error! " + xhr.status + " " + error;
+							openMsgDialog(msg);
+						}
+				});			
+			}
+			else
+			{
+				$('#full_payment_link').html('');
+			}
+			
+		});
+		
+		
+		$('#now_payment').change(function() {
+			var self = this;
+			if($(self).val() != null && $(self).val() != '')
+			{
+				var data = 	$(self).val();
+				var data_arr = 		data.split('_');	
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'backend', 'action'     => 'nowpay' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { payment_id: data_arr[0], invoice_id: data_arr[1]},
+						beforeSend: function(){
+							$('#now_payment_link').html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								var payment_link	=	json_arr.payment_data;
+								var payment_logo	=	json_arr.payment_info.logo;
+								var input_type		=	json_arr.input_type;
+								//alert(payment_logo);
+								var	html_data	=	(input_type == 'link') ? '<a href="'+payment_link+'" target="_blank"><img src="data/frontImages/gateway/gateway_logo/'+payment_logo+'" width="140" /></a>' : payment_link;
+								$('#now_payment_link').html(html_data);
+								UPay_Pay();
+							}
+							else
+							{
+								openMsgDialog(json_arr.msg);
+								$('#now_payment_link').html('');
+							}							
+						},
+						error: function(xhr, status, error){
+							closeLoaderDialog();
+							$('#now_payment_link').html('');
+							var msg = "Error! " + xhr.status + " " + error;
+							openMsgDialog(msg);
+						}
+				});			
+			}
+			else
+			{
+				$('#now_payment_link').html('');
+			}
+			
+		});
+		
+		
+	});
+function openMsgDialog(msg)
+{
+$('#dialog_container').html(msg).dialog({
+			autoOpen: true,
+			modal: false,
+			show: 'fade',
+			resizable: 'false',				
+			buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 10000);
+				  }
+		});
+}
+</script>
+
+<div id="container">
+<?php if (!$this->allow('details')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php 
+	else : 
+	//print_r($this->invoice_arr);
+	$mem_db = new Members_Model_DbTable_MemberList();
+	$country_db = new Eicra_Model_DbTable_Country();
+	$mem_info = $mem_db->getMemberInfo($this->invoice_arr['user_id']);
+	$global_conf = Zend_Registry::get('global_conf');
+	$currency = new Zend_Currency($global_conf['default_locale']);
+	$currencySymbol = $currency->getSymbol();
+	$currencyShort = $currency->getShortName();
+	$permission_arr = array('edit_enable' => $this->allow('edit','backend','Invoice'));
+?>
+<div id="button_top_bar"></div>
+<div class="title-container">
+	<div class="invoice-details"><h1><?php echo $this->translator->translator('invoice_details_invoice_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'     => 'list' ), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        
+        <?php if ($permission_arr['edit_enable']) : ?>
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'     => 'edit', 'id' => $this->invoice_arr['id'] ), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon edit"><?php echo $this->translator->translator('common_edit_title'); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+	<form name="formInvoice" id="formInvoice" method="post">
+    	
+        <div id="tabs">
+        	<ul>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('Invoice_details_client_info'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('Invoice_details_invoice_info'); ?></a></li>
+            </ul>
+            
+            <div id="tabs-1">
+            	<!-- Client Info Srart -->
+                <div class="client-info">
+                    <fieldset class="fieldset">
+                    <legend class="legend"><?php echo $this->translator->translator('Invoice_details_client_info'); ?></legend>
+                    <div class="form">
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_first_name_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<?php echo $this->escape($mem_info['firstName']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_last_name_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['lastName']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_company_name_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['companyName']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_email_address_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['username']); ?>	
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_address_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['address']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_postalCode_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['postalCode']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_city_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['city']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_state_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($mem_info['state']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_country_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php $country_info = $country_db->getInfo($mem_info['country']); echo $this->escape($country_info['value']); ?>
+                            </div>
+                        </div>
+                        
+                        <?php
+						if($this->invoice_arr['status'] != '1')
+							{
+						?>
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('invoice_list_invoice_payment'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php 
+									$gateway_db = new Paymentgateway_Model_DbTable_Gateway();
+									$gateway_info	=	$gateway_db->getAllActiveGateway('ASC');
+								?>
+								<select name="full_payment" id="full_payment">
+									<option value=""><?php echo $this->translator->translator('common_select'); ?></option>
+								<?php
+									foreach($gateway_info as $key => $value)
+									{
+								?>
+									<option value="<?php echo $this->escape($value['id']).'_'.$this->escape($this->invoice_arr['id']); ?>"><?php echo $this->escape($value['name']); ?></option>
+								<?php
+									}
+								 ?>
+								 </select>&nbsp;
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                            	&nbsp;
+                            </div>
+                            
+                            <div class="field">
+                              	<span id="full_payment_link"></span>
+                            </div>
+                        </div>
+                        <?php
+							}
+						?>
+                    </div>
+                    </fieldset>
+                </div>
+                <!-- Client Info End -->
+                
+                <!-- Invoice Info Srart -->
+                <div class="invoice-info">
+                    <fieldset class="fieldset last">
+                    <legend class="legend"><?php echo $this->translator->translator('Invoice_details_client_billing_info'); ?></legend>
+                    <div class="form">
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('Invoice_details_client_invoice_id_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<span class="label"><?php echo '#'.$this->escape($this->invoice_arr['id']); ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('payment_status'); ?>
+                            </div>
+                            
+                            <div class="field">
+                            	<span class="label">
+								<?php 
+									switch($this->invoice_arr['status'])
+									{
+										case '0' :
+											echo $this->translator->translator('common_cancelled_language');	
+										break;
+										case '1' :
+											echo $this->translator->translator('common_paid_language');	
+										break;
+										case '2' :
+											echo $this->translator->translator('common_unpaid_language');	
+										break;
+									}
+								?>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('invoice_send_email_total_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                               	<span class="label"><?php echo $this->escape($this->invoice_arr['total']); ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('invoice_total_tax_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php 					  
+									$billing_tax = (!empty($this->invoice_arr['tax'])) ? $this->invoice_arr['tax'] : '00.00' ; 
+									echo $currencySymbol.$billing_tax.$currencyShort;
+								?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                <?php echo $this->translator->translator('invoice_send_email_service_charge'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php 
+									$service_charge = (!empty($this->invoice_arr['service_charge'])) ? $this->invoice_arr['service_charge'] : '00.00' ; 
+									echo $currencySymbol.$service_charge.$currencyShort;
+								?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                              	<?php echo $this->translator->translator('invoice_send_email_deposit_charge', Settings_Service_Price::getMargine('5')); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php 
+									$deposit_charge = (!empty($this->invoice_arr['deposit_charge'])) ? $this->invoice_arr['deposit_charge'] : '00.00' ; 
+									echo $currencySymbol.$deposit_charge.$currencyShort; 
+								?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                              	<?php echo $this->translator->translator('invoice_send_email_deposit_payable'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<span class="amount-payable">
+								<?php 
+									$now_payable = (!empty($this->invoice_arr['now_payable'])) ? $this->invoice_arr['now_payable'] : '00.00' ; 
+									echo $currencySymbol.$now_payable.$currencyShort; 
+									if(!empty($this->invoice_arr['now_payable']))
+									{
+								?>
+                                </span>
+                                &nbsp;(<span id="now_payable_status"><?php if($this->escape($this->invoice_arr['now_payable_paid_status']) == '1'){ echo $this->translator->translator('invoice_list_invoice_now_payable_paid_language'); }else { echo $this->translator->translator('invoice_list_invoice_now_payable_unpaid_language'); }  ?></span>)
+								<?php
+								if($this->escape($this->invoice_arr['now_payable_paid_status']) != '1')
+								{
+								?>
+								<select name="now_payment" id="now_payment">
+									<option value=""><?php echo $this->translator->translator('common_select'); ?></option>
+								<?php
+									foreach($gateway_info as $key => $value)
+									{
+								?>
+									<option value="<?php echo $this->escape($value['id']).'_'.$this->escape($this->invoice_arr['id']); ?>"><?php echo $this->escape($value['name']); ?></option>
+								<?php
+									}
+								 ?>
+								 </select>
+								 <?php
+								 }
+								 ?>
+								 <div class="payable-later"><?php echo $this->translator->translator("invoice_send_email_later_payable", $currencySymbol.(($this->invoice_arr['total']+$this->invoice_arr['tax']+$this->invoice_arr['service_charge']) - $this->invoice_arr['now_payable']).$currencyShort); ?></div>
+								<?php
+									}
+								?>
+                            </div>
+                        </div>
+                        
+                        <?php
+						if($this->escape($this->invoice_arr['now_payable_paid_status']) != '1')
+							{
+						?>
+                        <div class="form-row">
+                            <div class="label">
+                              	&nbsp;
+                            </div>
+                            
+                            <div class="field">
+                              	<span id="now_payment_link"></span>
+                            </div>
+                        </div>
+                        <?php
+							}
+						?>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                            	<?php echo $this->translator->translator('invoice_send_email_grand_total'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<span class="grand-total"><?php echo $currencySymbol.($this->invoice_arr['total']+$this->invoice_arr['tax']+$this->invoice_arr['service_charge']).$currencyShort; ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                            	<?php echo $this->translator->translator('Invoice_details_client_invoice_create_date_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($this->invoice_arr['invoice_create_date']); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                            	<?php echo $this->translator->translator('Invoice_details_client_invoice_updated_date_title'); ?>
+                            </div>
+                            
+                            <div class="field">
+                              	<?php echo $this->escape($this->invoice_arr['invoice_update_date']); ?>
+                            </div>
+                        </div>
+                        
+                   	</div>
+                    </fieldset>
+             	</div>
+                <!-- Invoice Info End-->
+                
+                <!-- Invoice Items Start -->
+                <div class="clr"></div>
+            
+            	<fieldset class="fieldset last">
+                <legend class="legend"><?php echo $this->translator->translator('Invoice_details_client_invoice_items'); ?></legend>
+                <div class="invoice-container">
+                	<?php												
+						$invoiceItems_db = new Invoice_Model_DbTable_InvoiceItems();
+						$invoiceItems_info = $invoiceItems_db->getInvoiceItemsInfo($this->invoice_arr['user_id'],$this->invoice_arr['id']);
+						if($this->escape($this->invoice_arr['status']) != '0')
+						{
+					?>
+                    <div class="invoice">
+                    	<div class="invoice-chart">
+                            <div class="div-hr">
+                                <div class="div-vr-1">
+                                    <?php echo '<b>'.$this->translator->translator("invoice_id_title").'</b>: #'.$this->invoice_arr['id']; ?>
+                                </div>
+                                <div class="div-vr-2">
+                                    <?php echo '<b>'.$this->translator->translator("invoice_date_title").'</b>: '.$this->invoice_arr['invoice_create_date']; ?>
+                                </div>
+                            </div>
+                            
+                            <div class="div-head">
+                                <div class="div-vr-1">
+                                    <?php echo '<b>'.$this->translator->translator("invoice_desc_title").'</b>'; ?>
+                                </div>
+                                <div class="div-vr-2">
+                                    <?php echo '<b>'.$this->translator->translator("invoice_amount_title").'</b>'; ?>
+                                </div>
+                            </div>
+						</div>
+						<div class="invoice-chart">
+							<div>
+								<table  border="0" width="100%" cellspacing="0" align="center" cellpadding="5">
+									<tbody>
+								<?php
+									$total_amount = 0;
+									$total_tax = 0;		
+									foreach($invoiceItems_info as $invoiceItems)
+									{
+									  echo $this->escape($invoiceItems['item_details']);		
+											
+									}
+								?>
+									</tbody>
+								</table>								
+							</div>          
+                     	</div>
+						<div class="invoice-chart">
+							<div class="div-hr amount-hr">
+								<div class="div-vr-1">
+									<span class="label"><?php echo $this->translator->translator("invoice_total_title"); ?></span>
+								</div>
+								<div class="div-vr-2">
+									<span class="label"><?php echo $currencySymbol.' '.number_format($this->invoice_arr['total'], 2, '.', ',').' '.$currencyShort; ?></span>
+								</div>
+							</div>
+						</div>
+                    </div>
+                    <?php
+						}							
+					?>
+                </div>
+          		</fieldset>
+            	<!-- Invoice Items End -->
+          	</div>
+            
+            <div id="tabs-2">
+            	<fieldset class="fieldset last">
+                	<legend class="legend"><?php echo $this->translator->translator('Invoice_details_client_invoice_detail_preview'); ?></legend>
+                    <?php $invoice_desc =  str_replace('%invoice_id%',$this->invoice_arr['invoice_id'], str_replace('%payment_status%', '<h1 class="status-'.strtolower(strip_tags($this->invoice_arr['payment_status'])).'">'.$this->invoice_arr['payment_status'].'</h1>', $this->invoice_arr['invoice_desc'])); echo $this->escape($invoice_desc); ?>
+               	</fieldset>
+          	</div>
+        </div>
+  	</form>
+</div>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('invoice_details_invoice_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+<?php endif; ?>
+</div>

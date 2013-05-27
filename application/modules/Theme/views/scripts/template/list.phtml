@@ -1,0 +1,629 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/kendo-uploader.css');
+?>
+<script type="text/javascript">
+
+function putResult(template_info,oTable)
+{			
+	var img_html	=	'<span class="thumb"><img src="application/layouts/scripts/'+template_info.theme_folder+'/images/'+template_info.theme_image+'" width="30" height="20" /></span>';
+
+	var actionColumn =	'<input type="hidden" name="theme_folder" class="theme_folder" value="'+template_info.theme_folder+'" />'+								
+						'<ul>'+
+							'<li>'+
+									<?php if ($this->allow('edit','template','Theme')) : ?>
+                                	'<a href="<?php echo $this->url( array("module" => "Theme", "controller" => "template", "action" => "edit", "theme_folder" => "" ), "adminrout",    true) ?>'+template_info.theme_folder+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator("common_edit_title"); ?>" border="0" /></a>'+
+                                	<?php endif; ?>
+                            '</li>'+
+							'<li>'+
+									<?php if ($this->allow("delete","template","Theme")) : ?>
+									'<a href="javascript:void(0);" class="delete_btn"  rel="'+template_info.id+'_'+template_info.theme_name.replace('_',' ')+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" alt="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" /></a>'+
+									<?php endif; ?>	
+							'</li>'+													
+							'<li>'+
+									<?php if ($this->allow('primary','template','Theme')) : ?>
+										'<a href="javascript:void(0);" rel="'+template_info.id+'_'+template_info.theme_name.replace('_',' ')+'" class="dafault_btn" ><img src="application/modules/Administrator/layouts/scripts/images/tools/undefault.gif" border="0" title="<?php echo $this->translator->translator("theme_do_default"); ?>" alt="<?php echo $this->translator->translator("theme_do_default"); ?>" /></a>'+
+									<?php endif; ?>
+							 '</li>'+
+						'</ul>';
+						  
+	oTable.fnAddData([
+				'<input type="checkbox" name="checkbtn" id="checkbtn" value="'+template_info.id+'" class="check_btn" />',
+				template_info.id,
+				img_html,
+				template_info.theme_name,
+				template_info.theme_author,
+				template_info.theme_developer,
+				template_info.creation_date,
+				actionColumn
+				 ]);
+	
+	$('td', oTable.fnGetNodes()).hover( function() {	
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	});
+	
+	$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('center');
+	$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('checkbox');
+	$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(2)').addClass('center');
+	$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(7)').addClass('center');	
+	$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(8)').addClass('tools-list');
+		
+}
+
+function checkSameTemplate(fiends,folder_name)
+{
+	var res = false;
+	for(var i=0 ;i < ($('input.'+fiends).length);i++)
+	{								
+		if($('input.'+fiends+':eq('+i+')').val() == folder_name)
+		{
+			res = true;
+		}							
+	}
+	return res;
+}	
+
+/*function addRowIE(file,oTable,item)
+{
+	var msg = '';
+	$.ajax({
+			url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'ie' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: { file: file },
+			success: function(response) 
+			{
+				//alert(response);
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{					
+					putResult(json_arr.template_info,oTable);
+				}
+				else
+				{							
+					openMsgDialog(json_arr.msg);
+				}
+				msg	= json_arr.msg;	
+				item.addClass('success').find('p.status').html('Done!!! '+msg);					
+			}
+	});
+	return msg;
+}*/
+
+$(document).ready(function() {
+		
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/****************************Sorting Table End*********************/
+	
+	/**************************FILE UPLOAD START******************************/
+	dynamicUploader("upload_file", "", {"table_name":"site_template","primary_id_field":"","primary_id_field_value":"","file_path_field":"file_path","file_extension_field":"file_type","file_max_size_field":"file_size_max","file_path":"temp","file_type":"zip","file_size_max":"0"}, languageArray(),  "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+	$('div.k-upload-button').children('input:first').after("<div class='round' style='background-position: 50% 50%; transition: background-position 0.4s ease 0s;'></div>");
+	/**************************FILE UPLOAD END*********************************/
+	
+	function deleteAll(self)
+	{
+		var id_str = '';
+		for(var i=0;i < $('input.check_btn:checked').length;i++)
+		{
+			if(i == 0)
+			{
+				 id_str += $('input.check_btn:checked:eq('+i+')').val();
+			}
+			else
+			{
+				id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+			}
+		}
+		
+		$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { id_st: id_str},
+				beforeSend: function(){
+					$(self).html('<span class="icon loader"></span>');
+				 },
+				success: function(response) 
+				{
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+						{								
+							if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+							{
+								$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');	
+							}							
+						}
+						var oTabled = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTabled );
+						for(var k = 0; k < anSelected.length; k++)
+						{
+							oTabled.fnDeleteRow( anSelected[k] );
+						}
+					}
+					else
+					{							
+						openMsgDialog(json_arr.msg);
+					}	
+					$(self).html('<span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span>');
+				},
+				error: function(xhr, status, error){				
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(msg);
+				}
+		});	
+	}
+	
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('template_list_delete_confirm')); ?>").dialog({
+					resizable: true,
+					modal: true,
+					show: 'explode',
+					hide: 'explode',
+					buttons: [{
+								text: '<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+								deleteAll(self);
+								$(this).dialog('close');
+								}
+							},{
+								text:'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+								$(this).dialog('close');
+								}
+							}]
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('insert_selected_file_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+				
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});	
+	
+	allFunction();
+});
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'explode',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+
+function checkNonDeletedId(id,id_arr)
+{
+	var tmp = false;
+	for(var i = 0;i < id_arr.length;i++)
+	{
+		if(id_arr[i] == id)
+		{
+			tmp = true;
+			break;
+		}
+	}
+	return tmp;
+}	
+
+function deleteThis(self)
+{
+	var arr = $(self).attr('rel').split('_');
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: { id: arr[0], theme_name: arr[1] },
+		 beforeSend: function(){
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+				var oTables = $('#sortTable').dataTable();
+				var anSelected = fnGetSelected( oTables );
+				oTables.fnDeleteRow( anSelected[0] );
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" />');
+			}
+		 },
+		error: function(xhr, status, error){				
+			var msg = "Error! " + xhr.status + " " + error;
+			openMsgDialog(msg);
+		}
+	});
+}
+		
+function allFunction()
+{
+	/************************************************IMAGE THUMBNIL************************************************/
+	$('span.thumb').unbind('hover');
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '-4px', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+	/************************************************IMAGE THUMBNIL END************************************************/
+	
+	$('a.dafault_btn').unbind('click');
+	$('a.dafault_btn').click(function() {
+		var self = this;				
+		var arr = $(self).attr('rel').split('_');
+		var hrf = $(self).attr('href');
+		if(hrf != null)
+		{
+			$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="19" border="0" />');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'primary' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[0], theme_name: arr[1]},
+				 success: function(response) 
+				 {
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{						
+						$('a.dafault_btn').html('<img src="application/modules/Administrator/layouts/scripts/images/tools/undefault.gif" border="0" title="<?php echo $this->translator->translator("theme_do_default"); ?>" />');
+						$('a.dafault_btn').attr('href','javascript: void(0)');						
+						
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/default.gif" border="0" title="<?php echo $this->translator->translator("theme_default"); ?>" />');
+						$(self).removeAttr("href");					
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+					}
+				 }		
+			});
+		}
+	});
+	
+	$('a.delete_btn').unbind('click');
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('template_list_delete_confirm')); ?>").dialog({
+			resizable: true,
+			modal: true,
+			show: 'explode',
+			hide: 'explode',
+			buttons: [{
+						text: '<?php echo addslashes($this->translator->translator("common_delete_title")); ?>', click: function() {
+						deleteThis(self);
+						$(this).dialog('close');
+						}
+					},
+					{
+						text:'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+						$(this).dialog('close');
+						}
+					}]
+		});		
+	});
+
+}
+/***********************************************************************UPLOAD FUNCTIONS START********************************************************/
+function languageArray()
+{
+	var language_array = [];
+	language_array['portfolio_upload_dy_text_select'] 					= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_select", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_cancel'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_cancel", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_dropFilesHere'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_dropFilesHere", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_remove'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_remove", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_retry'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_retry", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusFailed'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusFailed", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploaded'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploaded", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploading'] 			= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploading", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_uploadSelectedFiles'] 		= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_uploadSelectedFiles", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_file_extension_dy_support'] 				= "<?php echo $this->translator->translator("portfolio_file_extension_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext1'] 	= "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext1", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext2']  = "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext2", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_size_dy_support'] 					= "<?php echo $this->translator->translator("portfolio_file_size_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_upload_err'] 						= "<?php echo $this->translator->translator("portfolio_file_upload_err", '', 'Portfolio'); ?>";
+	return language_array;
+}
+
+
+function successFileDecoretion(fileObj, serverData, upload_field, upload_value_field)
+{	
+	openMsgDialog(serverData.msg);
+	installTeplate(serverData);		
+}
+
+function onComplete(e) {
+			
+}
+
+function onCancel(e) {
+	
+}
+
+function onProgress(e) {
+					
+}
+
+function openLoaderDialog()
+{
+	$('#dialog_container').dialog({
+				autoOpen: true,
+				modal: true,
+				show: 'explode',
+				resizable: false,				
+				open: function(event, ui)
+					 {
+						$("#progressbar").progressbar({
+							value:100
+			
+						});							
+					  }
+			});
+}
+
+function closeLoaderDialog()
+{
+	$('#dialog_container').dialog('option','hide','explode').dialog('close');
+}
+
+function installTeplate(serverData)
+{
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'install' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: serverData,
+		 beforeSend: function(){
+				openLoaderDialog();
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = $.parseJSON(response);
+			closeLoaderDialog();
+			if(json_arr.status == 'ok')
+			{
+				var oTable = $("#sortTable").dataTable();
+				putResult(json_arr.template_info,oTable);
+				openMsgDialog(json_arr.msg);
+				allFunction();
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);				
+			}
+		 },
+		error: function(xhr, status, error){				
+			var msg = "Error! " + xhr.status + " " + error;
+			openMsgDialog(msg);
+			closeLoaderDialog();
+		}
+	});
+}
+
+/***********************************************************************UPLOAD FUNCTIONS END********************************************************/
+
+</script>
+
+<div id="container">
+<?php if (!$this->allow('list')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="template-list"><h1><?php echo $this->translator->translator('theme_template_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <?php  if ($this->allow('delete','template','Theme')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('backendjquery/nav_menu.phtml');  ?>
+    </div>
+   
+    <div id="content-inner">
+    	 <?php if ($this->allow('add','template','Theme')) : ?>
+         	<div class="form">
+                <div class="form-row">
+                    <div class="label label-small">
+                        <?php echo $this->templateForm->upload_file->getLabel(); if($this->templateForm->upload_file->isRequired()){ ?><span class="required">*</span><?php } ?>
+                    </div>
+                    
+                    <div class="field field-big">
+                        <div><?php echo $this->templateForm->upload_file; ?></div>
+                    </div>
+                </div>
+         	</div>
+		<?php endif; ?>
+         
+		<div class="clr">&nbsp;</div>
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->theme_datas, 'Sliding', 'backendjquery/top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+            <div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                          <th width="3%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                          <th width="5%"><?php echo $this->translator->translator('theme_page_id'); ?></th>
+                          <th width="6%"><?php echo $this->translator->translator('theme_page_thumb'); ?> </th>
+                          <th width="20%"><?php echo $this->translator->translator('theme_template_name'); ?></th>
+                          <th width="14%"><?php echo $this->translator->translator('theme_template_page_author'); ?></th>
+                          <th width="30%"><?php echo $this->translator->translator('theme_template_page_Developer'); ?></th>
+                          <th width="9%"><?php echo $this->translator->translator('common_date'); ?></th>
+                          <th width="13%"><?php echo $this->translator->translator('common_action'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php 
+                    $j = 1;
+                    foreach ($this->theme_datas as $entry): 
+                        if($j % 2 == 0)
+                        {
+                            $onmouseout = "this.bgColor='#FFFFFF';";
+                            $background = '#FFFFFF';
+                        }
+                        else
+                        {
+                            $onmouseout = "this.bgColor='#F7F7F7';";
+                            $background = '#F7F7F7';
+                        }
+                        $template = new Theme_View_Helper_Config($this->escape($entry->theme_folder));
+                        $template_info = $template->getDatas();													
+                    ?>
+                    	<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                     		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                      		<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                      		<td class="center"><span class="thumb"><img src="<?php echo 'application/layouts/scripts/'.$this->escape($entry->theme_folder).'/'.$this->escape($template_info->theme_image_folder).'/'.$this->escape($template_info->theme_image); ?>" width="25" height="20" /></span></td>
+                      		<td><?php echo $this->escape($entry->theme_name); ?><input type="hidden" name="theme_folder" id="theme_folder" class="theme_folder" value="<?php echo $this->escape($entry->theme_folder); ?>" /></td>												 
+                      		<td><?php echo $this->escape($entry->theme_author); ?></td>
+                      		<td><?php  echo str_replace(',',', ',$this->escape($entry->theme_developer)); ?></td>
+                      		<td class="center"><?php echo $this->escape($entry->creation_date); ?></td>
+                      		<td class="tools-list">
+                            	<ul>
+                               		<li>
+									<?php if ($this->allow('edit','template','Theme')) : ?>
+                                	<a href="<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'template', 'action'     => 'edit', 'theme_folder' => $this->escape($entry->theme_folder) ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                	<?php endif; ?>
+                                    </li>
+                          	
+                          			<li>
+									<?php if ($this->allow('delete','template','Theme')) : ?>
+                                    <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->theme_name); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>" border="0" /></a>
+                                    <?php endif; ?>
+                                    </li>
+                          	
+                          
+                                	<?php if ($this->allow('primary','template','Theme')) : ?>
+                                    <li>
+                                    <?php if($this->escape($entry->theme_default) == '1'){ ?>
+                                        <a rel="<?php echo $this->escape($entry->id); ?>_<?php echo str_replace('_',' ',$this->escape($entry->theme_name)); ?>" class="dafault_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/default.gif" border="0" title="<?php echo $this->translator->translator('theme_default'); ?>" /></a>
+                                    <?php }else{ ?>
+                                        <a href="javascript:void(0);" rel="<?php echo $this->escape($entry->id); ?>_<?php echo str_replace('_',' ',$this->escape($entry->theme_name)); ?>" class="dafault_btn" ><img src="application/modules/Administrator/layouts/scripts/images/tools/undefault.gif" border="0" title="<?php echo $this->translator->translator('theme_do_default'); ?>" /></a>
+                                    <?php } ?>
+                                    </li>
+                                	<?php endif; ?>
+                              	</ul>
+                        	</td>
+                    	</tr>
+                    <?php 													
+                        $j++;
+                        endforeach;	
+                  	?>
+                   	</tbody>
+				</table>
+            </div>
+       	</div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->theme_datas, 'Sliding', 'backendjquery/pagination.phtml'); ?>
+        </div>
+  	</div>
+</div>
+
+<?php endif; ?>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('theme_template_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>	
+</div>

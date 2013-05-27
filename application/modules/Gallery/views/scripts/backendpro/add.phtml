@@ -1,0 +1,1253 @@
+<?php
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/tree/javascripts/jquery.treeTable.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jquery.scrollTo-min.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/init.js');
+$this->proForm->setEditor($this->serverUrl().$this->baseUrl());
+$this->proForm->getEditor();
+
+$auth = Zend_Auth::getInstance ();	
+$u_role_id = ($auth->hasIdentity ()) ? $auth->getIdentity()->role_id : '' ;
+$u_user_id = ($auth->hasIdentity ()) ? $auth->getIdentity()->user_id : '' ;
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+$frontController = Zend_Controller_Front::getInstance();
+$param_group_id = $frontController->getRequest()->getParam('group_id');
+?>
+
+<script type="text/javascript">
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'explode',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+
+$(document).ready(function() {	
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	
+	/**********Scrolling Tools Start****************/
+	$.easing.elasout = function(x, t, b, c, d) {
+		var s=1.70158;var p=0;var a=c;
+		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+		if (a < Math.abs(c)) { a=c; var s=p/4; }
+		else var s = p/(2*Math.PI) * Math.asin (c/a);
+		return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+	};
+	
+	$('#toc a').click(function(){//$.scrollTo works EXACTLY the same way, but scrolls the whole screen
+		$.scrollTo( this.hash, 1500, { easing:'swing' });
+		$(this.hash).find('span.message').text( this.title );
+		return false;
+	});
+	
+	$('span.top-go a').click(function(){//$.scrollTo works EXACTLY the same way, but scrolls the whole screen
+		$.scrollTo( this.hash, 1500, { easing:'swing' });		
+		return false;
+	});
+	
+	/**********Scrolling Tools END****************/
+	
+	$("#upload-form").dialog({
+		autoOpen: false,
+		width: 760,
+		height: 610,
+		show: 'fade',			
+		modal: true
+	});	
+
+	$('a.upload_btn').click(function() {
+		var self = this;
+		var src = $("#i-upload-form").attr("src");
+		$("#i-upload-form").attr("src", '');
+		var group_id = $("#group_id").val();
+		$('input[name="primary_id_field_value"]').val(group_id);
+		var rel = $(self).attr('rel');	
+		$('input[name="file_path_field"]').val('file_path_'+rel);	
+		var file_suffix = (rel == 'product_thumb') ? rel : 'product_file';	
+		var file_extension_field = (rel == 'product_thumb') ? 'file_thumb_type' : 'file_type';	
+		var file_content = $('#'+file_suffix).val();		
+		$('input[name="file_content"]').val(file_content);		
+		$('input[name="primary_file_field"]').val(file_suffix);	
+		$('input[name="file_extension_field"]').val(file_extension_field);				
+		var product_code = $("#product_code").val();
+		if(group_id != null && group_id != "")
+		{
+			$("#popupForm").attr("action", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action' => 'manager' ), 'adminrout',    true) ?>");			
+			$('#upload-form').dialog('open');
+			$('#popupForm').submit();
+		}
+		else
+		{
+			msg = '<?php echo $this->translator->translator("group_id_selected_err"); ?>';
+			openMsgDialog(msg);
+		}
+	});	
+	
+	$('a.select_file_btn').click(function() {		 
+		
+			var currentIFrame = $('#i-upload-form');
+			var selected_files = currentIFrame.contents().find("input[name='selected_files']").val();
+			var primary_file_field = currentIFrame.contents().find("input[name='primary_file_field']").val();
+			var file_path	=	currentIFrame.contents().find("input[name='file_path']").val();
+			var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+			if(selected_files_arr.length == '0')
+			{
+				var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';				
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var img_code = '';
+				var file_name = '';
+				for(var i=0;i < selected_files_arr.length;i++)
+				{
+					//var vd = currentIFrame.contents().find("input.check_btn:checked:eq("+i+")").val();
+					var ext = getFileExtension(selected_files_arr[i]);
+					var img_path = '';
+					switch(ext)
+					{
+						case 'flv':
+						case 'swf':
+						case 'FLV':
+						case 'SWF':
+							img_path = 'application/modules/Administrator/layouts/scripts/images/common/flash.png';
+							break;
+						case 'mp3':
+						case 'MP3':
+							img_path = 'application/modules/Administrator/layouts/scripts/images/common/mp3.png';
+							break;
+						case 'avi':
+						case 'wmv':
+						case 'wma':
+						case 'WMA':
+						case 'AVI':
+						case 'WMV':
+							img_path = 'application/modules/Administrator/layouts/scripts/images/common/avi_thumb.png';
+							break;
+						case 'pdf':
+						case 'doc':
+						case 'docx':
+						case 'xls':
+						case 'xlsx':
+						case 'ppt':
+						case 'pptx':
+						case 'PDF':
+						case 'DOC':
+						case 'DOCX':
+						case 'XLS':
+						case 'XLSX':
+						case 'PPT':
+						case 'PPTX':
+							img_path = 'application/modules/Administrator/layouts/scripts/images/common/extImages/'+ext+'.png';
+							break;
+						default:
+							img_path = file_path +'/'+ selected_files_arr[i]; 
+							break;
+					}
+					var checked = (i == 0)? ' checked="checked" ' : '';
+					var img_type = 	(i == 0) ? "<span class='main'><?php echo $this->translator->translator('gallery_img_main'); ?></span>" : "<span class='related'><?php echo $this->translator->translator('gallery_img_related'); ?></span>";
+																
+					var primary = '<input class="radio_style" type="radio" name="'+primary_file_field+'_primary" id="'+primary_file_field+'_primary" '+checked+' value="'+selected_files_arr[i]+'" title="<?php echo $this->translator->translator("gallery_primary"); ?>" />';
+											
+					var del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'+selected_files_arr[i]+'"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>'+primary;
+					img_code += '<div class="upload-img box">'+img_type+'<br /><span><span class="thumb"><img src="'+img_path+'" width="45" height="35" class="bdr" /></span><br /><br />'+del_link+'&nbsp;</span></div>';
+					file_name = (i == 0)? selected_files_arr[i] : file_name+','+selected_files_arr[i];					
+				}			
+				var file_suffix = (primary_file_field == 'product_thumb') ? primary_file_field : 'product_file';		
+				$('#selected_file_'+file_suffix).html(img_code);		
+				$('#'+file_suffix).val(file_name);		
+				$("#i-upload-form").attr("src", ''); 						
+				$("#upload-form").dialog('option','hide','explode').dialog('close');				
+				deleteFiles("<?php echo $this->translator->translator('gallery_img_main'); ?>", "<?php echo $this->translator->translator('gallery_img_related'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+				imageThumbnil();
+			}
+		});
+	
+	$('a.close_dialog_btn').click(function() {				
+		$("#i-upload-form").attr("src", ''); 
+		$("#upload-form").dialog('option','hide','explode').dialog('close');			
+	});
+		
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+		<?php if($auth->getIdentity()->access_file_image_manager != '1'){ ?>
+			uploadSettingsEnd();			
+		<?php } ?>	
+	});
+	
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();		
+		$('#selected_file_product_thumb').html('');	
+		$('#selected_file_product_file').html('');				
+		$('#categoryTree').html('');
+		$('#product_parent').val('0');
+		$('#product_thumb').val('');
+		$('#product_file').val('');
+		$('#dataId').html('<?php echo $this->translator->translator("gallery_tree_root"); ?> (0)');		
+		if(tinyMCE.get('product_desc'))
+		{
+			tinyMCE.get('product_desc').setContent('');
+		}
+		$('a.back_btn_link').attr('href','<?php echo $this->url( array("module" => "Gallery","controller" => "backendpro", "action"  => "list" ,"group_id" => $param_group_id), "adminrout",    true) ?>');
+		removeTabs();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});					
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'explode',
+					resizable: false,				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+				if($('input[name="'+field.name+'"]').is(':checkbox'))
+				{
+					var val_arr = [];
+					$('input[name="'+field.name+'"]:checkbox:checked').each(function(i){
+					 val_arr[i] = $(this).val();
+					});
+					filevalue = (val_arr[0] != null) ? val_arr.join(',') : null;					
+				}
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] = (tinyMCE.get(filename)) ? tinyMCE.get(filename).getContent() : filevalue;			
+		});
+		return fieldObj;
+	}
+	
+	$('a.add_product_btn').click(function() {			
+			
+			var formData = getFormData();
+			
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendpro', 'action'     => 'add' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+						resetFields();							
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							focusFirst(json_arr.msg[i].key, json_arr.msg[i].value, i);
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+	
+/***********************************Get Gallery Group***************************************/
+	$('select.product_select_group').change(function() {		
+		$('#group_id_loader').html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="15" class="left-float"/>');
+		var group_id = $('#group_id').val();
+		removeTabs();
+		if(group_id != '')
+		{
+			$('a.back_btn_link').attr('href','Gallery/backendpro/list/group_id/'+group_id);
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backend', 'action'     => 'gallerygroup' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { grp_id: group_id },
+				success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						var tree = '<table class="example" id="dnd-example">'+
+										'<tbody ><tr id="node-0">'+
+										 '<td>'+
+											'<span class="folder"><?php echo $this->translator->translator("gallery_tree_root"); ?></span>'+
+										'</td>'+
+									'</tr>';
+							tree += json_arr.galleryGroup+'</tbody></table>';						
+						$('#categoryTree').html(tree);
+						categoryTreeGen();						
+					}
+					else
+					{
+						var tree = '<table class="example" id="dnd-example">'+
+										'<tbody ><tr id="node-0">'+
+										 '<td>'+
+											'<span class="folder"><?php echo $this->translator->translator("gallery_tree_root"); ?></span>'+
+										'</td>'+
+									'</tr>';
+							tree += '</tbody></table>';
+						$('#categoryTree').html(tree);
+						categoryTreeGen();						
+					}
+					if(json_arr.group_info)
+					{
+						if(json_arr.group_info.gallery_type)
+						{
+							switch(json_arr.group_info.gallery_type)
+							{
+								case 'image':
+								case 'chart':
+									$('#product_file_upload_btn').attr('rel', 'product_image');
+								break;
+								case 'video':
+									$('#product_file_upload_btn').attr('rel', 'product_video');
+								break;
+								case 'music':
+									$('#product_file_upload_btn').attr('rel', 'product_audio');
+								break;
+								default:
+									$('#product_file_upload_btn').attr('rel', 'product_image');
+								break;
+							}
+						}
+					}
+					dynamicFieldGenrator(json_arr.dynamic_field_arr);
+					$('#group_id_err').html('');
+					$('#group_id_loader').html('');
+					<?php if($auth->getIdentity()->access_file_image_manager != '1'){ ?>
+						uploadSettingsStart(json_arr);
+					<?php } ?>
+				}
+			});
+		}
+		else
+		{
+			var tree = '<table class="example" id="dnd-example">'+
+										'<tbody ><tr id="node-0">'+
+										 '<td>'+
+											'<span class="folder"><?php echo $this->translator->translator("gallery_tree_root"); ?></span>'+
+										'</td>'+
+									'</tr>';
+				tree += '</tbody></table>';
+			$('#categoryTree').html(tree);
+			categoryTreeGen();
+			$('#group_id_err').html('');
+			$('#group_id_loader').html('');
+			$('a.back_btn_link').attr('href','Gallery/backendpro/list');
+			<?php if($auth->getIdentity()->access_file_image_manager != '1'){ ?>
+				uploadSettingsEnd();			
+			<?php } ?>
+		}		
+	});
+	
+	
+});
+
+/********************************Category Tree Function*******************************************/
+function categoryTreeGen()
+{
+	$(".example").treeTable({
+	  initialState: "expanded"
+	});
+	
+	// Drag & Drop Example Code
+	$("#dnd-example .file, #dnd-example .folder").draggable({
+	  helper: "clone",
+	  opacity: .75,
+	  refreshPositions: true,
+	  revert: "invalid",
+	  revertDuration: 300,
+	  scroll: true
+	});
+	
+	
+	$("#dnd-example .folder").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) {
+			var fieldObj = {};
+				fieldObj.id = $(ui.draggable).parents("tr")[0].id;
+				fieldObj.to =	this.id;
+			var url = "<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backend', 'action'     => 'parent' ), 'adminrout',    true) ?>";
+		  $($(ui.draggable).parents("tr")[0]).postDataTo(this,fieldObj,url); 
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.		  
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	 $("#dnd-example .file").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) { 
+			var fieldObj = {};
+				fieldObj.id = $(ui.draggable).parents("tr")[0].id;
+				fieldObj.to =	this.id;
+			var url = "<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backend', 'action'     => 'parent' ), 'adminrout',    true) ?>";
+		  $($(ui.draggable).parents("tr")[0]).postDataTo(this,fieldObj,url); 
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.		
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	// Make visible that a row is clicked
+	$("table#dnd-example tbody tr").mousedown(function() {
+	  $("tr.selected").removeClass("selected"); // Deselect currently selected rows
+	  $(this).addClass("selected");
+	});
+	
+	// Make sure row is selected when span is clicked
+	$("table#dnd-example tbody tr span").mousedown(function() {
+		var node_id = $(this).parents("tr")[0].id.substr(5);
+		var node_name = $(this).html()+' ('+node_id+')';
+		$('#product_parent').val(node_id);
+		$('#dataId').html(node_name);
+	  $($(this).parents("tr")[0]).trigger("mousedown");
+	});
+}
+
+/************************************************IMAGE THUMBNIL************************************************/
+function imageThumbnil()
+{	
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '0', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+}
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+
+
+/**********************************DYNAMIC FIELD GENERATOR START****************************************************/
+
+function dynamicFieldGenrator(field_obj)
+{
+	if(field_obj.status == 'ok')
+	{		
+		var tab_counter = 0;
+		tab_counter++;	
+		var tab_content = '';	
+		
+		for(var i = 0; i < field_obj.dynamic_fields.length; i++)
+		{
+			var tab_title = field_obj.dynamic_fields[i].<?php echo Eicra_File_Constants::DYNAMIC_FIELD_GROUP_TITLE; ?>;
+			var total_obj = new Array();
+			tab_content = '<fieldset class="fieldset">'+															
+								'<legend class="legend">'+tab_title+'</legend>'+
+								'<span class="top-go right-float"><a href="#topGo"><img src="application/modules/Administrator/layouts/scripts/images/tools/top.png" border="0" alt="<?php echo $this->translator->translator('common_go_top_title'); ?>" title="<?php echo $this->translator->translator('common_go_top_title'); ?>" /></a></span>'+
+								'<div class="form">';
+			var tb = 0;									
+			for(var j = 0; j < field_obj.dynamic_fields[i].<?php echo Eicra_File_Constants::DYNAMIC_FIELD_GROUP_ELEMENTS; ?>.length; j++)
+			{
+				var element_obj		= field_obj.dynamic_fields[i].<?php echo Eicra_File_Constants::DYNAMIC_FIELD_GROUP_ELEMENTS; ?>[j];
+				var element_type 	= element_obj.type;				
+				if(element_obj.admin == '1')
+				{		
+					switch(element_type)
+					{
+						case 'file':
+							var element = element_obj.element; 	
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							var file_type		= 	field_obj.form_info.attach_file_type;
+							var file_type_arr	=	file_type.split(',');
+							for(var f = 0; f < file_type_arr.length; f++)
+							{
+								file_type_arr[f] = '*.'+file_type_arr[f];
+							}
+							var file_format = file_type_arr.join(';');
+							
+								tab_content +='<div class="form-row">'+
+												  '<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												  '<div class="field">'+
+															'<div style="float:left"><input type="file" name="'+element_obj.name+'_upload" id="'+element_obj.name+'_upload" /><input type="hidden" name="'+element_obj.name+'" id="'+element_obj.id+'" class="'+element_obj.id+'_class empty_class" value="" /></div>'+
+															info+
+															'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+
+													'</div>'+																																					
+											'</div>'+
+											'<div class="form-row">'+
+												'<div class="label"></div>'+
+												'<div class="field">'+
+													'&nbsp;<span id="selected_file_'+element_obj.name+'"></span>'+
+												'</div>'+
+											'</div>';
+									
+									var setting_info = {};
+									setting_info = field_obj.form_info;
+									setting_info.table_name = 'forms';
+									setting_info.primary_id_field = 'id';
+									setting_info.primary_id_field_value = field_obj.form_info.id;
+									setting_info.file_path_field 		= 'attach_file_path';
+									setting_info.file_extension_field 	= 'attach_file_type';
+									setting_info.file_max_size_field 	= 'attach_file_max_size';
+									total_obj[tb] = { 'dynamicUpload' : { upload_field : element_obj.name+'_upload', upload_value_field : element_obj.name, setting_info: setting_info , language_array: languageArray(), save_url: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", remove_url: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>" }, 'calendar' : ''};
+									tb++;										
+							break;
+						case 'text':
+							var element = element_obj.element; 
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							var id_f 			=	element_obj.id;
+							var id_arr			=	id_f.split('_');
+							var name_arr		=	element_obj.name.split('_');
+							if(jQuery.inArray("<?php echo Eicra_File_Constants::DATE; ?>", id_arr) > -1)
+							{
+								total_obj[tb] = { 'dynamicUpload' : '', 'calendar' : { 'id' : id_f }};
+								tb++;
+							}
+							var sumbol = (jQuery.inArray("<?php echo Eicra_File_Constants::PRICE; ?>", name_arr) > -1) ? '&nbsp;<?php echo $currency->getSymbol(); ?>' : '';	
+								tab_content +='<div class="form-row">'+
+												'<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												'<div class="field">'+											 	 
+													element+sumbol+
+													info+	
+													'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+													
+												'</div>'+											
+											'</div>';						
+							break;
+						case 'textarea':
+							var element = element_obj.element; 
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							
+								tab_content +='<div class="form-row">'+
+												'<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												'<div class="field">'+											 	 
+													element+
+													info+	
+													'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+													
+												'</div>'+											
+											'</div>';						
+							break;
+						case 'multicheckbox':
+							var element = element_obj.element; 
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							
+								tab_content +='<div class="form-row">'+
+												'<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												'<div class="field">'+											 	 
+													'<div class="autos-features property-features vacationrental-features tours-features">'+element+'</div>'+
+													info+	
+													'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+													
+												'</div>'+
+											'</div>';						
+							break;
+						case 'radio':
+							var element = element_obj.element; 
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							
+								tab_content +='<div class="form-row">'+
+												'<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												'<div class="field">'+											 	 
+													'<div class="property-features">'+element+'</div>'+
+													info+	
+													'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+													
+												'</div>'+
+											'</div>';						
+							break;
+						default:
+							var element = element_obj.element; 
+							var required_html 	= 	(element_obj.required) ? '<span class="required '+field_obj.form_info.star_class+'" style="'+field_obj.form_info.star_style+'">*</span>' : ''; 
+							var info			=	(element_obj.info) ? '<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all"  title="'+element_obj.info+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div>' : '';		
+							
+								tab_content +='<div class="form-row">'+
+												'<div class="label '+field_obj.form_info.label_class+'" style="padding-left:5px;'+field_obj.form_info.label_style+'">'+element_obj.label+required_html+'</div>'+
+												'<div class="field">'+											 	 
+													element+
+													info+	
+													'<div class="input-errors" id="'+element_obj.name+'_err"></div>'+													
+												'</div>'+
+											'</div>';
+							break
+					}
+				}
+			}
+			tab_content += 		'</div></fieldset>';
+			addTab(tab_title, tab_content, tab_counter);	
+			afterAddFunction(total_obj);	
+			tab_counter++;			
+		}
+	}
+}
+function addTab(tab_title,tab_content,tab_counter)
+{		
+		$('#dynamic_fields').append(tab_content);
+}
+function removeTabs()
+{
+	$('#dynamic_fields').html('');
+}
+function afterAddFunction(total_obj)
+{
+	//alert(total_obj[0]['dynamicUpload']['field_name']);
+	for(var tb = 0; tb < total_obj.length; tb++)
+	{
+		if(total_obj[tb]['dynamicUpload'])
+		{
+			dynamicUploader(total_obj[tb]['dynamicUpload']['upload_field'], total_obj[tb]['dynamicUpload']['upload_value_field'], total_obj[tb]['dynamicUpload']['setting_info'], total_obj[tb]['dynamicUpload']['language_array'], total_obj[tb]['dynamicUpload']['save_url'], total_obj[tb]['dynamicUpload']['remove_url'], true);
+		}
+		if(total_obj[tb]['calendar'])
+		{
+			calendar(total_obj[tb]['calendar']['id']);
+		}
+	}
+	qToolTipFunctions();
+	
+	$('#toc a').unbind('click');
+	$('#toc a').click(function(){//$.scrollTo works EXACTLY the same way, but scrolls the whole screen
+		$.scrollTo( this.hash, 1500, { easing:'swing' });
+		$(this.hash).find('span.message').text( this.title );
+		return false;
+	});
+	
+	$('span.top-go a').unbind('click');
+	$('span.top-go a').click(function(){//$.scrollTo works EXACTLY the same way, but scrolls the whole screen
+		$.scrollTo( this.hash, 1500, { easing:'swing' });		
+		return false;
+	});
+}
+
+function calendar(id)
+{
+	$("#"+id).datepicker({
+		showOn: 'button',
+		buttonImage: 'application/modules/Administrator/layouts/scripts/images/common/calendar.png',
+		buttonImageOnly: true,
+		showAnim: 'slide',
+		buttonText: 'Calender',
+		dateFormat:'yy-mm-dd',
+		autoSize:false,
+		showButtonPanel:false,
+		changeMonth: true,
+		changeYear: true
+	});
+	 $("img[class='ui-datepicker-trigger']").each(function(){ 
+			$(this).attr('style', '');
+		 });
+}
+/**********************************DYNAMIC FIELD GENERATOR END****************************************************/
+
+/***********************************************************************UPLOAD FUNCTIONS START********************************************************/
+
+function uploadSettingsStart(json_arr)
+{
+	uploadSettingsEnd();
+		
+	$('#product_thumb_block').prepend('<input type="file" name="product_thumb_upload" id="product_thumb_upload" />');	
+	var thumb_setting_param = json_arr.param_fields;
+	thumb_setting_param['file_path_field'] = 'file_path_product_thumb';
+	thumb_setting_param['file_extension_field'] = 'file_thumb_type';
+	var thumb_setting_info = getSettingInfo(json_arr.group_info, thumb_setting_param);							
+	dynamicUploader('product_thumb_upload', 'product_thumb', thumb_setting_info, languageArray(), "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+	
+	$('#product_file_block').prepend('<input type="file" name="product_file_upload" id="product_file_upload" />');	
+	var file_setting_param = json_arr.param_fields;
+	file_setting_param['file_extension_field'] = 'file_type';
+	switch(json_arr.group_info['gallery_type'])
+	{
+		case 'image':
+		case 'chart':
+			file_setting_param['file_path_field'] = 'file_path_product_image';
+		break;
+		case 'video':
+			file_setting_param['file_path_field'] = 'file_path_product_video';
+		break;
+		case 'music':
+			file_setting_param['file_path_field'] = 'file_path_product_audio';
+		break;
+		default:
+			file_setting_param['file_path_field'] = 'file_path_product_image';
+		break;
+	}	
+	var file_setting_info = getSettingInfo(json_arr.group_info, file_setting_param);							
+	dynamicUploader('product_file_upload', 'product_file', file_setting_info, languageArray(), "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+	
+	$('#product_thumb_err').html("");
+	$('#product_file_err').html("");
+}
+
+function uploadSettingsEnd()
+{	
+	$('#product_thumb_upload').parents('div.k-upload').remove();	
+	$('#product_file_upload').parents('div.k-upload').remove();	
+	$('#product_thumb_err').html("<?php echo $this->translator->translator("group_id_selected_err"); ?>");
+	$('#product_file_err').html("<?php echo $this->translator->translator("group_id_selected_err"); ?>");
+}
+
+function languageArray()
+{
+	var language_array = [];
+	language_array['portfolio_upload_dy_text_select'] 					= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_dy_text_select", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_cancel'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_cancel", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_dropFilesHere'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_dropFilesHere", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_remove'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_remove", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_retry'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_retry", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusFailed'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusFailed", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploaded'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploaded", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploading'] 			= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploading", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_uploadSelectedFiles'] 		= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_uploadSelectedFiles", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_file_extension_dy_support'] 				= "<?php echo $this->translator->translator("portfolio_file_extension_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext1'] 	= "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext1", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext2']  = "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext2", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_size_dy_support'] 					= "<?php echo $this->translator->translator("portfolio_file_size_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_upload_err'] 						= "<?php echo $this->translator->translator("portfolio_file_upload_err", '', 'Portfolio'); ?>";
+	return language_array;
+}
+
+
+function successFileDecoretion(fileObj, serverData, upload_field, upload_value_field)
+{
+		var extension = fileObj.extension;
+		var ext = extension.replace('.','');	
+		
+		var img_path = '';
+		switch(ext)
+		{
+			case 'flv':
+			case 'swf':
+			case 'FLV':
+			case 'SWF':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/flash.png';
+				break;
+			case 'mp3':
+			case 'MP3':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/mp3.png';
+				break;
+			case 'avi':
+			case 'wmv':
+			case 'wma':
+			case 'WMA':
+			case 'AVI':
+			case 'WMV':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/avi_thumb.png';
+				break;
+			case 'pdf':
+			case 'doc':
+			case 'docx':
+			case 'xls':
+			case 'xlsx':
+			case 'ppt':
+			case 'pptx':
+			case 'PDF':
+			case 'DOC':
+			case 'DOCX':
+			case 'XLS':
+			case 'XLSX':
+			case 'PPT':
+			case 'PPTX':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/extImages/'+ext+'.png';
+				break;
+			default:
+				if(isImage(fileObj))
+				{				
+					img_path = "<?php echo $this->baseUrl().'/'; ?>"+serverData.file_path+'/'+fileObj.name; 
+				}
+				else
+				{	
+					img_path = "<?php echo $this->baseUrl().'/'; ?>application/modules/Administrator/layouts/scripts/images/common/all_file_thumb.png";
+				}	
+				break;
+		}		
+		
+		
+		var img_code = '<span class="thumb"><img src="'+img_path+'" title="'+fileObj.name+'" width="20" height="10" /></span>';		 
+		var down_link = (!isImage(fileObj)) ? '<br /><a href="'+serverData.file_path+'/'+fileObj.name+'"><?php echo $this->translator->translator("common_download", "", "Projects"); ?></a>' : '';
+		
+		var checked = '';
+		var primary = '&nbsp;&nbsp;&nbsp;';	
+		var block = 'selected_file_'+upload_value_field;
+		var img_type = '';			
+		switch(upload_value_field)
+		{
+			case 'product_thumb':	
+					checked = ($('#'+upload_value_field).val() == '') ? ' checked="checked" ' : '';	
+					img_type = 	($('#'+upload_value_field).val() == '') ? "<span class='main'><?php echo $this->translator->translator('gallery_img_main'); ?></span><br />" : "<span class='related'><?php echo $this->translator->translator('gallery_img_related'); ?></span><br />";				
+					primary = '<input class="radio_style" type="radio" name="product_thumb_primary" id="product_thumb_primary" '+checked+' value="'+fileObj.name+'" title="<?php echo $this->translator->translator("gallery_primary"); ?>" />';
+				break;
+			case 'product_file':
+					checked = ($('#'+upload_value_field).val() == '') ? ' checked="checked" ' : '';		
+					img_type = 	($('#'+upload_value_field).val() == '') ? "<span class='main'><?php echo $this->translator->translator('gallery_img_main'); ?></span><br />" : "<span class='related'><?php echo $this->translator->translator('gallery_img_related'); ?></span><br />";		
+					primary = '<input class="radio_style" type="radio" name="product_file_primary" id="product_file_primary" '+checked+' value="'+fileObj.name+'" title="<?php echo $this->translator->translator("gallery_primary"); ?>" />';
+				break;
+		}
+		
+		var del_link = '<a href="javascript:void(0)" class="delete_uploaded_image_link" field_name="'+upload_value_field+'" file_name="'+fileObj.name+'" file_path="'+serverData.file_path+'"><?php echo $this->translator->translator("common_delete_title"); ?></a>'+primary +  down_link;
+		
+		if(serverData.multi)
+		{		
+			$('#'+block).append('<div class="upload-img box">'+img_type+'<span>'+img_code+'<br /><br />&nbsp;'+del_link+'&nbsp;</span></div>');				 
+			var file_val = ($('#'+upload_value_field).val() == '') ? fileObj.name :  $('#'+upload_value_field).val()+','+fileObj.name;	
+		}
+		else
+		{
+			$('#'+block).html('<div class="upload-img box">'+img_type+'<span>'+img_code+'<br /><br />&nbsp;'+del_link+'&nbsp;</span></div>');				 
+			var file_val = fileObj.name;
+		}
+		$('#'+upload_value_field).val(file_val);
+		deleteFiles("<?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+		imageThumbnil();	
+}
+
+function onComplete(e) {
+			
+}
+
+function onCancel(e) {
+	
+}
+
+function onProgress(e) {
+					
+}
+
+/***********************************************************************UPLOAD FUNCTIONS END********************************************************/
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="products-add"><h1><?php echo $this->translator->translator('gallery_product_add_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendpro', 'action'     => 'list' ,'group_id' => $param_group_id), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_product_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container" id="topGo">
+	<div id="sidebar-inner">
+    	<div id="nav">
+    		<div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('gallery_tree'); ?></div></div>
+    		<div id="categoryTree" class="nav-body treebody" >
+           		&nbsp;	
+            </div>
+       	</div>
+    </div>
+    
+    <div id="content-inner">
+    	<div id="actionMessage"></div>
+        <div id="button_top_bar"></div>
+        <form name="formCategory" id="formCategory" method="post">
+        	<div id="generalInfo">
+            	<fieldset class="fieldset">
+                	<legend class="legend"><?php echo $this->translator->translator('gallery_product_page_info'); ?></legend>
+                    <span class="top-go right-float"><a href="#topGo"><img src="application/modules/Administrator/layouts/scripts/images/tools/top.png" border="0" alt="<?php echo $this->translator->translator('common_go_top_title'); ?>" title="<?php echo $this->translator->translator('common_go_top_title'); ?>" /></a></span>
+                    <div class="form">
+                    	<div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_name->getLabel();  if($this->proForm->product_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php  echo $this->proForm->product_name;  ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="product_name_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_title->getLabel();  if($this->proForm->product_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php  echo $this->proForm->product_title;  ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="product_title_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_code->getLabel();  if($this->proForm->product_code->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php echo $this->proForm->product_code; ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_code->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="product_code_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_price->getLabel();  if($this->proForm->product_price->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php echo $this->proForm->product_price.'&nbsp;'.$currency->getSymbol(); ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_price->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="product_price_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->group_id->getLabel();  if($this->proForm->group_id->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<div class="left-float"><?php echo $this->proForm->group_id; ?></div><span id="group_id_loader"></span>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->group_id->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="group_id_err"></div>                                
+                            </div>
+                    	</div> 
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->category_id->getLabel(); ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<span id="dataId"><?php echo $this->translator->translator("gallery_tree_root"); ?> (0)</span><?php echo $this->proForm->category_id; ?>
+                            </div>
+                    	</div>
+                        
+                        <?php if($this->proForm->product_thumb->isRequired()){ ?>
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_thumb->getLabel();  if($this->proForm->product_thumb->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php	
+									if($auth->getIdentity()->access_file_image_manager == '1')
+									{
+								?>
+                                    <div class="upload-img">
+                                        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="upload_btn" rel="product_thumb"><span class="icon upload"><?php echo $this->translator->translator('common_upload'); ?></span></a></span>
+                                        <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_thumb->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    </div>
+                                    <?php echo $this->proForm->product_thumb; ?>
+                                    <div class="input-errors" id="product_thumb_err"></div>
+                                <?php
+									}
+									else
+									{
+								?>
+                                	<div class="upload-img">
+                                		<div id="product_thumb_block"><?php echo $this->proForm->product_thumb; ?></div>
+                                    </div>                                   
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_thumb->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="product_thumb_err"><?php echo $this->escape($this->translator->translator("group_id_selected_err")); ?></div>
+                                <?php
+									}
+								?>
+                            </div>                           
+                    	</div>
+                        <div class="form-row">
+                            <div class="label">
+                                &nbsp;
+                            </div>
+                
+                            <div class="field">
+                                <span id="selected_file_product_thumb"></span>
+                            </div>
+                        </div>
+                        <?php }else{ ?>
+                        <div>
+                        	<?php echo $this->proForm->product_thumb; ?>
+                        </div>
+                        <?php } ?>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_file->getLabel();  if($this->proForm->product_file->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php	
+									if($auth->getIdentity()->access_file_image_manager == '1')
+									{
+								?>
+                            	<div class="upload-img">
+                                	<span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="upload_btn" id="product_file_upload_btn" rel="product_image"><span class="icon upload"><?php echo $this->translator->translator('common_upload'); ?></span></a></span>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_file->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                </div>
+                            	<?php echo $this->proForm->product_file; ?>&nbsp;&nbsp;
+                                <div class="input-errors" id="product_file_err"></div>
+                                <?php
+									}
+									else
+									{
+								?>
+                                	<div class="upload-img">
+                                		<div id="product_file_block"><?php echo $this->proForm->product_file; ?></div>
+                                    </div>                                   
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_file->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="product_file_err"><?php echo $this->escape($this->translator->translator("group_id_selected_err")); ?></div>
+                                <?php
+									}
+								?>
+                            </div>                         
+                    	</div>
+                        
+                        <div class="form-row">
+                            <div class="label">
+                                &nbsp;
+                            </div>
+                
+                            <div class="field">
+                                <span id="selected_file_product_file"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->product_desc->getLabel();  if($this->proForm->product_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<div class="editor"><?php echo $this->proForm->product_desc; ?></div>
+                                <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->product_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <span id="loaderLink"><a href="javascript:void(0);" onClick="loadTinyMCE('product_desc');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif"  border="0" title="<?php echo $this->translator->translator('common_editor_open'); ?>" alt="<?php echo $this->translator->translator('common_editor_open'); ?>" ></a></span>
+                                <div class="input-errors" id="product_desc_err"></div>
+                            </div>
+                       	</div>
+                  	</div>
+             	</fieldset>
+                
+                <fieldset class="fieldset">
+                	<legend class="legend"><?php echo $this->translator->translator('gallery_product_page_related_items'); ?></legend>
+                    <span class="top-go right-float"><a href="#topGo"><img src="application/modules/Administrator/layouts/scripts/images/tools/top.png" border="0" alt="<?php echo $this->translator->translator('common_go_top_title'); ?>" title="<?php echo $this->translator->translator('common_go_top_title'); ?>" /></a></span>
+                    <div class="form">
+                    	<div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->related_items->getLabel();  if($this->proForm->related_items->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php  echo $this->proForm->related_items;  ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->meta_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="related_items_err"></div>
+                            </div>
+                    	</div>
+                  	</div>
+               	</fieldset>
+                
+                <fieldset class="fieldset">
+                	<legend class="legend"><?php echo $this->translator->translator('gallery_product_page_meta'); ?></legend>
+                    <span class="top-go right-float"><a href="#topGo"><img src="application/modules/Administrator/layouts/scripts/images/tools/top.png" border="0" alt="<?php echo $this->translator->translator('common_go_top_title'); ?>" title="<?php echo $this->translator->translator('common_go_top_title'); ?>" /></a></span>
+                    <div class="form">
+                    	<div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->meta_title->getLabel();  if($this->proForm->meta_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php  echo $this->proForm->meta_title;  ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->meta_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="meta_title_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->meta_keywords->getLabel();  if($this->proForm->meta_keywords->isRequired()){ ?><span class="required">*</span><?php }?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php  echo $this->proForm->meta_keywords;  ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->meta_keywords->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="meta_keywords_err"></div>
+                            </div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+                           		<?php echo $this->proForm->meta_desc->getLabel();  if($this->proForm->meta_desc->isRequired()){ ?><span class="required">*</span><?php }?>
+                          	</div>
+                            
+                          	<div class="field">
+                            	<?php echo $this->proForm->meta_desc; ?>
+								<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->proForm->meta_keywords->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                <div class="input-errors" id="meta_desc_err"></div>
+                            </div>
+                    	</div>
+                  	</div>
+               	</fieldset>
+                
+                <span id="dynamic_fields">
+                
+                </span>
+          	</div>
+		</form>
+	</div>
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendpro', 'action'     => 'list' ,'group_id' => $param_group_id), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_product_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div  id="floatingbar">
+	<h1><?php echo $this->translator->translator('gallery_product_add_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendpro', 'action'     => 'list' ,'group_id' => $param_group_id), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_product_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<?php endif; ?>	
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('gallery_product_add_page_name')); ?>">
+</div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+
+<div id="upload-form" title="<?php echo $this->translator->translator('gallery_product_page_dialog'); ?>">	
+	<div>
+    	<form id="popupForm" target="i-upload-form" method="post" action="" >
+            <input type="hidden" name="table_name" value="gallery_group"/>
+            <input type="hidden" name="primary_id_field" value="id"/>
+            <input type="hidden" name="primary_id_field_value" value=""/>   
+            <input type="hidden" name="primary_file_field" value=""/> 
+           	<input type="hidden" name="file_content"  value=""/>       
+            <input type="hidden" name="file_path_field" value=""/>
+            <input type="hidden" name="file_extension_field" value="file_type"/>
+            <input type="hidden" name="file_max_size_field" value="file_size_max"/>
+    	</form>
+    	<iframe id="i-upload-form" name="i-upload-form" src="" class="iframe-img-upload"></iframe>
+    </div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:void(0);" class="select_file_btn"><span class="icon insert"><?php echo $this->translator->translator('gallery_category_page_insert'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+    </div>
+</div>
+</div>

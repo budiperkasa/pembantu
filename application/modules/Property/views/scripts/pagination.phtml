@@ -1,0 +1,25 @@
+<?php
+	$frontController = Zend_Controller_Front::getInstance();
+	$module = $frontController->getRequest()->getModuleName();
+	$controller = $frontController->getRequest()->getControllerName();
+	$action = $frontController->getRequest()->getActionName();
+	$group_id = $frontController->getRequest()->getParam('group_id');
+	$approve = $frontController->getRequest()->getParam('approve');
+$translator = Zend_Registry::get('translator');
+?>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+	<td width="55%">&nbsp; <?php echo $translator->translator('pagination_results'); ?> <?php echo $this->currentItemCount; ?> - <?php echo $this->current; ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->last; ?></td>
+	<td width="45%" align="right"><?php if (isset($this->previous)): ?><a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'group_id' => $group_id, 'approve' => $approve,'page' => $this->previous),'adminrout',true); ?>" style="text-decoration:none;color:#000000;"><</a><?php else: ?><<?php endif; ?> 
+	<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'group_id' => $group_id, 'approve' => $approve,'page' => $page),'adminrout',true); ?>" style="text-decoration:none;color:#000000;">[<?php echo $page; ?>]</a>
+				<?php else: ?>
+					<?php echo $page; ?>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+	<?php if (isset($this->next)): ?><a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'group_id' => $group_id, 'approve' => $approve,'page' => $this->next),'adminrout',true); ?>" style="text-decoration:none;color:#000000;">></a><?php else: ?>><?php endif; ?>&nbsp;</td>
+  </tr>
+</table>

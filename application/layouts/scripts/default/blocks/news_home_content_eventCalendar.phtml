@@ -1,0 +1,93 @@
+<?php 
+class event_calendar_box
+{
+	protected	$_group = 4;
+	protected	$_limit = 3;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		
+		$translator = Zend_Registry::get('translator');
+		//get Assigned Menu
+		$selectMenu = $this->_DBconn->select()
+													->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+													->where('ma.module_name = ?', 'News')
+													->where('ma.controller_name = ?', 'event')
+													->where('ma.action_name = ?', 'list')
+													->limit(1);
+		$assign_menu =  $selectMenu->query()->fetchAll();
+		$selectMenuTitle = $this->_DBconn->select()
+								->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+								->where('m.menu_id = ?', $assign_menu[0]['menu_id'])
+								->limit(1);
+		$menuTitle =  $selectMenuTitle->query()->fetchAll();
+?>
+
+<script>
+$(document).ready(function(){
+		var links = "<?php echo 'Event-Cal/'.$this->_view->escape($menuTitle[0]['menu_title']); ?>/";
+		$( "#partial_event_calender" ).datepicker({	
+			dateFormat:'yy-MM-dd',
+			monthNames:<?php echo $translator->translator("common_calender_monthNames"); ?>,
+			dayNamesMin:<?php echo $translator->translator("common_calender_dayNamesMin"); ?>,
+			onSelect: function( dateText, inst ) {;
+				var date_arr = dateText.split('-');
+				//alert(date_arr[0]+' '+date_arr[1]+' '+date_arr[2]);
+				document.location.href= links+date_arr[0]+"/"+date_arr[1]+"/"+date_arr[2];
+			}
+		});
+		
+		$('#toggle_event_calendar').click(function() {
+			var self = this;
+			$('#event_calendar').slideToggle(500,function () {
+				var src = $(self).children("img").attr('src');
+				//var input = (src == 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/green-down-arrow.png') ? 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/green-arrow.gif' : 'application/layouts/scripts/<?php echo $this->_front_template["theme_folder"]; ?>/images/green-down-arrow.png';
+				$(self).children("img").attr('src',input);
+			});
+			return false;
+		  });
+	});
+</script>
+
+<div class="block block-calendar">
+	<h2 class="calendar"><?php echo $translator->translator('block_event_calendar_title','','', $this->_front_template['theme_folder']); ?></h2>
+   	<div id="event_calendar">
+        <div id="partial_event_calender"></div>
+    </div>
+</div>
+			
+<?php
+	}		
+	
+}
+
+$event_calendar_class = new event_calendar_box($this);
+try
+{
+	$event_calendar_class->class_body();
+}
+catch(Exception $e)
+{
+	echo 'You have to create menu first';
+}
+?>

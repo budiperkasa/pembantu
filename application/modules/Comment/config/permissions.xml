@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backendcomment" for="backend" description="Manage Comment" langKey="permisson_comment_backendcomment">
+		<privilege for="dashboard" name="list" description="Comment List" langKey="permisson_comment_backendcomment_list" />
+		<privilege for="dashboard" name="add" description="Add Comment" langKey="permisson_comment_backendcomment_add" />
+		<privilege name="edit" description="Edit Comment" langKey="permisson_comment_backendcomment_edit" />
+		<privilege name="delete" description="Delete Comment" langKey="permisson_comment_backendcomment_delete" />
+		<privilege name="deleteall" description="Delete All Comment" langKey="permisson_comment_backendcomment_deleteall" />
+		<privilege name="publish" description="Publish Comment" langKey="permisson_comment_backendcomment_publish" />
+		<privilege name="publishall" description="Publish All Comment" langKey="permisson_comment_backendcomment_publishall" />
+	</resource>	
+	<resource name="backendsetting" for="backend" description="Manage Comment Settings" langKey="permisson_comment_backendsetting_">
+		<privilege for="dashboard" name="list" description="Setting List" langKey="permisson_comment_backendsetting_list" />
+		<privilege name="edit" description="Edit Settings" langKey="permisson_comment_backendsetting_edit" />
+		<privilege name="publish" description="Comment Module On/Off" langKey="permisson_comment_backendsetting_publish" />
+		<privilege name="publishall" description="Comment Module On/Off All" langKey="permisson_comment_backendsetting_publishall" />
+	</resource>
+</permissions>

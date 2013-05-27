@@ -1,0 +1,41 @@
+<?php
+	$frontController = Zend_Controller_Front::getInstance();
+	$module = $frontController->getRequest()->getModuleName();
+	$controller = $frontController->getRequest()->getControllerName();
+	$action = $frontController->getRequest()->getActionName();
+	$draft = $frontController->getRequest()->getParam('draft');
+	$draft_link = ($draft != null)? '/draft/'.$draft : '';
+	$group_id = $frontController->getRequest()->getParam('group_id');
+	$draft_link .= ($group_id != null)? '/group_id/'.$group_id : '';
+	$entry_by = $frontController->getRequest()->getParam('entry_by');
+	$draft_link .= ($entry_by != null)? '/entry_by/'.$entry_by : '';
+	$menu_name = $frontController->getRequest()->getParam('menu_name');
+	$draft_link .= ($menu_name != null)? '/menu_name/'.$menu_name : '';
+	$translator = Zend_Registry::get('translator'); 
+?>
+
+<?php echo $translator->translator('pagination_total'); ?> <?php echo $this->numbers($this->totalItemCount); ?> <?php echo $translator->translator('pagination_records_found'); ?> &nbsp; | &nbsp; <?php echo $translator->translator('pagination_Page'); ?> <?php echo $this->numbers($this->current); ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->numbers($this->last); $sessions = Eicra_Global_Variable::getSession(); ?>
+<div class="page-no">
+	<?php echo $translator->translator('pagination_jump_page'); ?> 
+    <select name="PageNum" id="PageNum" onChange="document.location.href='<?php echo $this->baseUrl().'/'.$module.'/'.$controller.'/'.$action.$draft_link.'/page/';?>'+this.options[this.selectedIndex].value">
+		<?php
+            for($i=1;$i<=$this->pageCount;$i++)
+            {
+        ?>
+        <option value="<?php echo $i; ?>" <?php if($this->current == $i){ ?>selected="selected"<?php } ?>><?php echo $this->numbers($i); ?></option>
+        <?php
+            }
+        ?>							
+	</select>
+				  			                              
+    <form id="form1" name="form1" method="post" action="<?php echo $this->url(array('module' => $module,'controller'=>$controller,'action' => $action ,'draft' => $draft, 'entry_by' => $entry_by, 'group_id' => $group_id, 'menu_name' => $menu_name),'adminrout',true);?>">
+        <?php echo $translator->translator('pagination_view_result_per_page'); ?> 
+        <select name="viewPageNum" id="viewPageNum" onChange="form.submit();">
+            <option value="1" <?php if($sessions->viewPageNum == '1'){ ?>selected="selected"<?php } ?>><?php echo $this->numbers(1); ?></option>
+            <option value="5" <?php if($sessions->viewPageNum == '5'){ ?>selected="selected"<?php } ?>><?php echo $this->numbers(5); ?></option>
+            <option value="10" <?php if($sessions->viewPageNum == '10'){ ?>selected="selected"<?php } ?>><?php echo $this->numbers(10); ?></option>
+            <option value="30" <?php if($sessions->viewPageNum == '30'){ ?>selected="selected"<?php } ?>><?php echo $this->numbers(30); ?></option>
+            <option value="100" <?php if($sessions->viewPageNum == '100'){ ?>selected="selected"<?php } ?>><?php echo $this->numbers(100); ?></option>
+        </select>
+     </form> 			                              
+</div>

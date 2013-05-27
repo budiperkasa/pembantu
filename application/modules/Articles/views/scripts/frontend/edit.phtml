@@ -1,0 +1,205 @@
+<?php
+	$front_template = Zend_Registry::get('front_template');
+	$i =0 ;
+	$auth = Zend_Auth::getInstance ();
+	if ($auth->hasIdentity () && $this->allow('edit'))
+	{
+		$version = Zend_Registry::get('version');  
+		$articleForms =  new Articles_Form_ArticleForm ();
+		$articleForms->setEditor($this->serverUrl().$this->baseUrl());
+		$articleForms->getEditor();	
+?>
+<style type="text/css">
+	.codemirror-ui-find-bar { font-size:17px;padding-top:4px;}
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('a.edit_frontend').click(function() {
+		var self = this;
+		var article_content = $('#article_content_area').html();
+		var article_id = $(self).attr('rel');
+		var input = '<div><div style="float:left"><textarea name="article_content" id="article_content" class="article-textarea">'+article_content+'</textarea></div><div style="float:right"><span id="loaderLink"><a href="javascript:void(0);" class="loaderLink_class" rel="wysiwyg,article_content"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator("common_editor_open"); ?>" alt="<?php echo $this->translator->translator("common_editor_open"); ?>" ></a></span></div></div><div class="clear btn-container"><span class="form-button ui-widget-content-1"><a href="javascript: void(0);" class="article_save_btn" rel="'+article_id+'"><?php echo $this->translator->translator("common_save"); ?></a></span> <span class="form-button ui-widget-content-1"><a href="javascript: void(0);" class="article_cancel_btn"><?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?></a></span></div>';
+		$('#article_content_area').html(input);	
+		$(self).css('display','none');
+		allFunction();	
+		openCodeMirror('article_content');
+	});
+	
+});
+function allFunction()
+{
+	$('a.loaderLink_class').unbind('click');
+	$('a.loaderLink_class').click(function() {
+			var self = this;
+			var rel = $(self).attr('rel').split(',');
+			switch(rel[0])
+			{
+				case 'wysiwyg':
+					$(self).attr('rel','html,'+rel[1]);
+					closeCodeMirror(rel[1]);
+					tinyMCE.execCommand('mceAddControl', false, rel[1]);											
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/common/html.gif" border="0" title="<?php echo $this->translator->translator("common_editor_close"); ?>" alt="<?php echo $this->translator->translator("common_editor_close"); ?>" /></a>');
+					break;
+				case 'html':
+					tinyMCE.execCommand('mceRemoveControl', false, rel[1]);
+					$(self).attr('rel','wysiwyg,'+rel[1]);
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator("common_editor_open"); ?>" alt="<?php echo $this->translator->translator("common_editor_open"); ?>" /></a>');
+					openCodeMirror(rel[1]);
+					break;
+			}
+		});
+		
+	$('a.article_cancel_btn').unbind('click');
+	$('a.article_cancel_btn').click(function() {
+		var self = this;
+		if(tinyMCE.get('article_content'))
+		{
+			var article_content = tinyMCE.get('article_content').getContent();
+		}
+		else
+		{
+			var article_content =  (editor) ? editor.mirror.getValue() : $('#article_content').val();
+		}
+		$('#article_content_area').html(article_content);
+		$('a.edit_frontend').css('display','inline');
+	});
+	
+	$('a.article_save_btn').unbind('click');
+	$('a.article_save_btn').click(function() {	
+			var self = this;
+			var article_id = $(self).attr('rel');
+			if(tinyMCE.get('article_content'))
+			{
+				var article_content = tinyMCE.get('article_content').getContent();
+				tinyMCE.execCommand('mceRemoveControl', false, 'article_content');
+			}
+			else
+			{
+				var article_content = (editor != null) ? editor.mirror.getValue() : $('#article_content').val();
+			}								
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Articles','controller' => 'frontend', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: {article_id : article_id, article_content : article_content },
+				beforeSend: function(){
+						openLoaderDialog();				
+					 },
+				success: function(response){					
+					var json_arr = eval("("+response+")");
+					closeLoaderDialog();
+					if(json_arr.status == 'ok')
+					{
+						openMsgDialog(json_arr.msg);						
+					}
+					else if(json_arr.status == 'errV')
+					{
+						openMsgDialog(json_arr.msg);					
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').attr('class','errMess');
+					$('#actionMessage').html(msg);
+				}
+		});
+	});
+}
+
+function openLoaderDialog()
+{
+	$('#dialog_loader').html('<div id="progressbar" ></div>');
+	$('#dialog_loader').dialog({
+				autoOpen: true,
+				modal: true,
+				show: 'fade',
+				resizable: 'false',				
+				open: function(event, ui)
+					 {
+						$("#progressbar").progressbar({
+							value:100
+			
+						});							
+					  }
+			});
+}
+
+function closeLoaderDialog()
+{
+	$('#dialog_loader').dialog('option','hide','explode').dialog('close');
+}
+
+function openMsgDialog(msg)
+{
+	$.fx.speeds._default = 1000;
+	$('#dialog_container').html(msg).dialog({
+				autoOpen: true,
+				modal: false,
+				show: 'fade',
+				resizable: 'false',				
+				buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, "UTF-8"); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+				open: function(event, ui)
+					 {
+						setTimeout(function() 
+						{									
+							if($('#' + event.target.id).dialog('isOpen'))
+							{
+								$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+							}
+						}, 10000);
+					  }
+			});
+}
+</script>
+<?php
+}
+?>
+
+<div class="mod mod-article">
+    <?php		
+        foreach ($this->view_datas as $entry=>$value):
+                    
+        if(!empty($value['article_meta_key']))
+        {
+            $this->headMeta()->setName('keywords',$value['article_meta_key']);	
+        }
+        if(!empty($value['article_meta_desc']))
+        {
+            $this->headMeta()->setName('description',$value['article_meta_desc']);
+        }
+        if(!empty($value['article_meta_title']))
+        {
+            $this->headTitle()->headTitle($value['article_meta_title'],'SET');
+        }
+    ?>
+    
+	<div class="article-icon"><h1><?php echo $this->escape($value['article_name']); ?></h1></div>
+    <div class="clear"></div>
+    
+    <?php if ($auth->hasIdentity () && $this->allow('edit')){ ?>
+    
+    <div class="edit">
+        <a href="javascript:void(0);" rel="<?php echo $this->escape($value['article_id']); ?>" class="edit_frontend"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/article-edit.png" border="0" title="<?php echo $this->translator->translator('common_edit_title'); ?>" /></a>
+    </div>
+    
+    <div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('common_edit_title')); ?>"></div><div id="dialog_loader" title="<?php echo $this->translator->translator('common_processing_language'); ?>"></div>
+    
+    <?php } ?>
+    
+    <div colspan="2" id="article_content_area"><?php echo stripslashes($value['article_content']); ?>
+    </div>
+    
+    <?php
+        $i++;
+        endforeach;	
+    ?>
+    
+    <div>
+        <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'frontend/pagination-flickr.phtml'); ?>
+    </div>
+</div>

@@ -1,0 +1,472 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step5_page_title'));
+$version = Zend_Registry::get('version');
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){		
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php/step4'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php'; ?>";
+		});	
+		$('#next').click(function(){
+				openLoaderDialog();
+			});	
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}	
+	
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'fade',
+			resizable: 'false',				
+			open: function(event, ui)
+				 {
+					$("#progressbar").progressbar({
+						value:100
+		
+					});							
+				  }
+		});
+		setTimeout(function() 
+		{
+			$('#step5frm').submit();
+		}, 100);
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	
+	//-->
+	</script>
+	<form id="step5frm" name="step5frm" method="post" action="<?php echo $this->baseUrl().'/install.php/step5'; ?>" enctype="multipart/form-data">
+		<fieldset>
+        <legend><?php echo $this->translator->translator('install_step_5_of_6'); ?></legend>
+      		<p>
+            <span class="title"><?php echo $this->translator->translator('install_step5_page_type'); ?></span>&nbsp;
+           	<?php echo $this->translator->translator('install_step5_page_language'); ?>
+      		</p>
+            <br />
+            <?php if($this->error_msg){ ?>
+                <div id="errorBoxMessageDiv" class="errors">
+               		<?php echo $this->translator->translator('install_step5_error_message'); ?> &nbsp;<?php echo $this->error_msg; ?>
+                </div>
+          	<?php } ?>
+                <div>
+                    <?php
+                        $lic = true;
+                        if(!empty($this->license_error))
+                        {
+                            //echo $this->license_error;
+                            $lic = false;
+                        }
+                        else
+                        {
+                            if(empty($this->modules))
+                            {
+                                //echo $this->translator->translator('install_step5_module_not_found');
+                                $lic = false;
+                            }								
+                        }														
+                    ?>
+                </div>
+                        
+            <?php
+            if(Eicra_License_Version::verifyLicenseKey())
+            {
+            ?>
+        
+        	<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_license_key_setup'); ?></legend>
+                
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_license_key'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="license_key" id="license_key" value="<?php echo $this->license_key; ?>" class="input-field"/>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <br />
+			<?php
+            }
+            ?>
+            
+          	<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_user_setup'); ?></legend>
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_user_first_name'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="firstName" id="firstName" value="<?php echo $this->firstName; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_user_last_name'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="lastName" id="lastName" value="<?php echo $this->lastName; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_email_address'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="email_address" id="email_address" value="<?php echo $this->email_address; ?>" class="input-field" />
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <br />	
+			 						
+			<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_database_setup'); ?></legend>
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_type'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <select id="databaseSelector" name="databaseType" class="drop-list">
+								<?php foreach ($this->databases as $db => $info) : ?>
+                                <option value="<?php echo $db; ?>"<?php if ($db == $this->databaseType): ?> selected="selected"<?php endif; ?>><?php echo $info['name']; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                   	<div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_host'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="host" id="host" value="<?php echo $this->host; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_port'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="port" id="port" value="<?php echo $this->port; ?>" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_username'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="username" id="username" value="<?php echo $this->username; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_password'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="password" name="password" id="password" value="<?php echo $this->password; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_name'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="dbname" id="dbname" value="<?php echo $this->dbname; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_database_prefix'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="prefix" id="prefix" value="<?php echo $this->tblprefix; ?>" />
+                        </div>
+                    </div>
+                </div>
+         	</fieldset>
+            
+            <br />
+									
+			<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_import_module'); ?></legend>                
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_import_sample_module_data'); ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php
+								if(!empty($this->license_error))
+								{
+									if(!empty($this->modules))
+									{
+										foreach($this->modules as $modules)
+										{
+								?>
+										<input type="checkbox" name="<?php echo $modules; ?>" id="<?php echo $modules; ?>" checked="checked" />&nbsp;<?php echo '-----'.$modules; ?><br />
+								<?php		
+										}
+									}
+									//echo $this->license_error;
+								}
+								else
+								{
+									if(empty($this->modules))
+									{
+										//echo $this->translator->translator('install_step5_module_not_found');
+									}
+									else
+									{
+										foreach($this->modules as $modules)
+										{
+							?>
+										<input type="checkbox" name="<?php echo $modules; ?>" id="<?php echo $modules; ?>" checked="checked" />&nbsp;<?php echo '-----'.$modules; ?><br />
+							<?php
+										}
+									}
+								}
+							?>
+                        </div>
+                    </div>
+                </div>
+			</fieldset>
+            
+            <br />
+									
+			<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_web_settings'); ?></legend>
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_url'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="url" id="url" value="<?php echo $this->url; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_name'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="siteName" id="siteName" value="<?php echo $this->siteName; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_title'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="web_title" id="web_title" value="<?php echo $this->web_title; ?>" class="input-field" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_language'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <select name="lang" id="lang" class="drop-list">
+								<?php foreach ($this->languages as $lang => $names) : ?>
+                                <option value="<?php echo $lang; ?>"<?php if ($this->lang == $lang): ?> selected="selected"<?php endif; ?>><?php echo $names['localName']; ?> (<?php echo $names['englishName']; ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_charset'); ?> <span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <select name="charset" id="charset" class="drop-list">
+								<?php foreach ($this->charsets as $name => $charset) : ?>
+                                <option value="<?php echo $charset; ?>"<?php if ($this->currentCharset == $charset) : ?> selected="selected"<?php endif; ?>><?php echo $name; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_session_lifetime'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <input type="text" name="sessionLifetime" id="sessionLifetime" value="<?php echo $this->sessionLifetime; ?>" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_keyword'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <textarea name="meta_keyword" id="meta_keyword" class="input-area"><?php echo $this->meta_keyword; ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_web_description'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <textarea name="meta_description" id="meta_description" class="input-area" ><?php echo $this->meta_description; ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                        	&nbsp;
+                        </div>
+                        
+                        <div class="field">
+                            <input type="checkbox" name="offline" id="offline" value="1" <?php if (null != $this->offline && 'true' == $this->offline) : ?>checked="checked"<?php endif; ?> />&nbsp;<?php echo $this->translator->translator('install_step5_web_offline'); ?>
+                        </div>
+                   	</div>
+                    
+                   	<div class="row">
+                        <div class="label">
+                        	<?php echo $this->translator->translator('install_step5_web_offline_message'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <textarea name="offlineMessage" id="offlineMessage" class="input-area"><?php if (null != $this->offlineMessage) : ?><?php echo $this->offlineMessage; ?><?php endif; ?></textarea>
+                        </div>
+                    </div>
+                </div>
+        	</fieldset>
+            
+            <br />
+									
+			<fieldset>
+            	<legend><?php echo $this->translator->translator('install_step5_timezone_setup'); ?></legend>
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_timezone'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <select name="timezone" id="timezone" class="drop-list">
+								<?php foreach ($this->timeZones as $timeZone => $name) : ?>
+                                    <option value="<?php echo $timeZone; ?>"<?php if ($timeZone == $this->currentTimeZone): ?> selected="selected"<?php endif; ?>><?php echo $name; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_date_format'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <select name="dateFormat" id="dateFormat" class="drop-list">
+								<?php foreach ($this->availableDateFormats as $format) : ?>
+                                <option value="<?php echo $format; ?>"<?php if ($format == $this->dateFormat) : ?> selected="selected"<?php endif; ?>><?php echo date($format); ?></option>
+                            	<?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->translator->translator('install_step5_date_time_format'); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <select name="datetimeFormat" id="datetimeFormat" class="drop-list">
+							<?php foreach ($this->availableDateTimeFormats as $format) : ?>
+                                <option value="<?php echo $format; ?>"<?php if ($format == $this->dateTimeFormat) : ?> selected="selected"<?php endif; ?>><?php echo date($format); ?></option>
+                            <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+          	</fieldset>
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" /></div>
+                
+                <div class="icon">
+                    <input type="hidden" name="mode" value="<?php echo $this->mode; ?>" />											
+					<input type="button" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-next" />
+                </div>
+                
+                <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+            </div>
+       	</fieldset>	
+  	</form>
+	<div id="dialog-confirm" title="Install Confirmation"></div>
+    <div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+        <div id="progressbar" ></div>	
+    </div>

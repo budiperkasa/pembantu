@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<install version="1.0" type="template">
+	<theme_name>CMS Default</theme_name>
+	<theme_folder>default</theme_folder>
+	<creation_date>2013-01-08</creation_date>
+	<theme_author>Md Nazrul Islam</theme_author>
+	<theme_developer>Joel Norman Penheiro and Mahamud Hussain Noman</theme_developer>
+	<theme_image>screenshot.png</theme_image>
+	<theme_image_folder>images</theme_image_folder>
+</install>

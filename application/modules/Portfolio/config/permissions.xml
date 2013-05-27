@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>	
+	
+	<resource name="frontend" for="frontend" description="Frontend Portfolio" langKey="permisson_frontend_portfolio">
+		<privilege name="manager" description="View File Manager" langKey="permisson_frontend_portfolio_manager_view" img="permisson_frontend_portfolio_manager_view.jpg" />
+	</resource>
+	
+</permissions>

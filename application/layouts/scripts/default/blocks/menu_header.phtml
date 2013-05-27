@@ -1,0 +1,121 @@
+<?php 
+class menu_box
+{
+	protected	$_group = 1;
+	protected	$_limit = 1;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected	$translator;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator = 	Zend_Registry::get('translator');	
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function subMenu($menu_class, $parent)
+	{
+		$menu_data = $menu_class->getMenuData($parent,$this->_view);
+		if($menu_data)
+		{
+			foreach($menu_data as $menus)
+			{
+				$has_child = $menu_class->checkChild($menus['menu_id']);
+				$a_class = ($has_child) ? 'parent' : '';
+			?>
+				<li><a href="<?php echo $this->_view->escape($menus['link']); ?>" class="<?php echo $a_class; ?>" title="<?php echo $this->_view->escape($menus['menu_name']); ?>" target="<?php echo $this->_view->escape($menus['target']); ?>"><?php echo $this->_view->escape($menus['menu_name']); ?></a>
+					<?php
+					if($has_child)
+					{
+					?>
+					<ul>
+						<?php $this->subMenu($menu_class, $menus['menu_id']); ?>
+					</ul>
+					<?php
+					}
+					?>
+				</li>
+			<?php
+			}
+		}
+	}
+	
+	public function class_body()
+	{	
+		echo $this->_view->headLink()->setStylesheet('application/layouts/scripts/'.$this->_front_template['theme_folder'].'/css/megamenu.css');	
+	?>
+		<!--[if lt IE 9]>	
+		<?php echo $this->_view->headLink()->setStylesheet('application/layouts/scripts/'.$this->_front_template['theme_folder'].'/css/ie/ie.css'); ?>
+		<![endif]-->
+	<?php
+		$menu_class = new Eicra_View_Helper_Menu($this->_group);	
+		$menu_data = $menu_class->getMenuData('0',$this->_view);
+	?>
+
+<div class="wrapper_menu menu_light_theme"><!-- BEGIN MENU WRAPPER -->
+
+
+    <ul class="menu menu_blue"><!-- BEGIN MENU -->
+	
+	<?php	
+		foreach($menu_data as $menus)
+		{
+			$has_child = $menu_class->checkChild($menus['menu_id']);
+			$a_class = ($has_child) ? 'drop' : '';
+			$li_class = ($has_child) ? '' : 'nodrop';
+	?> 
+		<li class="<?php echo $li_class; ?>"><a href="<?php echo $this->_view->escape($menus['link']); ?>" class="<?php echo $a_class; ?>"  title="<?php echo $this->_view->escape($menus['menu_name']); ?>" target="<?php echo $this->_view->escape($menus['target']); ?>"><?php echo $this->_view->escape($menus['menu_name']); ?></a>
+			<?php
+			if($has_child)
+			{
+			?>
+				<div class="dropdown_1column"><!-- Begin 1 column container -->          
+            
+                	<div class="col_1 firstcolumn">
+                
+                    	<ul class="levels">
+							<?php $this->subMenu($menu_class, $menus['menu_id']); ?>
+						</ul>
+					</div>
+				</div>
+			<?php
+			}
+			?>
+		</li>
+	<?php
+		}
+	?>          
+    
+    </ul><!-- END MENU -->
+
+
+</div><!-- END MENU WRAPPER -->		
+		<?php
+	}		
+	
+}
+
+$menu_box_class = new menu_box($this);
+try
+{
+	$menu_box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

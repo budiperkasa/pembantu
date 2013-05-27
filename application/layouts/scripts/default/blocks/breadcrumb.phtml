@@ -1,0 +1,107 @@
+<?php 
+class pathway_box
+{	
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template');		 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function recursiveParentMenu($menu_id,$menu_db)
+	{
+		$menu_info = $menu_db->getMenuInfo($menu_id);
+		if($menu_info['parent'] == '0')
+		{
+			return '<a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a>';
+		}
+		else
+		{
+			return $this->recursiveParentMenu($menu_info['parent'],$menu_db).' <span class="arrow">&raquo;</span> <a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a>';
+		}
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+		// Get resources
+		$selectDefault = $this->_DBconn->select()
+					->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('*'))
+					->where('m.menu_default = ?', '1')
+					->limit(1);
+		$rs = $selectDefault->query()->fetchAll();
+		if($rs)
+		{
+			foreach($rs as $row)
+			{
+				 $default_menu_name = $row['menu_name'];
+				 $default_menu_title = $row['menu_title'];
+			}			
+		}
+			
+		$controller = Zend_Controller_Front::getInstance();
+		$menu_title = $controller->getRequest()->getParam('menu_id');
+		if($menu_title)
+		{
+			$view_helper = new Eicra_VHelper_ViewHelper($controller->getRequest());
+			$menu_id = $view_helper->_getMenu_Id();
+			$menu_db = new Menu_Model_DbTable_Menu();		
+			$menu_info = $menu_db->getMenuInfo($menu_id);			
+			
+			echo '<div class="block-breadcrumb"><p>'.$translator->translator('block_breadcrumbs_title', '', '', $this->_front_template['theme_folder']) .'</p>&nbsp;';
+			if($menu_info['parent'] == '0')
+			{
+				if($this->_view->escape($default_menu_title) == $this->_view->escape($menu_info['menu_name']))
+				{
+					echo '<a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a>';
+				}
+				else
+				{
+					echo '<a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($default_menu_title).'">'.$this->_view->escape($default_menu_name).'</a> <span class="arrow">&raquo;</span> <a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a>';
+				}
+			}
+			else
+			{
+				if($this->_view->escape($default_menu_title) == $this->_view->escape($menu_info['menu_name']))
+				{
+					echo $this->recursiveParentMenu($menu_info['parent'],$menu_db).' <span class="arrow">&raquo;</span> <a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a>';
+				}
+				else
+				{
+					echo '<span class="arrow"><a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($default_menu_title).'">'.$this->_view->escape($default_menu_name).'</a> <span class="arrow">&raquo;</span> '.$this->recursiveParentMenu($menu_info['parent'],$menu_db).' <span class="arrow">&raquo;</span> <a href="'.$this->_view->serverUrl().$this->_view->baseUrl().'/'.$this->_view->escape($menu_info['menu_title']).'">'.$this->_view->escape($menu_info['menu_name']).'</a></span>';
+				}
+			}
+			
+			echo '</div>';
+		}
+		else
+		{
+			 
+		}
+	}	
+}
+try
+{
+	$pathway_class = new pathway_box($this);
+	$pathway_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+
+?>

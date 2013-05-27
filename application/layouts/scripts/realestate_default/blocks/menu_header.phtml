@@ -1,0 +1,10 @@
+<?php
+$front_template = Zend_Registry::get('front_template');
+echo $this->headLink()->appendStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/menu.css');	
+?>
+<ul class="dm-menu">
+	<?php
+		$menu_class = new 	Eicra_View_Helper_Menu(1);		
+		$menu_class->getMenu('0',$this);						
+	?>	
+</ul>

@@ -1,0 +1,93 @@
+<?php
+$version = Zend_Registry::get('version');  
+
+if($this->groupInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->groupInfo['meta_keywords']); }	
+if($this->groupInfo['meta_desc']){ $this->headMeta()->setName('description',$this->groupInfo['meta_desc']); }
+if($this->groupInfo['news_name']){ $this->headTitle()->headTitle($this->groupInfo['news_name'].' Archive','SET')->setSeparator(' - ')->headTitle($this->groupInfo['meta_title'].' Archive'); }
+?>
+<script type="text/javascript">
+$(document).ready(function()
+{
+  //hide the all of the element with class month_list
+  $(".month_list").hide();
+  $(".cat_list").hide();
+  
+  //toggle the componenet with class year_name
+  $(".year_name").click(function()
+  {
+    $(this).parents('div:first').next(".month_list").slideToggle(600);
+	var plus = ($(this).html() == '+')? '-' : '+';
+	$(this).html(plus);
+  });
+  
+  //toggle the componenet with class msg_body
+  $(".month_name").click(function()
+  {
+    $(this).parents('div:first').next(".cat_list").slideToggle(600);
+	var plus = ($(this).html() == '+')? '-' : '+';
+	$(this).html(plus);
+  });
+});
+</script>
+
+<div class="mod mod-news">
+	<div class="news-icon">
+        <h1><?php echo $this->translator->translator('news_frontend_archive_page_name'); ?></h1>
+    </div>   
+	<div class="clear">&nbsp;</div>
+
+    <div class="archive">
+    	<div class="row">
+            <div class="col">
+                <p class="border"><?php echo $this->translator->translator('common_years'); ?></p>
+            </div>
+            <div class="col">
+                <p><?php echo $this->translator->translator('common_years'); ?></p>
+            </div>
+     	</div>
+
+        <div class="row">
+            <?php
+                $i = 1;
+                foreach($this->view_datas as $years)
+                {
+            ?>        
+                <?php		
+                        echo '<div class="list">';
+                            echo '<div><span class="year_name">+</span>'.'<span class="month">'.$this->escape($years['page_year']).'</span>'."</div>";
+                            echo '<div class="month_list">';
+                            $month_data = News_View_Helper_Archive::getMonth($this->escape($years['page_year']),$this->groupInfo);		
+                            foreach($month_data as $months)
+                            {
+                                $news_num = News_View_Helper_Archive::getNumNewsMonth($this->escape($months['page_month']),$this->groupInfo,$this->escape($years['page_year']));							
+                                echo '<div><span class="month_name">+</span>'.'<span class="month">'.$this->escape($months['page_month']).'</span>'." (".$this->escape($news_num['news_num']).")</div>";
+                                echo '<div class="cat_list">';
+                                $category_data = News_View_Helper_Archive::getCategory($this->escape($months['page_month']),$this->groupInfo,$this->escape($years['page_year']));
+                                foreach($category_data as $categories)
+                                {
+                                    $news_num = News_View_Helper_Archive::getNumNewsCategory($this->escape($months['page_month']),$this->groupInfo,$this->escape($years['page_year']),$this->escape($categories['category_id'])) 
+                    ?>				
+                                    <a href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'categories','menu_id' =>$this->escape($this->menu_id),'category_id' => $this->escape($categories['category_title']), 'year' => $this->escape($years['page_year']),'month' => $this->escape($months['page_month'])),'News-Section/:menu_id/:category_id/:year/:month',false); ?>">
+                                        <?php echo '&bull; '.$this->escape($categories['category_name'])." (".$this->escape($news_num['news_num']).")"; ?>
+                                    </a><br />			   
+                   <?php
+                                }
+                                echo '</div>';
+                            }
+                            echo '</div>';
+                        echo '</div>';
+                        if($i % 2 == 0)
+                        {
+                            if(count($this->view_datas) != $i)
+                            {
+                                echo '</div><div class="archive">';
+                            }
+                        }		
+                        $i++;
+                ?>     
+			<?php
+                }
+            ?>
+     	</div>
+    </div>
+</div>

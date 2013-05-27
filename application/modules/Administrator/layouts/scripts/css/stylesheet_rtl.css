@@ -1,0 +1,944 @@
+/* ________________________________________________________________________________________________________
+   
+   CSS Framework for Eicra Product Script [Backend Administrator] 
+   ________________________________________________________________________________________________________ */
+   
+
+/*	RESET ********************************************************************** */
+
+@charset "utf-8";
+
+html{
+	direction:rtl; 
+}
+
+input[type="text"],
+input[type="password"], select, textarea,
+select.ui-widget-content, textarea.ui-widget-content{
+	margin:0 0 0 10px;
+}
+
+input[type="radio"], .radio,
+input[type="checkbox"]{
+	margin: -3px 0 0 8px;
+}
+
+th{ 
+	text-align:right; 
+}
+
+/* Global Styles --------------------------------------------------------------------- */
+
+.left-float{
+	float: right;
+	margin: 0 0 5px 10px;
+}
+
+.right-float{
+	float: left;
+	margin: 0 10px 5px 0;
+}
+
+.errors, .seccMess, .warning, .infoMess{
+	padding:3px 30px 3px 3px;
+}
+
+.input-errors{
+	clear:right;
+}
+
+.infoMess{
+	background-position: 99% center;
+}
+
+.warning{
+	background-position: 99% center;
+}
+
+.info{
+	padding:0 5px 0 10px;
+}
+
+.button span.icon,
+.select-btn span.icon,
+.paid-btn span.icon,
+.unpaid-btn span.icon,
+.cancel-btn span.icon,
+.add-btn span.icon,
+.remove-btn span.icon,
+.other-btn span.icon{
+	padding-right:15px;
+	background-position:right center;
+}
+
+.button span.icon.back{
+	background-image: url("../images/back-rtl.png");
+}
+
+.form-info p{
+	padding:5px 9px 5px 0;
+}
+
+.form .upload,
+.form .upload-img,
+.form .editor{
+	float:right;
+}
+
+.form .upload-img{
+	margin:5px 0 0 5px;
+}
+
+.form .upload-img input[type="radio"]{
+	margin:5px 5px 0 0;
+}
+
+.form .upload-img span a.delete_image_lnk,
+.form .upload-img span.main,
+.form .upload-img span.related{
+	padding-right:5px;
+}
+
+.form .editor img.spacer{
+	margin-left:10px;
+}
+
+.form .editor span img.bdr,
+.form span img.bdr,
+.data-table table tr td img.bdr{
+	margin:2px 0 0 2px;
+}
+
+.form .email img{
+	float:right;
+}
+
+.form .email span{
+	padding:3px 5px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* JQuery Customized Design --------------------------------------------------------- */
+
+.ui-icon{
+	float:right;
+}
+
+.warning .ui-icon-alert{
+	background-position: 27px -143px !important;
+}
+
+.ui-state-success, .ui-widget-content .ui-state-success, .ui-widget-header .ui-state-success{
+	background-position: 100% center !important;
+}
+
+.ui-autocomplete-loading{ 
+	background-position:left center;
+}
+
+.ui-widget .ui-button{ 
+	margin-right: -1px;
+}
+
+.hasDatepicker{	
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Title ---------------------------------------------------------------------------- */
+
+.password-icon, .role-icon, .role-add, .role-edit, .role-setup, .role-option, .user-all, .add-user, .edit-user, .user-profile, .user-privilege-set, .privilege-setting, .change-pass, .forms, .forms-edit, .forms-add, .membership-pkg, .pkg-up-down, .gallery-group, .gallery-add-group, .gallery-edit-group, .gallery-category, .gallery-category-edit,
+.gallery-category-add, .products, .products-add, .products-edit, .menu, .menu-add, .menu-edit, .menu-group, .menu-group-add, .article, .article-new, .article-edit, .settings, .pending, .news-group-list, .news-category, .news-cat-add, .news-cat-edit, .news-page, .news-add, .news-edit, .group-add, .group-edit, .file-upload, .newsletter-send, 
+.newsletter-edit, .newsletter-add, .newsletter-templates, .email-variables, .email-variable-add, .subscribers-list, .polls-group, .polls-list, .polls-list-add, .polls-list-edit, .polls-group-edit, .polls-group-add, .polls-cat, .polls-cat-add, .polls-cat-edit, .reviews, .reviews-add, .reviews-edit, .reviews-group, .reviews-group-add, .reviews-group-edit, 
+.comments, .comments-add, .comments-edit, .comments-setting, .template-list, .theme-list, .country-list, .country-list-add, .state-list, .state-list-add, .city-list, .city-list-add, .database-restore, .database-export-import, .language, .css-editor, .js-editor, .template-editor, .php-info, .cron-job, .cache-refresh, .log, .vote-list, .ip-banned, .search-setting, .project, .contact, .theme-editors,
+
+/* Settings Heading Start */
+.price-margin, .price-margin-add,
+/* Settings Heading End */
+
+/* $05-Start */ 
+/* Flight Heading Start */
+.api-settings, .airport-management, .airport-add, .airport-edit, .airlines, .airlines-add, .airlines-edit, .flight-management, .flight-add, .flight-edit, .price-plans, .price-add, .price-edit,
+/* Flight Heading End */ 
+/* $05-End */
+
+/* $04-Start */ 
+/* Autos Heading Start */
+.autos-group, .autos-group-add, .autos-group-edit, .autos-brand, .autos-brand-add, .autos-cat, .autos-cat-add, .autos-cat-edit, .autos-list, .autos-add, .autos-edit, .autos-save, .autos-business-type, .autos-business-type-add, .autos-state, .autos-state-add, .autos-area, .autos-area-add,
+/* Autos Heading End */ 
+/* $04-End */
+
+/* $02-Start */ 
+/* Property Heading Start */
+.property-group, .property-group-add, .property-group-edit, .property-cat, .property-cat-add, .property-cat-edit, .property-lists, .property-add, .property-edit, .property-saved, .property-type, .property-type-add, .property-states, .property-states-add, .property-areas, .property-areas-add,
+/* Property Heading End */ 
+/* $02-End */
+
+/* $05,$07-Start */ 
+/* Vacationrentals Heading Start */
+.vacationrentals-api-settings, .vacationrentals-group, .vacationrentals-group-add, .vacationrentals-group-edit, .vacationrentals-cat, .vacationrentals-cat-add, .vacationrentals-cat-edit, .vacationrentals, .vacationrentals-add, .vacationrentals-edit, .vacationrentals-save, .vacationrentals-type, .vacationrentals-type-add, .vacationrentals-state, .vacationrentals-state-add, .vacationrentals-area, .vacationrentals-area-add,
+/* Vacationrentals Heading End */ 
+/* $05,$07-End */
+
+/* $05,$09-Start */ 
+/* Tours Heading Start */
+.tours-api-settings, .tours-group, .tours-group-add, .tours-group-edit, .tours-cat, .tours-cat-add, .tours-cat-edit, .tours, .tours-add, .tours-edit, .tours-save, .tours-type, .tours-type-add, .tours-state, .tours-state-add, .tours-area, .tours-area-add,
+/* Tours Heading End */ 
+/* $05,$09-End */
+
+/* $05,$06-Start */ 
+/* Hotels Heading Start */
+.hotels-api-settings, .hotels-api-settings-edit, .hotels-group, .hotels-group-add, .hotels-group-edit, .hotels-room, .hotels-room-add, .hotels-room-edit, .hotels-room-type, .hotels-room-type-add, .hotels-room-type-edit, .hotels-room-type-link, .hotels-cat, .hotels-cat-add, .hotels-cat-edit, .hotels, .hotels-add, .hotels-edit, .hotels-save, .hotels-type, .hotels-type-add, .hotels-state, .hotels-state-add, .hotels-area, .hotels-area-add, .hotels-itinerary,
+/* Hotels Heading End */ 
+/* $05,$06-End */
+
+/* $08-Start */ 
+/* Tracker Heading Start */
+.airwaybill, .airwaybill-add, .airwaybill-edit, .status, .status-add, .status-edit, .network, .network-add, .network-edit,
+/* Tracker Heading End */ 
+/* $08-End */
+
+/* $04,$05,$09-Start */ 
+/* Cost Calculator Heading Start */
+.vehicle, .vehicle-add, .vehicle-edit, .calculator-settings, .vehicle-plan, .vehicle-plan-add, .vehicle-plan-edit,
+/* Cost Calculator Heading End */ 
+/* $04,$05,$09-End */
+
+/* $02,$04,$05,$06,$07,$09-Start */ 
+/* Payment Gateway Heading Start */
+.gateways, .gateways-edit,
+/* Payment Gateway Heading End */ 
+/* $02,$04,$05,$06,$07,$09-End */
+
+/* $02,$04,$05,$06,$07,$08,$09-Start */ 
+/* Invoice Heading Start */
+.invoice-list, .invoice-list-edit, .invoice-details, .invoice-template-setting, .invoice-template-add, .invoice-template-edit, .report, .quote-list, .quote-list-edit,
+/* Invoice Heading End */ 
+/* $02,$04,$05,$06,$07,$08,$09-End */
+
+h1{
+	float:right;
+	background-position:right center;
+}
+
+.password-icon{ padding:40px 90px 10px 0; }
+
+.no-icon h1{ padding-right: 0 !important; }
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Top Bar -------------------------------------------------------------------------- */
+
+#topbar .quick-link ul li{
+	float:right;
+	border-left:1px solid #3E4246;
+	border-right:1px solid #000;
+}
+
+#topbar .quick-link ul li.welcome,
+#topbar .quick-link ul li.user,
+#topbar .quick-link ul li.logout,
+#topbar .quick-link ul li.preview{
+	padding-right:25px;
+	background-position:97% center;
+}
+
+#topbar .quick-link ul li.first{
+	border-right:none;
+}
+
+#topbar .quick-link ul li.last{
+	border-left:none;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+#header .logo{
+	margin: 5px 10px 0 15px;
+	float:right;
+}
+
+#header h1{
+	float:right;
+}
+
+#header .quick{
+	margin: 5px 15px 0 10px;
+	float:left;
+}
+
+#footer .powered{
+	float:right;
+}
+
+#footer .version{
+	float:left;
+}
+
+.title-container h1{
+	padding:13px 60px 4px 0;
+}
+
+#container .button-container,
+.editor-button-container,
+.button-container{
+	float:left;
+	margin:8px 0 0 2px;
+}
+
+#sidebar{
+	float:right;
+	margin:0 0 0 10px;
+}
+
+#sidebar-inner{
+	float:right;
+}
+
+#sidebar-inner-right{
+	float:left;
+}
+
+#content-inner{
+	float:left;
+}
+
+#content-inner-middle{
+	float:right;
+	margin:0 13px 0 0;
+}
+
+/* Language Flag -------------------------------------------------------------------- */
+
+.flags{
+	float:left;
+}
+
+.flags .dropdown dl{ 
+	float:left;
+}
+
+.dropdown dd, .dropdown dt, .dropdown ul{
+	float:left;
+}
+
+.dropdown dt a{
+	background:url(../images/arrow.png) no-repeat scroll left center;
+	padding:0 2px 0 20px;
+}
+
+.dropdown dd ul{ 
+	right:1px; 
+}
+
+.dropdown span.flag{
+	margin:2px 10px 0 0;
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Dropdown List -------------------------------------------------------------------- */
+
+#dropdownBasico{
+	float:left;
+	margin: 23px 0 0 10px;
+}
+
+#dropdownBasico .dd-selected .option{
+	float:right;
+	padding:0 0 0 5px;
+}
+
+.dd-option-image, .dd-selected-image{ 
+	float:right !important; 
+	margin-left:5px !important;
+}
+
+.dd-pointer{
+	left:10px !important; 
+	right:inherit;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Sidebar Nav ---------------------------------------------------------------------- */
+
+#nav .nav-header .nav-title,
+#nav-tree .nav-header .nav-title,
+.nav-editor .nav-header .nav-title,
+.featured-block .block-header .block-title,
+.module-tree .tree-header .tree-title{
+	padding:2px 23px 0 0;
+	margin-right:5px;
+	background-image:url("../images/tools/round-arrow-rtl.png");
+	background-position:right center;
+}
+
+#nav ul li a{
+	padding:4px 30px 0 0;
+	background-position: 98% center;
+}
+
+#nav ul li.selected{
+	background:#FFF3CC url(../images/tools/left-arrow.png) 2px no-repeat;
+}
+
+#nav ul li.last{
+	border-bottom:none;
+	border-radius:0 5px 0 0;
+	-moz-border-radius:0 5px 0 0;
+	-webkit-border-radius:0 5px 0 0;
+}
+
+.pagination .page-no{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Admin Login ---------------------------------------------------------------------- */
+
+.login .login-img{
+	margin: 25px 0 10px 30px;
+	float:right;
+}
+
+.login .login-field{
+	margin:0 0 5px 10px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Forget Password ------------------------------------------------------------------ */
+
+.password a.icon{
+	padding:2px 15px 0 0;
+	background-position: right center
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Tools ---------------------------------------------------------------------------- */
+
+.tools-list ul{
+	margin-left:0;
+}
+
+.tools-list ul li a{
+	float:right;
+}
+
+span.spacer{
+	margin-left:20px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Data Table Global ---------------------------------------------------------------- */
+
+.data-table table tr td{
+	text-align:right;
+	padding:4px 4px 4px 0;
+}
+
+.data-table table tr td.checkbox{
+	padding-right:0;
+}
+
+.data-table table tr td.right{
+	text-align:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Data Table Configuration for other chart ----------------------------------------- */
+
+.chart .data-table table tr td{
+	padding:8px 4px 8px 0;
+}
+
+.chart .data-table table tr td.checkbox{
+	padding-right:0;
+}
+
+.chart .data-table table tr td .gallery-label{
+	float:right;
+}
+
+.chart .data-table table tr td .gallery-browse{
+	float:left;
+	padding:0 0 0 4px;
+}
+
+.file-management .data-table table tr th,
+.file-management .data-table table tr td{
+	text-align:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Table Sorter --------------------------------------------------------------------- */
+
+.dataTables_processing{
+	right: 50%;
+	margin-right: -125px;
+}
+
+.dataTables_length{
+	float:left;
+	text-align:left;
+}
+
+.dataTables_filter{
+	text-align: right;
+}
+
+.dataTables_info{
+	float:right;
+}
+
+.dataTables_paginate{
+	float:left;
+	text-align:left;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next{
+	margin-right: 3px;
+	float:right;
+}
+
+div.icon{
+	float:right;
+}
+
+div.icon.no-bdr{
+	border-left:0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Flie Uploader -------------------------------------------------------------------- */
+
+.uploadifyQueueItem .cancel {
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Role ----------------------------------------------------------------------------- */
+
+.form .label.add-role-label{
+	border-left:none;
+}
+
+.locked{
+	padding-right:10px;
+}
+
+.info.status-info{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Toggle Search Form --------------------------------------------------------------- */
+
+.toggle-link a{	
+	padding: 2px 30px 0 4px;
+}
+
+.toggle-link a.user-icon{
+	background-position: 98% center;
+}
+
+.toggle-link a.flight-icon,
+.toggle-link a.autos-icon,
+.toggle-link a.property-icon,
+.toggle-link a.vacation-icon,
+.toggle-link a.tour-icon,
+.toggle-link a.hotel-icon{
+	background-position: 98% center;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* User Permission Settings --------------------------------------------------------- */
+
+.permission-settings .userid{
+	margin:30px 15px 0 0;
+}
+
+.portlet{
+	margin: 0 1.5em 1em 1.5em; 
+	float:right;
+}
+
+.portlet-header{
+	padding-right: 0.2em; 
+}
+
+.portlet-header .ui-icon{ 
+	float:left; 
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Code Mirror Editor --------------------------------------------------------------- */
+
+.CodeMirror,
+.codemirror-ui-clearfix{
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Gallery Thumb -------------------------------------------------------------------- */
+
+span.thumb{
+	margin-right: 5px;
+	float:right;
+}
+
+span.thumb img{
+	right: 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Tree Table ----------------------------------------------------------------------- */
+
+.treeTable tr td .expander{
+  background-position: right center;
+}
+
+table.example span{
+  background-position: center right;
+  padding: .2em 1.5em .2em 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* File Upload ---------------------------------------------------------------------- */
+
+.uploadifyQueueItem .cancel {
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Layout List ---------------------------------------------------------------------- */
+
+.col-1,
+.col-2{
+	float:right;
+	clear:right;
+}
+
+.col-2{
+	float:left;
+	clear:left;
+}
+
+.layout-option{
+	float:right;
+	clear:right;
+}
+
+.layout-info{
+	float:left;
+	clear:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Table Chart ---------------------------------------------------------------------- */
+
+.tabular .tabular-row .tabular-col-2{
+	border-right:1px solid #A5D3FA;
+}
+
+.tabular .tabular-row .tabular-col-1 p{
+	padding:5px 45px 0 0;
+	background-position:right center;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* $05-Start */ 
+/* FLIGHTS START ******************************************************************** */
+
+/* Flight Route --------------------------------------------------------------------- */
+	
+div.route_fields_out{
+	padding:0 15px 0 0;
+}
+	
+div.route_fields{
+	float:right;
+}
+
+div.route_box_first_row{
+	float:right;
+	padding: 5px 5px 0 0;
+}
+			
+div.route_box_second_row{
+	float:right;
+	padding:8px 5px 5px 0;
+}
+			
+div.route_box_delete_row{
+	float:right;
+	padding:70px 7px 0 0;
+}
+
+/* FLIGHT END *********************************************************************** */ 
+/* $05-End */
+
+/* $05,$06-Start */ 
+/* HOTELS START ********************************************************************* */
+
+/* Link Hotels  --------------------------------------------------------------------- */
+
+.hotel-link .link-row .link-col .link-hotel{
+	background-image:url("../images/title/hotels/link-rtl.png");
+}
+
+/* HOTELS END *********************************************************************** */ 
+/* $05,$06-End */
+
+/* $02,$04,$05,$06,$07,$09-Start */ 
+/* PAYMENT GATEWAY START ************************************************************ */
+
+span.thumb img.payment-gateway {
+	right: 8px; 
+}
+
+/* PAYMENT GATEWAY END ************************************************************** */ 
+/* $02,$04,$05,$06,$07,$09-End */
+
+/* $02,$04,$05,$06,$07,$08,$09-Start */ 
+/* INVOICE START ******************************************************************** */
+
+.client-info{
+	float:right;	
+}
+
+.invoice-info{
+	float:left;
+}
+
+.payment-info{
+	float:left;
+}
+
+.invoice .invoice-chart .div-hr .div-vr-2{
+	text-align:left;
+}
+
+.invoice .invoice-chart .div-hr.amount-hr{
+	text-align:left;
+}
+
+.invoice .item-title{
+	padding:10px 0px 10px 0;
+}
+
+h1.status-paid,
+h1.status-unpaid,
+h1.status-cancelled{
+	text-align:right;
+	float:right;
+}
+
+/* Invoice Preview Box -------------------------------------------------------------- */
+
+.ui-tooltip-wiki img{ 
+	padding: 0 0 0 10px; 
+}
+
+.itinerary-price{
+	left:20px;
+}
+
+.itinerary-status-cont{
+	left:45%;	
+}
+
+/* INVOICE END ********************************************************************** */ 
+/* $02,$04,$05,$06,$07,$08,$09-End */
+
+/* DYNAMICE SEARCH SETTINGS START *************************************************** */
+
+.search_col_1{
+	padding: 4px 8px 4px 0;
+	float:right;
+	clear:right;
+}
+
+.search_col_2{
+	padding: 4px 8px 4px 0;
+	float:right;
+}
+
+.search_col_3{
+	padding: 4px 8px 4px 0;
+	float:right;
+}
+
+.search_col_4{
+	padding: 5px 12px 5px 0;
+	float:left;
+}
+
+/* DYNAMICE SEARCH SETTINGS END ***************************************************** */
+
+/* Features  ------------------------------------------------------------------------ */
+
+.autos-features,
+.property-features,
+.vacationrental-features,
+.tours-features,
+.hotels-features{
+	float:right;
+	margin: 0 5px 2px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* DASHBOARD ************************************************************************ */
+
+#dashboard-col-left{
+	float:right;
+}
+
+#dashboard-col-right{
+	float:left;
+}
+
+.user-info img{
+	float:right;
+	margin-left:15px;
+}
+
+.user-info .data{
+	float:right;
+}
+
+.user-info .stat{
+	float:left;
+}
+
+.tools-nav{
+	float:right;
+	margin:0 8px 15px 0;
+}
+
+.user-info .stat-box a,
+.tools-nav a{
+	float:right;
+}
+
+.tools-nav div.icon{
+	padding-right:1px;
+}
+
+.user-info .stat-box a{ margin: 0 0 0 20px; }
+
+.user-info .stat-box.last a{ margin-left:0px; }
+
+.user-info .calendar{
+	margin: 0 15px 0 0;
+	float:left;
+}
+
+.user-info .calendar .year{
+	right:26px;
+}
+
+/* Template Editors ----------------------------------------------------------------- */
+
+.sidebar-editor{
+	float:right;
+}
+
+.content-editor{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+
+/* OTHERS *************************************************************************** */
+
+.ssl-info{
+	padding:5px 30px 5px 5px;
+}
+
+.ssl-info ul{
+	margin:10px 20px 10px 0;
+	padding:10px 20px 10px 0;
+}
+
+select.db-export{
+	float:right;
+}
+
+.banned-ip-container h4{
+	margin-left:20px;
+}
+
+.tools-list ul.ip-list{
+	margin-left:0;
+	padding-left:0;
+}
+
+.action_button{
+	margin: 0 0 0 20px;
+}
+
+table.highlighter tr td{
+	padding:0 2px 0 0;
+}
+
+.jqueryFileTree LI.ext_phtml,
+.jqueryFileTree LI.ext_js,
+.jqueryFileTree LI.ext_css,
+.jqueryFileTree LI.file,
+.jqueryFileTree LI.directory {
+	background-position: right top !important;
+}
+
+.jqueryFileTree LI.ext_css{
+	background-position: right top !important;
+}
+
+UL.jqueryFileTree LI {
+    padding: 0 20px 0 0 !important;
+}
+
+.ui-tabs .ui-tabs-nav li{
+	float:right !important;
+}
+
+div#floatingbar .button-container{
+	padding-left:10px !important;
+}
+
+div#floatingbar h1{
+	 padding: 10px 15px 0 0 !important;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+
+/* ___________________________________________________________________________________
+   
+   Developer's New and customized CSS
+   ___________________________________________________________________________________ */
+
+

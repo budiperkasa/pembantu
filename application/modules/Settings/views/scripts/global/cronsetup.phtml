@@ -1,0 +1,44 @@
+<?php
+$version = Zend_Registry::get('version'); 
+$license = new Zend_Session_Namespace('License'); 
+$modules_license = new Administrator_Controller_Helper_ModuleLoader();
+?>
+<div id="container">
+    <div class="title-container">
+        <div class="cron-job"><h1><?php echo $this->translator->translator('settings_cron_setup_title'); ?></h1></div>
+    </div>
+
+    <div class="content-container">
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_member'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Members/cron/account" type="text">
+        </div>
+        
+        <?php if ($modules_license->checkModulesLicense('Property') && class_exists('Property_Model_DbTable_Properties')) : ?>
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_property'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Property/cron/run" type="text">
+        </div>	
+        
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_expired_member_property'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Property/cron/expire" type="text">
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($modules_license->checkModulesLicense('Hotels') && class_exists('Hotels_Model_DbTable_Hotels')) : ?>
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_expired_member_hotel'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Hotels/cron/expire" type="text">
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($modules_license->checkModulesLicense('Vacationrentals') && class_exists('Vacationrentals_Model_DbTable_Vacationrentals')) : ?>
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_expired_member_vacation'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Vacationrentals/cron/expire" type="text">
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($modules_license->checkModulesLicense('Tours') && class_exists('Tours_Model_DbTable_Tours')) : ?>
+        <div class="cron-container">
+            <?php echo $this->translator->translator('settings_cron_setup_title_expired_member_tour'); ?><br /><input size="100" value="wget -O - -q -t 1 <?php echo $this->serverUrl().$this->baseUrl(); ?>/Tours/cron/expire" type="text">
+        </div>
+        <?php endif; ?>
+    </div>
+</div>

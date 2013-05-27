@@ -1,0 +1,72 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step1_page_title'));
+$locale = Eicra_Global_Variable::getSession()->sess_lang;
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){
+		init();
+	});
+	<!--
+	function setButtonState(button, state) 
+	{		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}
+	
+	function init() 
+	{
+		setFocus('next')
+		setButtonState('next', false);
+	}
+	//-->
+	</script>
+    
+    <form method="post" action="<?php echo $this->baseUrl().'/upgrade.php'; ?>">
+        <fieldset>
+        <legend><?php echo $this->translator->translator('install_step_1_of_6'); ?></legend>
+            <p>
+                <?php echo $this->translator->translator('install_wizard_info'); ?>
+            </p>
+            
+            <div class="chart">
+                <div class="row">
+                    <div class="label">
+                        <?php echo $this->translator->translator('install_step1_select_language'); ?>
+                    </div>
+                    <div class="field">
+                        <?php
+						if(!empty($locale))
+						{
+							$this->setting_form->default_language->setValue($locale);
+						}
+						
+						 echo $this->setting_form->default_language; ?>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <div class="icon"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-next" /></div>
+            </div>
+        </fieldset>
+        
+    </form>

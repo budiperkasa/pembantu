@@ -1,0 +1,55 @@
+<?php
+if($this->last > 1)
+{
+
+$frontController = Zend_Controller_Front::getInstance();
+$module = $frontController->getRequest()->getModuleName();
+$controller = $frontController->getRequest()->getControllerName();
+$action = $frontController->getRequest()->getActionName();
+$menu_id = $frontController->getRequest()->getParam('menu_id');
+$category_id = $frontController->getRequest()->getParam('category_id');
+$translator = Zend_Registry::get('translator');
+?>
+
+<div class="flickr-pagination-container">
+		<ul id="pagination-flickr">
+			<!-- First page link -->
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'category_id' => $category_id,'page' => $this->first),'News-Section/:menu_id/:category_id/:page',true); ?>"><?php echo $translator->translator('pagination_start'); ?></a></li>
+			<?php else: ?>
+					<li class="previous-off"><?php echo $translator->translator('pagination_start'); ?></li> 
+			<?php endif; ?>
+		
+			<!-- Previous page link -->
+		
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'category_id' => $category_id,'page' => $this->previous),'News-Section/:menu_id/:category_id/:page',true); ?>">&lt; <?php echo $translator->translator('pagination_previous'); ?></a></li>
+			<?php else: ?>
+				<li class="previous-off">&lt; <?php echo $translator->translator('pagination_previous'); ?></li>
+			<?php endif; ?>
+			<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<li><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'category_id' => $category_id,'page' => $page),'News-Section/:menu_id/:category_id/:page',true); ?>"><?php echo $this->numbers($page); ?></a></li>
+				<?php else: ?>
+					<li class="active"><?php echo $this->numbers($page); ?></li>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'category_id' => $category_id,'page' => $this->next),'News-Section/:menu_id/:category_id/:page',true); ?>"><?php echo $translator->translator('pagination_next'); ?> &gt;</a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_next'); ?> &gt;</li>
+			<?php endif; ?>
+			<!-- Last page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'category_id' => $category_id,'page' => $this->last),'News-Section/:menu_id/:category_id/:page',true); ?>"><?php echo $translator->translator('pagination_end'); ?></a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_end'); ?></li>
+			<?php endif; ?>
+            	<li>&nbsp; <span class="current_page"><?php echo $translator->translator('pagination_Page'); ?> <?php echo $this->numbers($this->current); ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->numbers($this->last); ?></span></li>
+		</ul>
+</div>
+<?php
+}
+?>

@@ -1,0 +1,780 @@
+<?php
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+$group_helper = new Menu_View_Helper_MenuGroup();
+$frontController = Zend_Controller_Front::getInstance();
+$create = $frontController->getRequest()->getParam('create');
+?>
+
+<script type="text/javascript">
+var globalThis = '';
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+		/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	lastClassAdd(oTable);	
+	
+	/****************************Sorting Table End*********************/
+	
+	
+		$('a.reset_btn').click(function() {			
+		 resetFields();
+		 removeError();		
+		});
+			
+		allFunctions();
+	
+		$("#add-group-form").dialog({
+			autoOpen: false,
+			width: 800,
+			//height: 410,
+			show: 'fade',			
+			modal: true
+		});
+	
+		$('a.add_new_group_btn').click(function() {				
+				$('#add-group-form').dialog('open');
+				$('#add_btn').css('display','inline');
+				$('#edit_btn').css('display','none');
+				resetFields();
+				$('#group_name').val('');
+		});	
+		
+		<?php 
+			if($create == 'new')
+			{
+		?>
+				$('#add-group-form').dialog('open');
+				$('#add_btn').css('display','inline');
+				$('#edit_btn').css('display','none');
+				resetFields();
+				$('#group_name').val('');
+		<?php
+			}
+		?>
+		
+		$('a.close_dialog_btn').click(function() {			
+		 resetFields();
+		 removeError();		 
+			$('#add_btn').css('display','inline');
+			$('#edit_btn').css('display','none');
+		 $("#add-group-form").dialog('option','hide','explode').dialog('close');		
+		});
+		
+		$('a.add_menu_group_btn').click(function() {			
+						
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'addgrp' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: { group_name: $('#group_name').val() },
+					beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+					success: function(response){
+						//alert(response);					
+						var json_arr = eval("("+response+")");				
+						if(json_arr.status == 'ok')
+						{							
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+							resetFields();
+							generateNewRow(json_arr.datas,oTable);							
+						}
+						else if(json_arr.status == 'errV')
+						{
+							$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+													
+							for(var i= 0; i < json_arr.msg.length; i++)
+							{
+								addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+							}
+						}
+						else
+						{
+							$('#actionMessage').html(errMsgDesign(json_arr.msg));
+						}					
+						closeLoaderDialog();	
+					},
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;				
+						$('#actionMessage').html(errMsgDesign(msg));
+					}
+			});
+		});
+		
+		$('a.edit_menu_group_btn').click(function() {			
+			var self = this;
+			var self_id = $(self).attr('rel');			
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'editgrp' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { group_name: $('#group_name').val() ,id:self_id },
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");									
+					if(json_arr.status == 'ok')
+					{
+						$(globalThis).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").html($('#group_name').val());
+						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));														
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+					closeLoaderDialog();
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;				
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});	
+		
+});
+
+function openMsgDialog(msg)
+{
+	$('#dialog_message').html(msg).dialog({
+				autoOpen: true,
+				modal: false,
+				show: 'fade',
+				resizable: 'false',				
+				buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+				open: function(event, ui)
+					 {
+						setTimeout(function() 
+						{									
+							if($('#' + event.target.id).dialog('isOpen'))
+							{
+								$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+							}
+						}, 10000);
+					  }
+			});
+}
+
+/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+	
+		
+function deleteThis(self)
+{	
+	var arr = $(self).attr('rel').split('_');
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Menu', 'controller' => 'backend', 'action'     => 'deletegrp' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: { id: arr[0], group_name: arr[1] },
+		 beforeSend: function(){
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+				var oTables = $('#sortTable').dataTable();
+				var anSelected = fnGetSelected( oTables );
+				oTables.fnDeleteRow(anSelected[0]);
+				lastClassAdd(oTables);
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="Delete" border="0" />');
+			}
+		 }
+	});
+}
+
+function deleteAll(self)
+{
+	var id_str = '';
+	for(var i=0;i < $('input.check_btn:checked').length;i++)
+	{
+		if(i == 0)
+		{
+			 id_str += $('input.check_btn:checked:eq('+i+')').val();
+		}
+		else
+		{
+			id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+		}
+	}
+	
+	$.ajax({
+			url: "<?php echo $this->url( array('module'=> 'Menu', 'controller' => 'backend', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: { id_st: id_str},
+			beforeSend: function(){
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+			 },
+			success: function(response) 
+			{
+				//alert(response);
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+					{								
+						$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');							
+					}
+					var oTabled = $('#sortTable').dataTable();
+					var anSelected = fnGetSelected( oTabled );
+					for(var k = 0; k < anSelected.length; k++)
+					{
+						oTabled.fnDeleteRow( anSelected[k] );
+					}
+					lastClassAdd(oTabled);
+				}
+				else
+				{							
+					openMsgDialog(json_arr.msg);
+				}	
+				$(self).html('<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>');
+			}
+	});	
+}
+
+function resetFields()
+{		
+	$( "#formMenuGroup" )[ 0 ].reset();
+}
+
+function removeError()
+{
+	$('#group_name_err').html('');
+	$('#group_name').removeClass('ui-state-error');
+		
+	$('#actionMessage').html('');
+}
+
+function addError(key,errMsg)
+{
+	var err_id = key+'_err';
+	var field_name = key;
+	$('#'+field_name).addClass('ui-state-error');
+	$('#'+err_id).append(errMsg);
+}
+
+function openLoaderDialog()
+{
+	$('#dialog_container').dialog({
+				autoOpen: true,
+				modal: true,
+				show: 'fade',
+				resizable: 'false',				
+				open: function(event, ui)
+					 {
+						$("#progressbar").progressbar({
+							value:100
+			
+						});							
+					  }
+			});
+}
+
+function closeLoaderDialog()
+{
+	$('#dialog_container').dialog('option','hide','explode').dialog('close');
+}
+
+function generateNewRow(datas,oTable)
+{	
+	if(datas.num_menu == "" || datas.num_menu == null)
+	{
+		var num_menu = '0';
+	}
+	else
+	{
+		var num_menu = datas.num_menu;
+	}
+		
+		if(datas.active == '1'){  var activated = "Published";var active = "unpublish"; var pimg = '<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator('common_unpublish_title'); ?>" />'; }else{  var activated = "Unpublished";var active = "publish"; var pimg = '<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator('common_publish_title'); ?>" />'; }
+		var status_row = '<a href="javascript:void(0);" class="publish_btn" rel="'+datas.id+'_'+datas.group_name+'_'+active+'">'+pimg+'</a>'; 
+		var row  ='<ul>'+
+			'<li>';
+				<?php if ($this->allow('editgrp','backend','Menu')) : ?>
+			  row +='<a href="javascript: void(0);" class="edit_new_group_btn" rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>"  border="0" /></a>';
+				<?php endif; ?>
+			 row +='</li><li>';
+				<?php if ($this->allow('deletegrp','backend','Menu')) : ?>
+			 row +='<a href="javascript:void(0);" class="delete_btn"  rel="'+datas.id+'_'+datas.group_name+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>"  border="0" /></a>';
+				<?php endif; ?>																
+			row +='</li>'+
+		  '</ul>';
+		oTable.fnAddData([
+			'<input type="checkbox" name="checkbtn" id="checkbtn" value="'+datas.id+'" class="check_btn" />',
+			datas.id,
+			datas.group_name,
+			num_menu,
+			status_row,
+			row
+			 ]);
+		$('td', oTable.fnGetNodes()).hover( function() {		
+			$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+		}, function() {
+			$('td.highlighted').removeClass('highlighted');
+		} );
+		lastClassAdd(oTable);	
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('checkbox');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(2)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(4)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(5)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(6)').addClass('tools-list');		
+		allFunctions();
+}
+
+function allFunctions()
+{	
+	
+	$('a.edit_new_group_btn').click(function() {
+			var self = this;
+			globalThis = this;
+			var self_id = $(self).attr('rel');
+			openLoaderDialog();
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'editgrp' ), 'adminrout',    true) ?>",
+					type: 'GET',
+					data: { id: self_id },
+					success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+						if(json_arr.status=='ok')
+						{
+							closeLoaderDialog();
+							$('#group_name').val(json_arr.datas.group_name);
+							$('#add_btn').css('display','none');
+							$('#edit_btn').css('display','inline');
+							$('a.edit_menu_group_btn').attr('rel',self_id);
+							$('#add-group-form').dialog('open');
+						}						
+					}
+			});
+				
+		});	
+		
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('menu_list_delete_confirm')); ?>").dialog({
+			resizable: false,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteThis(self);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});		
+	});
+	
+	$('a.publish_btn').click(function() {
+		<?php if ($this->allow('publishgrp','backend','Menu')){ ?>
+		var self = this;
+		$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+		var arr = $(self).attr('rel').split('_');		
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Menu', 'controller' => 'backend', 'action'     => 'publishgrp' ), 'adminrout',    true) ?>",
+			 type: 'POST',
+			 data: { id: arr[0], group_name: arr[1], paction: arr[2]},
+			 success: function(response) 
+			 {
+			 	//alert(response);
+			 	var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					if(json_arr.active == '1')
+					{						
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("common_unpublish_title"); ?>" />').attr('rel',arr[0]+"_"+arr[1]+"_unpublish");
+					}
+					else
+					{						
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("common_publish_title"); ?>" />').attr('rel',arr[0]+"_"+arr[1]+"_publish");
+					}
+			 	}
+				else
+				{
+					openMsgDialog(json_arr.msg);
+				}
+			 }
+		});
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+	
+		
+	$('a.publish_all').click(function() {
+		<?php if ($this->allow('publishgrp','backend','Menu')){ ?>
+		var self = this;
+		var bigrel = $(self).attr('rel');
+		if($('input.check_btn:checked').length > 0)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Menu', 'controller' => 'backend', 'action'     => 'publishallgrp' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str, paction: bigrel},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							if(bigrel=='publish')
+							{	
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{								
+									
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_unpublish';
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("common_unpublish_title"); ?>" />');								
+								}
+							}
+							else
+							{
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{	
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_publish';
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(5)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("common_publish_title"); ?>" />');								
+								}
+							}
+
+						}
+						else
+						{
+							openMsgDialog(json_arr.msg);
+						}
+						if(bigrel=='publish')
+						{	
+							$(self).html('<?php echo $this->translator->translator("common_publish_selected"); ?>');
+						}
+						else
+						{
+							$(self).html('<?php echo $this->translator->translator("common_unpublish_selected"); ?>');
+						}
+					}
+			});			
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('menu_group_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+		
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('menu_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('menu_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+}
+</script>
+
+<div id="container">
+<?php if (!$this->allow('listgrp')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="menu-group"><h1><?php echo $this->translator->translator('menu_group_list_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+    	<?php if ($this->allow('addgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="add_new_group_btn"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('publishgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="publish_all" rel="publish"><span class="icon publish"><?php echo $this->translator->translator('common_publish_selected'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('publishgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="publish_all" rel="unpublish"><span class="icon unpublish"><?php echo $this->translator->translator('common_unpublish_selected'); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<div id="button_top_bar"></div>
+<div class="content-container">
+		<p>
+			<?php echo $this->translator->translator('menu_group_list_tips_desc'); ?>
+		</p>
+        <br />
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('backend/nav_menu.phtml');  ?>
+    </div>
+    
+    
+    <div id="content-inner">
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->menu_group_datas, 'Sliding', 'backend/top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+        	<div class="data-table">
+            	<table id="sortTable" width="100%" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                        	<th width="6%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                            <th width="7%"><?php echo $this->translator->translator('menu_group_list_page_id'); ?></th>
+                            <th width="42%"><?php echo $this->translator->translator('menu_group_list_page_grp_name'); ?></th>
+                            <th width="18%"><?php echo $this->translator->translator('menu_group_list_page_num'); ?></th>
+                            <th width="12%"><?php echo $this->translator->translator('common_status'); ?></th>
+                            <th width="15%"><?php echo $this->translator->translator('common_action'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody> 
+                        <?php 
+                        $j = 1;
+                        foreach ($this->menu_group_datas as $entry): 
+                            if($j % 2 == 0)
+                            {
+                                $onmouseout = "this.bgColor='#FFFFFF';";
+                                $background = '#FFFFFF';
+                            }
+                            else
+                            {
+                                $onmouseout = "this.bgColor='#F7F7F7';";
+                                $background = '#F7F7F7';
+                            }
+                        ?>
+                        <tr  bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                        	<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                          	<td  class="center"><?php echo $this->escape($entry->id); ?></td>
+                          	<td><?php echo $this->escape($entry->group_name); ?></td>
+                         
+                          	<td class="center">
+						  		<?php 
+                            	$num_menu = $group_helper->getNumOfMenu($this->escape($entry->id));
+                            	echo $this->escape($num_menu);
+                          		?>
+                        	</td>
+                         
+                          	<td class="center"><a href="javascript:void(0);" class="publish_btn" rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->group_name); ?>_<?php if($this->escape($entry->active) == '1'){ ?>unpublish<?php }else{ ?>publish<?php } ?>"><?php if($this->escape($entry->active) == '1'){ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator('common_unpublish_title'); ?>" /><?php }else{ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator('common_publish_title'); ?>" /><?php } ?></a></td>
+                          
+                          	<td class="tools-list">
+                            	<ul>
+                                	<li>
+										<?php if ($this->allow('list','backend','Menu')) : ?>
+                                            <a href="<?php echo $this->url(array('module' => 'Menu','controller'=>'backend', 'action'=>'list', 'group_id' => $this->escape($entry->id)),'adminrout',true);?>" ><img src="application/modules/Administrator/layouts/scripts/images/tools/menu-list.png" title="<?php echo $this->translator->translator('menu_menu_list'); ?>" alt="<?php echo $this->translator->translator('menu_menu_list'); ?>" border="0" /></a>
+                                        <?php endif; ?>
+                                    </li>
+                                	<li>
+										<?php if ($this->allow('editgrp','backend','Menu')) : ?>
+                                            <a href="javascript: void(0);" rel="<?php echo $this->escape($entry->id); ?>" class="edit_new_group_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                        <?php endif; ?>
+                                    </li>
+                                    <li>
+										<?php if ($this->allow('deletegrp','backend','Menu')) : ?>
+                                            <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->group_name); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>" border="0" /></a>
+                                        <?php endif; ?>
+                                    </li> 
+                                </ul>
+                           	</td>
+                        </tr>
+                        <?php 													
+                            $j++;
+                            endforeach;	
+                        ?>
+                    </tbody>
+				</table>
+            </div>
+		</div>
+        
+        <div><input type="hidden" name="tb_row" id="tb_row" value="<?php echo $j; ?>" /></div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->menu_group_datas, 'Sliding', 'backend/pagination.phtml'); ?>
+        </div> 
+    
+	</div>
+</div>
+
+<div  id="floatingbar">
+	<h1><?php echo $this->translator->translator('menu_group_list_page_name'); ?></h1>
+    
+    <div class="button-container">
+    	<?php if ($this->allow('addgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="add_new_group_btn"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('publishgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="publish_all" rel="publish"><span class="icon publish"><?php echo $this->translator->translator('common_publish_selected'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('publishgrp','backend','Menu')) : ?>
+    	<span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="publish_all" rel="unpublish"><span class="icon unpublish"><?php echo $this->translator->translator('common_unpublish_selected'); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
+<div id="dialog_message" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('menu_group_list_page_name')); ?>"></div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>	
+
+	<div id="add-group-form" title="<?php echo $this->translator->translator('menu_group_add_page_dialog'); ?>">
+    	<div class="dialog-container">
+            <div class="title-container">
+                <div class="menu-group-add"><h1><?php echo $this->translator->translator('menu_group_add_page_name'); ?></h1></div>
+            
+                <div class="button-container">
+                    <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1" id="add_btn"><a href="javascript: void(0);" class="add_menu_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1" id="edit_btn" style="display:none;"><a href="javascript: void(0);" class="edit_menu_group_btn" rrl=""><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                </div>
+            </div>
+            <div class="clr">&nbsp;</div>
+            
+            <div class="content-container">
+                <div id="actionMessage"></div>
+                <form name="formMenuGroup" id="formMenuGroup" method="post" >
+                    <div id="generalInfo">
+                        <fieldset class="fieldset">
+                            <legend class="legend"><?php echo $this->translator->translator('menu_group_add_page_info'); ?></legend>
+                            <div class="form">
+                                <div class="form-row">
+                                    <div class="label">
+                                        <?php echo $this->menuGroupForm->group_name->getLabel(); ?><span class="required">*</span>
+                                    </div>
+                                    
+                                    <div class="field">
+                                        <?php echo $this->menuGroupForm->group_name; ?>
+                                        <div class="input-errors" id="group_name_err"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>&nbsp;</div>
+                        </fieldset>
+                    </div>
+                </form>
+            </div>
+      	</div>
+	</div>
+</div>

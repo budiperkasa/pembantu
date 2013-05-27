@@ -1,0 +1,85 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step3_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){
+		init();
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php/step2'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php'; ?>";
+		});
+		
+		$('#accept1').click(function(){	
+					
+			setButtonState('next', true);
+			setFocus('next');
+ 
+		});
+		$('#accept2').click(function(){
+			setButtonState('next', false);
+			 
+		});
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.parents('div:first').removeClass('icon-inactive');			
+				b.parents('div:first').addClass('icon');
+				b.removeAttr('disabled');
+				b.removeClass('icon-disable');
+				b.addClass('button-next');
+			}
+			else
+			{
+				b.parents('div:first').removeClass('icon');			
+				b.parents('div:first').addClass('icon-inactive');
+				b.attr('disabled','disabled');
+				b.addClass('icon-disable');
+				b.removeClass('button-next');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}
+	
+	function init() 
+	{		
+		setButtonState('next', false);
+	}
+	//-->
+	</script>
+    <form  method="post" action="<?php echo $this->baseUrl().'/upgrade.php/step3'; ?>">
+        <fieldset>
+        <legend><?php echo $this->translator->translator('install_step_3_of_6'); ?> </legend>
+            <p>
+                <span class="title"><?php echo $this->translator->translator('install_step3_page_type'); ?></span>
+                <br /><br />
+                <?php echo $this->translator->translator('install_step3_page_language'); ?> <?php echo $this->translator->translator('install_step3_page_info'); ?>
+            </p>
+            <div><input type="hidden" name="sequence"  id="sequence" value="3" /></div>
+            <iframe src="http://lic.eicra.net/license.html" name="license" id="license" frameborder="1"></iframe>
+            
+           
+            <input type="radio" name="accept" id="accept1" value="1" /> &nbsp;
+            <?php echo $this->translator->translator('install_step3_select_language1'); ?><br />
+            <hr />
+    
+            <input type="radio" name="accept" id="accept2" value="0" checked="checked" /> &nbsp;
+            <?php echo $this->translator->translator('install_step3_select_language2'); ?>
+             
+            <div class="button-container"> 
+                <div class="icon"><input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" /></div>
+                <div class="icon-inactive"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-disable" /></div>
+                <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+            </div>
+        </fieldset>
+    </form>

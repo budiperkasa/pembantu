@@ -1,0 +1,149 @@
+<?php
+$this->headMeta()->setName('keywords',$this->translator->translator('property_front_page_agent_search'));
+$this->headMeta()->setName('description',$this->translator->translator('property_front_page_agent_search'));
+$this->headTitle()->headTitle( $this->translator->translator('property_front_page_agent_search'),'SET');
+
+$property_front_page_agent_id = $this->translator->translator('property_front_page_agent_id');
+$property_front_page_agent_id_arr = explode(',', $property_front_page_agent_id);
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+?>
+<script type="text/javascript">
+
+
+$(function() {
+		
+		$( "#area_id_mod" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'city' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						city: request.term, limit : 10, order : 'ASC', order_sort : 'city'
+					},
+					beforeSend : function (xhr) {						
+							
+					},
+					success: function( data ) {						
+						if(data.status == 'ok')
+						{																								
+							response( $.map( data.cities, function( item ) {
+								var city_id	= item.city_id;
+								var city	= item.city;																
+								return {
+									label: item.city,
+									value: item.city + '~('+city_id+')'
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.label + "</a>" )
+				.appendTo( ul );
+		};
+		
+});
+</script>
+
+<?php 
+$allow_obj = new Property_View_Helper_Allow();
+if (!$allow_obj->allowRule('owners',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+
+<div class="mod">
+	<div class="agent-search-icon">
+        <h1><?php echo $this->translator->translator('property_front_page_agent_search'); ?></h1>
+    </div>
+ 
+    <div class="social">
+        <!-- AddThis Button BEGIN -->
+        <div class="addthis_toolbox addthis_default_style">
+        <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+        <a class="addthis_button_tweet"></a>
+        <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+        <a class="addthis_counter addthis_pill_style"></a>
+        </div>
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e89660c7edb029a"></script>
+        <!-- AddThis Button END -->
+    </div>
+    
+    <div class="clear"></div>
+    <div class="mod-agent-search">
+    	<form id="formSearch" name="formSearch" method="post" action="<?php echo $this->url( array('module' => 'Property', 'controller' => 'Frontend', 'action'     => 'owners' ), 'Property-Agent-Search',    true) ?>"> 
+			<h2><?php echo $this->translator->translator('property_front_page_agent_search_label'); ?></h2>      
+			<?php
+              foreach($property_front_page_agent_id_arr as $property_front_page_agent_id_key => $agents)
+              {
+                $agent_arr = explode(';;', $agents);
+                $checked = (($property_front_page_agent_id_key == '0') || ($agent_arr[0] == $this->role_id)) ? 'checked="checked"' : '';
+              ?>
+              <input type="radio" name="role_id" id="role_id_mod" <?php echo $checked; ?> value="<?php echo $agent_arr[0]; ?>"/><?php echo $agent_arr[1]; ?>
+           	<?php
+             }
+           	?>
+            <br /><br />
+            <?php echo $this->translator->translator('property_front_page_agent_search_city_label'); ?>
+          	<input type="text" name="city" id="area_id_mod" value="<?php echo $this->city; ?>"/>
+			<input type="submit" name="button" id="button" value="<?php echo $this->translator->translator('property_front_page_agent_search_btn_label'); ?>" />
+        </form>
+    </div>
+    
+    <div class="block-ad-agent">
+    	<?php echo $this->partial('blocks/ad_agent_search.phtml'); ?>
+  	</div>
+    
+    <div class="clear">&nbsp;</div>
+	<?php
+		if($this->errorMessage)
+		{
+	?>
+    <div class="errMess"><?php 	echo $this->errorMessage;  ?></div>
+    <?php
+		}
+		if($this->view_datas)
+		{  	
+	?>
+	<div class="mod-agent-search-result">
+			<?php
+                foreach($this->view_datas as $entry)
+                {
+            ?>
+            <div class="list">        	
+                <ul>
+                    <li><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'agents','property_owner' => $this->escape($entry['user_id']) ),'Agent-Property-List/:property_owner',true); ?>" class="preview" link="" title="<?php echo $this->translator->translator('property_front_page_agent_search_property_no', $entry['property_num']); ?>"><?php echo $this->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']).' ('.$entry['property_num'].')'; ?></a><br />
+                    <?php if($entry['companyName']){ echo $this->escape($entry['companyName']).'<br />'; } ?>
+                    <?php if($entry['phone'] || $entry['mobile'] || $entry['fax']){ echo $this->escape($entry['phone']).', '.$this->escape($entry['mobile']).', '.$this->escape($entry['fax']).'<br />'; } ?>
+                    <?php if($entry['address']){ echo $this->escape($entry['address']).'<br />'; } ?>
+                    </li>
+                </ul>
+            </div>
+            <?php
+                }
+            ?>		
+  	</div>
+    <?php
+  	}	
+  	?>
+</div>
+<?php endif; ?>	

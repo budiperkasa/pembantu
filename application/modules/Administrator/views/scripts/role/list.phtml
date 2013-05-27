@@ -1,0 +1,590 @@
+<?php
+echo $this->headScript()->appendFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+$permission_arr = array('new_enable' => $this->allow('new','role','Administrator'));
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 4, "asc" ]],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	lastClassAdd(oTable);
+	
+	/****************************Sorting Table End*********************/
+	
+	function generateNewRow(json_arr,oTable)
+	{	
+		var row =	'<ul>';
+			<?php if ($this->allow('update')) : ?>
+			row += '<li><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'  => 'update','role_id' => '' ), 'adminrout',    true) ?>'+json_arr.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator("common_edit_title"); ?>" alt="<?php echo $this->translator->translator("common_edit_title"); ?>"  border="0" /></a></li>';
+			<?php endif; ?>
+			row += '<li><a href="Administrator/rule/rolelist/role_id/'+json_arr.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/setting.png" title="<?php echo $this->translator->translator("role_list_action_rule"); ?>" alt="<?php echo $this->translator->translator("role_list_action_rule"); ?>" border="0"/></a></li>';
+			<?php if ($this->allow("lock")) : ?>
+			var lock_rel = json_arr.data.rel;
+			var lock_rel_arr = lock_rel.split('_');
+			var lock_html = (lock_rel_arr[1] == '0') ? '<img src="application/modules/Administrator/layouts/scripts/images/tools/lock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" />' : '<img src="application/modules/Administrator/layouts/scripts/images/tools/unlock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_lock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_lock"); ?>" />';
+			row += '<li><a class="tLockRole" rel="'+json_arr.data.rel+'" href="javascript: void(0)">'+lock_html+'</a></li>';
+			<?php endif; ?> 
+			row += '<li><a class="tDeleteRole" rel="'+json_arr.id+'_'+json_arr.data.role_name+'" href="javascript: void(0)"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("role_list_action_delete"); ?>" alt="<?php echo $this->translator->translator("role_list_action_delete"); ?>"  border="0" /></a></li>';
+			
+			row += '</ul>';
+			
+			var form_data = json_arr.data.form_data+'&nbsp;';   form_data += (lock_rel_arr[1] == '1') ?  '<a href="javascript:void(0);" rel="'+json_arr.id+'" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.png" title="<?php echo $this->translator->translator("common_save_title"); ?>" alt="<?php echo $this->translator->translator("common_save_title"); ?>" border="0" /></a>' : '';
+						
+			oTable.fnAddData([
+						json_arr.data.role_name,
+						json_arr.data.role_desc,
+						form_data,
+						json_arr.data.role_lock,
+						json_arr.id,
+						json_arr.data.num_users,
+						row
+						 ]);
+			$('td', oTable.fnGetNodes()).hover( function() {		
+				$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+			}, function() {
+				$('td.highlighted').removeClass('highlighted');
+			});	
+			
+			lastClassAdd(oTable);
+			$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(4)').addClass('center');
+			$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(5)').addClass('center');
+			$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(6)').addClass('center');
+			$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(7)').addClass('role_action');
+			$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(7)').addClass('tools-list');
+	}
+
+	$('#create_role').click(function() {
+				var l = $('#role_name').val();  
+				var m = $('#role_desc').val();
+				var n = $("#role_lock:checked").length;
+				
+				var form_id = $('#form_id').val();
+				$('#ajax_loader').html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="16" />');
+				$.ajax({
+					  url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'add' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { role_name: l, role_desc: m, role_lock : n, form_id : form_id },
+					  success: function(response){
+					  		//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{	
+								generateNewRow(json_arr,oTable);								
+													
+								$('#role_name').val('');  
+								$('#role_desc').val('');
+								$('#form_id').val('');
+								var msg = json_arr.msg;
+								roleActionBind();
+							}
+							else
+							{
+								var msg = json_arr.msg;
+							}
+							$('#ajax_loader').html('');
+							$.fx.speeds._default = 1000;						
+							$('#dialog_container').html(msg).dialog({
+								autoOpen: true,
+								modal: false,
+								show: 'explode',
+								resizable: true,
+								buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+								open: function(event, ui)
+								 {
+									setTimeout(function() 
+									{
+										$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('destroy');
+									}, 10000);
+								  }
+							});
+					  } 
+				});
+			});
+	
+	//Edit Assigned Form	
+	$('a.edit_btn').click(function() {
+		var self = this;
+		var rel = $(self).attr('rel');	
+		var form_id = $(self).parents("td:first").children("select:nth-child(1)").val();	
+		
+		$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { role_id: rel, form_id : form_id},
+				beforeSend: function(){
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+				 },
+				success: function(response) 
+				{
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						openMsgDialog(json_arr.msg);						
+					}
+					else
+					{							
+						openMsgDialog(json_arr.msg);
+					}	
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/save.png" title="<?php echo $this->translator->translator("common_save_title"); ?>" alt="<?php echo $this->translator->translator("common_save_title"); ?>" border="0" />');
+				}
+		});
+	});
+	
+	//Role Lock Toggle
+	$('a.tLockRole').click(function() {		
+		var self = this;
+		var arr = $(self).attr('rel').split('_');
+		$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0"/>');
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'lock' ), 'adminrout',    true) ?>",
+		  	 type: 'POST',
+		     data: { id: arr[0], lock: arr[1] },
+			 success: function(response) {			 		
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						$(self).attr('rel', arr[0] + '_' + json_arr.lock + '_' + arr[2]);
+						
+						if (json_arr.lock == 1) 
+						{
+							$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unlock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_lock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_lock"); ?>" />');
+							$(self).parents("td:first").parents("tr:first").children("td:nth-child(4)").html("<?php echo addslashes($this->translator->translator('role_list_unlocked')); ?>"); 
+						}
+						else 
+						{
+							$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/lock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" />');
+							$(self).parents("td:first").parents("tr:first").children("td:nth-child(4)").html("<span class='locked'><?php echo addslashes($this->translator->translator('role_list_locked')); ?></span>"+'<div class="ui-widget ui-helper-clearfix info status-info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator("role_list_locked_help"); ?>"><p><span class="ui-icon ui-icon-help"></span></p></div></div>');
+							qToolTipFunctions();
+						}
+					}
+					else
+					{
+						$(self).attr('rel', arr[0] + '_' + arr[1] + '_' + arr[2]);
+						if (arr[1] == 1) {
+							$(self).html("<?php echo addslashes($this->translator->translator('role_list_action_lock')); ?>");
+						} else {
+							$(self).html("<?php echo addslashes($this->translator->translator('role_list_action_unlock')); ?>");
+						}
+					}
+			 }
+		});
+	});
+	
+	//Role Delete
+	$('a.tDeleteRole').click(function() {		
+		var self = this;
+		
+		$("#dialog").dialog("destroy");
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('role_list_delete_confirm')); ?>").dialog({
+			resizable: true,
+			width:400,
+			height:'auto',
+			modal: true,
+			show: 'explode',
+			hide: 'explode',
+			buttons: [{
+				text :'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+					var arr = $(self).attr('rel').split('_');
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0"/>');
+					$.ajax({
+						 url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+						 type: 'POST',
+						 data: { id: arr[0], role_name: arr[1] },
+						 success: function(response) 
+						 {	
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								$(self).parents("td:first").parents("tr:first").addClass('row_selected');
+								var oTables = $('#sortTable').dataTable();
+								var anSelected = fnGetSelected( oTables );
+								oTables.fnDeleteRow( anSelected[0] );
+								var msg = json_arr.msg;	
+								lastClassAdd(oTables);							
+							}
+							else
+							{
+								$(self).html('');
+								var msg = json_arr.msg;
+							}
+							$.fx.speeds._default = 1000;						
+							$('#dialog_container').html(msg).dialog({
+								autoOpen: true,
+								height:'auto',
+								modal: false,
+								show: 'explode',
+								resizable: true,
+								buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+								open: function(event, ui)
+									 {
+										setTimeout(function() 
+										{
+											$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('destroy');
+										}, 10000);
+									  }
+							});
+						 }
+					});
+					$(this).dialog('close');
+				}},
+				{text :'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+					$(this).dialog('close');
+				}
+			}]
+		});		
+	});
+});
+
+function openMsgDialog(msg)
+{
+	$('#dialog_container').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'explode',
+		height:'auto',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+		 {
+			setTimeout(function() 
+			{									
+				if($('#' + event.target.id).dialog('isOpen'))
+				{
+					$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+				}
+			}, 10000);
+		  }
+	});
+}
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+
+function roleActionBind()
+{
+	//Edit Assigned Form
+	$('a.edit_btn').unbind('click');	
+	$('a.edit_btn').click(function() {
+		var self = this;
+		var rel = $(self).attr('rel');	
+		var form_id = $(self).parents("td:first").children("select:nth-child(1)").val();	
+		
+		$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { role_id: rel, form_id : form_id},
+				beforeSend: function(){
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+				 },
+				success: function(response) 
+				{
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						openMsgDialog(json_arr.msg);						
+					}
+					else
+					{							
+						openMsgDialog(json_arr.msg);
+					}	
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/save.png" title="<?php echo $this->translator->translator("common_save_title"); ?>" border="0" />');
+				}
+		});
+	});
+	
+	//Role Lock Toggle
+	$('a.tLockRole').unbind('click');	
+	$('a.tLockRole').click(function() {		
+		var self = this;
+		var arr = $(self).attr('rel').split('_');
+		$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" />');
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'lock' ), 'adminrout',    true) ?>",
+		  	 type: 'POST',
+		     data: { id: arr[0], lock: arr[1] },
+			 success: function(response) {			 		
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						$(self).attr('rel', arr[0] + '_' + json_arr.lock + '_' + arr[2]);
+						
+						if (json_arr.lock == 1) 
+						{
+							$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unlock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_lock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_lock"); ?>" />');
+							$(self).parents("td:first").parents("tr:first").children("td:nth-child(4)").html("<?php echo addslashes($this->translator->translator('role_list_unlocked')); ?>"); 
+						}
+						else 
+						{
+							$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/lock.png" border="0" title="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" alt="<?php echo $this->translator->translator("role_list_action_unlock"); ?>" />');
+							$(self).parents("td:first").parents("tr:first").children("td:nth-child(4)").html("<span class='locked'><?php echo addslashes($this->translator->translator('role_list_locked')); ?></span>"+'<div class="ui-widget ui-helper-clearfix info status-info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator("role_list_locked_help"); ?>"><p><span class="ui-icon ui-icon-help"></span></p></div></div>');
+							qToolTipFunctions();
+						}
+					}
+					else
+					{
+						$(self).attr('rel', arr[0] + '_' + arr[1] + '_' + arr[2]);
+						if (arr[1] == 1) {
+							$(self).html("<?php echo addslashes($this->translator->translator('role_list_action_lock')); ?>");
+						} else {
+							$(self).html("<?php echo addslashes($this->translator->translator('role_list_action_unlock')); ?>");
+						}
+					}
+			 }
+		});
+	});
+	
+	//Role Delete
+	$('a.tDeleteRole').unbind('click');	
+	$('a.tDeleteRole').click(function() {		
+		var self = this;
+		
+		$("#dialog").dialog("destroy");
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('role_list_delete_confirm')); ?>").dialog({
+			resizable: false,
+			height:'auto',
+			modal: true,
+			show: 'explode',
+			hide: 'explode',
+			buttons: [{
+				text :'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+					var arr = $(self).attr('rel').split('_');
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+					$.ajax({
+						 url: "<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'role', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+						 type: 'POST',
+						 data: { id: arr[0], role_name: arr[1] },
+						 success: function(response) 
+						 {	
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								$(self).parents("td:first").parents("tr:first").addClass('row_selected');
+								var oTables = $('#sortTable').dataTable();
+								var anSelected = fnGetSelected( oTables );
+								oTables.fnDeleteRow( anSelected[0] );
+								var msg = json_arr.msg;
+								lastClassAdd(oTables);
+							}
+							else
+							{
+								$(self).html('');
+								var msg = json_arr.msg;
+							}
+							$.fx.speeds._default = 1000;						
+							$('#dialog_container').html(msg).dialog({
+								autoOpen: true,
+								modal: false,
+								resizable: false,
+								height:'auto',
+								show: 'explode',
+								hide: 'explode',
+								buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+								open: function(event, ui)
+									 {
+										setTimeout(function() 
+										{
+											$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('destroy');
+										}, 10000);
+									  }
+							});
+						 }
+					});
+					$(this).dialog('close');
+				}},
+				{text :'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+					$(this).dialog('close');
+				}}
+			]
+		});		
+	});
+}
+</script>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div>
+		<?php echo $this->translator->translator('previlege_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+		
+	<div class="title-container">
+    	<div class="role-icon"><h1><?php echo $this->translator->translator('role_list_page_name'); ?></h1></div>
+        
+        <?php if ($permission_arr['new_enable']) : ?>
+			<div class="button-container">
+            	<span class="button ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Administrator','controller'=>'role', 'action'=>'new'),'adminrout',true);?>"><span class="icon add"><?php echo $this->translator->translator('role_list_add_head'); ?></span></a></span>
+			</div>
+		<?php endif; ?>
+    </div>
+    
+    <div class="content-container">
+    	<?php echo $this->translator->translator('role_list_guide'); ?>
+        <hr />
+        
+        <?php if ($this->roles) : ?>
+		<?php
+            $form_db = new Members_Model_DbTable_Forms();
+            $formList = $form_db->getFormList();
+          ?>
+          	<div class="data-table">
+                <table id="sortTable" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="12%"><?php echo $this->translator->translator('role_list_name'); ?></th>
+                            <th width="30%"><?php echo $this->translator->translator('role_list_desc'); ?> </th>
+                            <th width="20%"><?php echo $this->translator->translator('role_list_form'); ?> </th>
+                            <th width="9%"><?php echo $this->translator->translator('role_list_status'); ?></th>
+                            <th width="4%"><?php echo $this->translator->translator('role_list_id'); ?></th>  
+                            <th width="9%"><?php echo $this->translator->translator('role_list_num_user'); ?></th>
+                            <th width="16%"><?php echo $this->translator->translator('role_list_action'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>										
+                    <?php 
+                        $j = 1; 
+                        
+                        foreach ($this->roles as $role) :  
+                                if($j % 2 == 0)
+                                {
+                                    $onmouseout = "this.bgColor='#FFFFFF';";
+                                    $background = '#FFFFFF';
+                                }
+                                else
+                                {
+                                    $onmouseout = "this.bgColor='#F7F7F7';";
+                                    $background = '#F7F7F7';
+                                }
+                        
+                      ?>
+                        <tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                            <td><?php echo $this->escape($role['role_name']); ?></td>
+                            <td><?php echo $this->escape($role['role_desc']); ?></td>
+                            <td><select name="form_id"> 
+                                <option value="0"><?php echo $this->translator->translator('common_select'); ?></option>
+                              <?php
+                                foreach($formList as $forms)
+                                {
+                                    $selected = ($this->escape($forms->id) == $this->escape($role['form_id'])) ? ' selected = "selected" ' : '';
+                              ?>
+                                <option value="<?php echo $this->escape($forms->id); ?>" <?php echo $selected; ?>><?php echo $this->escape($forms->form_name); ?></option>
+                              <?php 
+                                }
+                              ?>
+                            </select>&nbsp;<?php if($role['role_lock'] == '1') : ?><a href="javascript:void(0);" rel="<?php echo $role['role_id']; ?>" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.png" title="<?php echo $this->translator->translator('common_save_title'); ?>" alt="<?php echo $this->translator->translator('common_save_title'); ?>" border="0" /></a><?php endif; ?></td>
+                            <td class="center"><?php if ($role['role_lock'] == '0' ) : ?><span class="locked"><?php echo $this->translator->translator('role_list_locked'); ?></span><div class="ui-widget ui-helper-clearfix info status-info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator("role_list_locked_help"); ?>"><p><span class="ui-icon ui-icon-help"></span></p></div></div><?php else : ?> <span class="unlocked"><?php echo $this->translator->translator('role_list_unlocked'); ?></span><?php endif; ?></td>
+                            <td class="center"><?php echo $this->escape($role['role_id']); ?></td>
+                            <td class="center"><?php if ($role['num_users']) : ?><?php echo $role['num_users']; ?><?php else : ?>0<?php endif; ?></td>
+                            <td class="role_action tools-list">
+                            
+                            <ul>
+                                <?php if ($this->allow('update')) : ?>
+                                <li><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'  => 'update','role_id' => $role['role_id'] ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" alt="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a></li>
+                                <?php endif; ?>
+                                <?php if ($this->allow('rolelist', 'rule')) : ?>
+                                <li><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'rule', 'action'  => 'rolelist','role_id' => $role['role_id'] ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/setting.png" title="<?php echo $this->translator->translator('role_list_action_rule'); ?>" alt="<?php echo $this->translator->translator('role_list_action_rule'); ?>" border="0"/></a></li>
+                                <?php endif; ?>
+                                <?php if ($this->allow('lock')) : ?>
+                                <li><a  class="tLockRole" rel="<?php echo $role['role_id']; ?>_<?php echo $role['role_lock']; ?>_<?php echo $role['role_name']; ?>" href="javascript: void(0)"><?php if ($role['role_lock']) : ?><img src="application/modules/Administrator/layouts/scripts/images/tools/unlock.png" border="0" title="<?php echo $this->translator->translator('role_list_action_lock'); ?>" alt="<?php echo $this->translator->translator('role_list_action_lock'); ?>" /><?php else : ?><img src="application/modules/Administrator/layouts/scripts/images/tools/lock.png" border="0" title="<?php echo $this->translator->translator('role_list_action_unlock'); ?>" alt="<?php echo $this->translator->translator('role_list_action_unlock'); ?>" /><?php endif; ?></a></li>
+                                <?php endif; ?>
+                                <?php if ($this->allow('delete')) : ?>
+                                <li><?php if ((null == $role['num_users'] || 0 == $role['num_users']) && ($role['role_lock'] == '1')) : ?> <a  class="tDeleteRole" rel="<?php echo $role['role_id']; ?>_<?php echo $role['role_name']; ?>" href="javascript: void(0)"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('role_list_action_delete'); ?>" alt="<?php echo $this->translator->translator('role_list_action_delete'); ?>" border="0" /></a><?php endif; ?></li>
+                                <?php endif; ?>
+                            </ul>			
+                            </td>
+                        </tr>
+                 	<?php $j++; endforeach; ?>
+                	</tbody>
+            	</table>								
+        	</div>
+        <?php endif; ?>	
+        
+        <div class="role clr">
+			<?php if ($this->allow('add')) : ?>
+				<fieldset class="fieldset last">
+                	<legend class="legend"><?php echo $this->translator->translator('role_list_quick_add'); ?></legend>
+                    
+                    <div class="form role-form">
+                        <div class="form-row">
+                            <div class="label"><?php echo $this->translator->translator('role_list_name'); ?> <span style="color:#F00">*</span> :</div>
+                            <div class="field"><input name="role_name" id="role_name" type="text" /><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator('role_name_title'); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <span id="ajax_loader"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                        	<div class="label"><?php echo $this->translator->translator('role_list_desc'); ?> :</div>
+                    		<div class="field"><input name="role_desc" id="role_desc" type="text" /><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator('role_desc_title'); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div></div>
+                    	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label"><?php echo $this->translator->translator('role_list_reg_form'); ?> :</div>
+                    		<div class="field">
+                            	<select name="form_id" id="form_id"> 
+                                <option value="0"><?php echo $this->translator->translator('common_select'); ?></option>
+                                <?php
+                                    foreach($formList as $forms)
+                                    {
+                                ?>
+                                    <option value="<?php echo $this->escape($forms->id); ?>"><?php echo $this->escape($forms->form_name); ?></option>
+                              	<?php 
+                                    }
+                              	?>
+                              	</select>
+                            	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator('role_form_id_title'); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                    		</div>
+                       	</div>
+                        
+                        <div class="form-row">
+                        	<div class="label">&nbsp;</div>
+                    		<div class="field"><?php if ($this->allow('lock')) : ?><input type="checkbox" name="role_lock" id="role_lock" /> <?php echo $this->translator->translator('role_list_lock'); endif;  ?> &nbsp; <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator('role_lock_title'); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div></div>
+                    	</div>
+                        
+                         <div class="form-row">
+                         	<div class="label">&nbsp;</div>
+                            <div class="field" id="button_block"><input id="create_role" name="create_role" type="button" value="<?php echo $this->translator->translator('common_add'); ?>" /></div>
+                         </div>
+                    </div>
+      			</fieldset>
+            <?php endif; ?>	
+        </div>                            
+   	</div>
+	<?php endif; ?>	
+        <div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('role_list_page_name')); ?>"></div>
+        <div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+</div>

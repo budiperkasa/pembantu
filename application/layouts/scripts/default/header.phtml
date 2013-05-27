@@ -1,0 +1,30 @@
+<?php 
+$front_template = Zend_Registry::get('front_template'); 
+$this->translator = Zend_Registry::get('translator');
+$global_conf = Zend_Registry::get('global_conf');
+?>
+
+<header id="header">
+    <div class="container">
+        <div class="logo">
+            <a href="#"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/logo.png" alt="PHP Content Management System [PHP CMS software]" title="Best CMS Script [Zend CMS web application]" height="91" border="0"></a>
+            <!--<h1><?php //echo $this->translator->translator('header_logo','', '', $front_template['theme_folder']); ?></h1>-->
+        </div>
+        <div class="ad"><?php echo $this->partial('blocks/ad_header.phtml'); ?></div>
+    </div>
+    
+    <!-- Top Navigation Start-->
+    <nav class="top-nav clear">
+        <div class="container">
+            <a href="#" title="Home" class="home-icon"></a>
+            <div class="nav"><?php echo $this->partial('blocks/menu_header.phtml'); ?></div>
+        </div>
+    </nav>
+    <!-- Top Navigation End-->
+    
+    <!-- Banner Start-->
+    <div id="banner">
+        <img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/banner.png" height="356" border="0">
+    </div>
+    <!-- Banner End-->
+</header>

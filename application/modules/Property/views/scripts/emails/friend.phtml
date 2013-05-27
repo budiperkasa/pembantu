@@ -1,0 +1,750 @@
+<?php
+if(!empty($this->form_info['meta_keywords'])) { $this->headTitle()->headTitle($this->form_info['meta_title'],'SET'); }
+if(!empty($this->form_info['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->form_info['meta_keywords']);}
+if(!empty($this->form_info['meta_desc'])) { $this->headMeta()->setName('description',$this->form_info['meta_desc']); }
+
+$version = Zend_Registry::get('version');
+$front_template = Zend_Registry::get('front_template');
+
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+if($this->property_info)
+{
+	$business_type_db = new Property_Model_DbTable_BusinessType();
+	$country_db = new Property_Model_DbTable_Country();
+	$review_helper = new Review_View_Helper_Review();
+	$state_db = new Property_Model_DbTable_State();
+	$area_db = new Property_Model_DbTable_Area();
+	$group_db =  new Property_Model_DbTable_PropertyGroup();
+	$group_info = $group_db->getGroupName($this->property_info['group_id']);
+	
+	$maximum_stars_digit = $this->translator->translator('maximum_stars_digit');
+	
+	$property_type_arr = explode(',', $this->translator->translator('property_front_page_rent_id'));
+}
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	/********************FOR DYNAMIC COUNTRY STATE SELECTION**********************************/
+		
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "#GeneralForm" )[ 0 ].reset();	
+		$('input.empty_class').each(function(){
+				$(this).val('');
+			});	
+		$.each($("input[type='file']"),function(index, obj){
+			var upload_file_name = $(obj).attr('name');	
+			var upload_file_name_err = upload_file_name.replace('_upload', '');		
+			$('#'+upload_file_name_err+'_err').html('');
+			$('#selected_file_'+upload_file_name_err).html('');
+		});	
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('#GeneralForm').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else if(field.name.match(/\[input\]$/))
+				{
+					var filearr = field.name.split('[input]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				}			
+				$('#'+filename).removeClass('ui-state-error');	
+				$('#'+filename+'-input').removeClass('ui-state-error');			
+				$('#'+filename+'_err').html('');
+				$('span.input-errors').html('');							
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name+'-input').addClass('ui-state-error');
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'explode',
+					resizable: false,				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] =  filevalue;			
+		});
+		return fieldObj;
+	}
+	
+	$('a.add_user_btn').click(function() {
+			var formData = getFormData();			
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Property','controller' => 'emails', 'action'     => 'friend', 'property_title'     => $this->escape($this->property_info['property_title']), 'form_id' => $this->form_info['id'] ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){
+					removeError();
+					openLoaderDialog();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");	
+					refreshCaptcha(json_arr)				
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+						resetFields();							
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else if(json_arr.status == 'errP')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+						addError('confirmPassword',json_arr.msg);
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});	
+});
+
+function refreshCaptcha(json_arr)
+{
+	if(json_arr.captcha && json_arr.captcha.status && json_arr.captcha.status == 'ok')
+	{
+		var captcha_name = json_arr.captcha.captcha_name;
+		$('input[name="'+captcha_name+'[id]"]').parents('span:first').children('img:first').attr('src', json_arr.captcha.ImgUrl+json_arr.captcha.id+json_arr.captcha.Suffix);
+		$('input[name="'+captcha_name+'[id]"]').val(json_arr.captcha.id);
+		$('#'+captcha_name+'_err').html('');		
+	}
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'explode',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+
+function calender(id)
+{
+	$("#"+id).datepicker({
+		showOn: 'button',
+		buttonImage: 'application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_property_img/calendar.png',
+		buttonImageOnly: true,
+		monthNamesShort:<?php echo $this->translator->translator("common_calender_monthNamesShort"); ?>,
+		monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+		dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+		showAnim: 'slide',
+		buttonText: 'Calender',
+		dateFormat:'yy-mm-dd',
+		autoSize:false,
+		showButtonPanel:false,
+		changeMonth: true,
+		changeYear: true
+	});
+	$("img[class='ui-datepicker-trigger']").each(function(){ 
+			$(this).attr('style', '');
+		 });
+}
+
+function is_image(filename)
+{
+	var ext = getFileExtension(filename);
+	if(ext == 'jpg' || ext == 'JPG' || ext == 'png' || ext == 'PNG' || ext == 'bmp' || ext == 'BMP' || ext == 'gif' || ext == 'GIF')
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+
+/***********************************************************************UPLOAD FUNCTIONS START********************************************************/
+
+function languageArray()
+{
+	var language_array = [];
+	language_array['portfolio_upload_dy_text_select'] 					= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_dy_text_select", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_cancel'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_cancel", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_dropFilesHere'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_dropFilesHere", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_remove'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_remove", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_retry'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_retry", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusFailed'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusFailed", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploaded'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploaded", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploading'] 			= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploading", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_uploadSelectedFiles'] 		= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_uploadSelectedFiles", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_file_extension_dy_support'] 				= "<?php echo $this->translator->translator("portfolio_file_extension_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext1'] 	= "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext1", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext2']  = "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext2", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_size_dy_support'] 					= "<?php echo $this->translator->translator("portfolio_file_size_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_upload_err'] 						= "<?php echo $this->translator->translator("portfolio_file_upload_err", '', 'Portfolio'); ?>";
+	return language_array;
+}
+
+
+function successFileDecoretion(fileObj, serverData, upload_field, upload_value_field)
+{
+		var extension = fileObj.extension;
+		var ext = extension.replace('.','');	
+		
+		var img_path = '';
+		switch(ext)
+		{
+			case 'flv':
+			case 'swf':
+			case 'FLV':
+			case 'SWF':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/flash.png';
+				break;
+			case 'mp3':
+			case 'MP3':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/mp3.png';
+				break;
+			case 'avi':
+			case 'wmv':
+			case 'wma':
+			case 'WMA':
+			case 'AVI':
+			case 'WMV':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/avi_thumb.png';
+				break;
+			case 'pdf':
+			case 'doc':
+			case 'docx':
+			case 'xls':
+			case 'xlsx':
+			case 'ppt':
+			case 'pptx':
+			case 'PDF':
+			case 'DOC':
+			case 'DOCX':
+			case 'XLS':
+			case 'XLSX':
+			case 'PPT':
+			case 'PPTX':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/'+ext.toLowerCase()+'.png';
+				break;
+			default:
+				if(isImage(fileObj))
+				{				
+					img_path = "<?php echo $this->baseUrl().'/'; ?>"+serverData.file_path+'/'+fileObj.name; 
+				}
+				else
+				{	
+					img_path = "<?php echo $this->baseUrl().'/'; ?>application/modules/Administrator/layouts/scripts/images/common/all_file_thumb.png";
+				}	
+				break;
+		}		
+		
+		
+		var img_code =  '<span class="thumb"><img src="'+img_path+'" title="'+fileObj.name+'" width="20" height="10" /></span>'
+		var down_link = (!isImage(fileObj)) ? '<br /><a href="'+serverData.file_path+'/'+fileObj.name+'"><?php echo $this->translator->translator("common_download", "", "Projects"); ?></a>' : '';
+		var checked = '';
+		var primary = '&nbsp;&nbsp;&nbsp;';	
+		var block = 'selected_file_'+upload_value_field;
+		var img_type = '';			
+		switch(upload_value_field)
+		{
+			case 'product_thumb':	
+					checked = ($('#'+upload_value_field).val() == '') ? ' checked="checked" ' : '';	
+					img_type = 	($('#'+upload_value_field).val() == '') ? "<span class='main'><?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?></span><br />" : "<span class='related'><?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?></span><br />";				
+					primary = '<input class="radio_style" type="radio" name="product_thumb_primary" id="product_thumb_primary" '+checked+' value="'+fileObj.name+'" title="<?php echo $this->translator->translator("gallery_primary", '', 'Gallery'); ?>" />';
+				break;
+			case 'product_file':
+					checked = ($('#'+upload_value_field).val() == '') ? ' checked="checked" ' : '';		
+					img_type = 	($('#'+upload_value_field).val() == '') ? "<span class='main'><?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?></span><br />" : "<span class='related'><?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?></span><br />";		
+					primary = '<input class="radio_style" type="radio" name="product_file_primary" id="product_file_primary" '+checked+' value="'+fileObj.name+'" title="<?php echo $this->translator->translator("gallery_primary", '', 'Gallery'); ?>" />';
+				break;
+		}
+		
+		var del_link = '<a href="javascript:void(0)" class="delete_uploaded_image_link" field_name="'+upload_value_field+'" file_name="'+fileObj.name+'" file_path="'+serverData.file_path+'"><?php echo $this->translator->translator("common_delete_title"); ?></a>'+primary+down_link;
+				
+		if(serverData.multi)
+		{		
+			$('#'+block).append('<div class="upload-img box">'+img_type+'<span>'+img_code+'<br />&nbsp;'+del_link+'</span></div>');				 
+			var file_val = ($('#'+upload_value_field).val() == '') ? fileObj.name :  $('#'+upload_value_field).val()+','+fileObj.name;
+		}
+		else
+		{
+			$('#'+block).html('<div class="upload-img box">'+img_type+'<span>'+img_code+'<br />&nbsp;'+del_link+'</span></div>');				 
+			var file_val = fileObj.name;	
+		}		
+		$('#'+upload_value_field).val(file_val);
+		deleteFiles("<?php echo $this->translator->translator('gallery_img_main', '', 'Gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related', '', 'Gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+		imageThumbnil();	
+}
+
+function onComplete(e) {
+			
+}
+
+function onCancel(e) {
+	
+}
+
+function onProgress(e) {
+					
+}
+
+/***********************************************************************UPLOAD FUNCTIONS END********************************************************/
+
+/************************************************IMAGE THUMBNIL START************************************************/
+function imageThumbnil()
+{	
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '0', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+}
+/************************************************IMAGE THUMBNIL END************************************************/
+</script>
+
+<div class="mod">
+	<div class="email-icon">
+        <h1><?php echo $this->escape($this->form_info['form_name']); ?></h1>
+    </div>
+    
+    <div class="social">
+      	<!-- AddThis Button BEGIN -->
+        <div class="addthis_toolbox addthis_default_style">
+        <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+        <a class="addthis_button_tweet"></a>
+        <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+        <a class="addthis_counter addthis_pill_style"></a>
+        </div>
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e89660c7edb029a"></script>
+    	<!-- AddThis Button END -->
+    </div>
+
+	<div class="clear"></div>
+    
+    <div id="actionMessage">&nbsp;</div>
+    
+    <?php
+		if($this->property_info)
+		{
+	?>
+    
+    <?php							
+		$property_image_val_arr = explode(',',$this->property_info['property_image']);
+		$property_image_no = (empty($property_image_val_arr[0])) ? '0' : count($property_image_val_arr);
+		if($this->escape($this->property_info['property_primary_image']))
+		{ 
+			$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($this->property_info['property_primary_image']); 
+		}
+		else
+		{ 
+			if($this->escape($this->property_info['property_image']))
+			{											
+				$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($property_image_val_arr[0]); 
+			}
+			else
+			{
+				$thumb_image = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_property_img/no_image.png'; 
+			}		
+		}
+	?>
+    
+    <div class="products-list">
+    		<!-- list Header Start -->
+            <div class="list-header">
+            	<div class="header-row">
+                	<div class="header-left">
+                        <span class="title-small"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" title="<?php echo $this->escape($this->property_info['property_name']); ?>" link=""><?php echo $this->escape($this->property_info['property_name']); ?></a></span><br />
+                        <span class="info"><?php if(!empty($this->property_info['feature_room_no'])){ echo (int)$this->escape($this->property_info['feature_room_no']).' '.$this->translator->translator('property_front_page_room'); } if(!empty($this->property_info['feature_bedroom'])){ echo ', '.(int)$this->escape($this->property_info['feature_bedroom']).' '.$this->translator->translator('property_front_page_property_bedroom_no'); } ?></span>
+                    </div>
+                
+                	<div class="header-middle">
+                        <span class="products-mark"><?php $type_infos = $business_type_db->getBusinessTypeInfo($this->property_info['property_type']); echo $this->translator->translator('property_front_page_property_for'); ?></span>&nbsp;<span class="products-type"><?php echo $this->escape($type_infos['business_type']); ?></span>
+                    </div>
+                
+                	<div class="header-right">                                                
+						<?php 
+                            if(!empty($group_info['review_id'])){ 
+                            $review_no = $review_helper->getNumOfReviews($this->property_info['id'], $this->escape($group_info['review_id']));
+                        ?><span class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($group_info['review_id']), Eicra_File_Constants::ITEM_ID => $this->property_info['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></span> &nbsp; <span class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('common_review_no',htmlentities($review_no)); ?></a></span> <?php } ?>
+                    </div>
+                </div>
+            </div>
+            <!-- list Header End -->
+            
+            <!-- list Body Start --> 
+            <div class="body-container <?php echo $featured_class; ?>">
+                 <div class="left-content">
+                        <div class="img-wrapper">
+                        	<a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" link="<?php echo $thumb_image; ?>" width="350" title="<?php echo $this->escape($this->property_info['property_name']); ?>"><img src="<?php echo $thumb_image; ?>" height="113" border="0" class="thumb" /></a>
+                            <div class="photo-count-container">
+                                <div class="photo-count">
+                                    <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']),'tab' => 1 ),'Property-details/:property_title/:tab',true); ?>" title="<?php echo $this->translator->translator('property_front_page_click_view_photos'); ?>"><?php echo $this->translator->translator('property_front_page_property_photo_no', $property_image_no); ?></a>
+                                </div>
+                            </div>                                            
+                        </div>
+                        
+                        <h2>
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" title="<?php echo $this->escape($this->property_info['property_name']); ?>" link=""><?php echo $this->escape($this->property_info['property_name']); ?></a>
+                        </h2>
+                        
+                        <div class="products-stars">
+                        <?php
+                            for($i = 1; $i < $maximum_stars_digit; $i++)
+                            {
+                                $property_stars = ($i <= $this->escape($this->property_info['stars'])) ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-inactive.png' border='0'/>";
+                                echo $property_stars.'&nbsp;';
+                            }
+                        ?>
+                        </div>
+                        
+                        <div class="products-desc">
+                            <p><?php echo $this->translator->translator('property_front_page_property_location'); ?></p> <?php $states = $state_db->getStateInfo($this->property_info['state_id']); $areas = $area_db->getAreaInfo($this->property_info['area_id']); echo $this->escape($areas['city']).', '.$this->escape($states['state_name']).', '.$this->escape($this->property_info['post_code']).'.'; ?><br />
+                            <p><?php echo $this->translator->translator('property_front_page_property_country'); ?></p> <?php $countries = $country_db->getCountryName($this->property_info['country_id']); echo $this->escape($countries['value']); ?><br />
+    
+                            <p><?php echo $this->translator->translator('property_front_page_property_desc'); ?></p>
+                            <span class="jTruncate"><?php echo truncate(stripslashes($this->property_info['property_desc']),0,10); ?></span>
+                        </div>
+                 </div>
+                 
+                 <div class="right-content">
+                    <span class="products-price"><?php  echo $this->translator->translator('property_front_page_price').$currency->getSymbol().' '.$this->price($this->escape($this->property_info['property_price']));  ?></span>
+                    <ul class="products-options">
+                        <?php
+                          if(!empty($property_type_arr[0]) && in_array($entry['property_type'], $property_type_arr))
+                          {
+                        ?>
+                        <li class="availability"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($this->property_info['property_title']),'tab' => 4 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_label_check-availability'); ?></a></li>
+                        <?php
+                          }
+                          if(!empty($this->property_info['feature_bathroom']))
+                          {
+                        ?>	
+                        <li class="bathroom"><?php  echo (int)$this->escape($this->property_info['feature_bathroom']).' '.$this->translator->translator('property_front_page_bathroom');   ?></li>
+                        <?php
+                          }
+                        ?>
+                        
+                        <li class="kitchen"><?php echo ($this->property_info['feature_kitchen']) ? $this->translator->translator('property_front_page_property_has_kitchen') : $this->translator->translator('property_front_page_property_no_kitchen') ; ?></li>
+                        
+                        <li class="garden"><?php echo ($this->property_info['feature_garden']) ? $this->translator->translator('property_front_page_property_has_garden') : $this->translator->translator('property_front_page_property_no_garden') ; ?></li>
+    
+                        <li class="garage"><?php echo ($this->property_info['feature_garage']) ? $this->translator->translator('property_front_page_property_has_garage') : $this->translator->translator('property_front_page_property_no_garage') ; ?></li>
+                    </ul>                              
+                 </div>    
+            </div>
+            <!-- list Body End -->
+    </div>
+    <?php
+	 }	
+	?>
+    <!-- Email to Friend Form Start-->
+   	<div class="clear">
+    		<form name="GeneralForm" id="GeneralForm">
+            	<div>
+                	<?php
+						$file_type_arr = explode(',',$this->form_info['attach_file_type']);
+						$j= 0;
+						foreach($file_type_arr as $key => $value)
+						{
+							$file_type_arr[$j] = '*.'.$value;
+							$j++;
+						} 
+						$file_format = implode(';',$file_type_arr);									
+						$staticGroupsObj = $this->generalForm->getDisplayGroups(); 
+						$i=1;									
+						foreach($staticGroupsObj as $staticGroup)
+						{
+							$elementsObj = $staticGroup->getElements();
+					?>
+                    <fieldset>
+                    <legend><?php echo $this->translator->translator($staticGroup->getLegend()); ?></legend>
+                    
+                    <div>
+                      <?php	
+                          if(!empty($this->form_info['editor_fields'])){ $this->generalForm->setEditor($this->serverUrl().$this->baseUrl(),$this->form_info['editor_fields']); $this->generalForm->getEditor(); }						  
+                                    
+                          $new_file_info = new Portfolio_Controller_Helper_File();															
+                          foreach($elementsObj as $element)
+                          {
+                              if($element->getAttrib('frontend') == '1')
+                              {	
+                                  $e_name_arr = explode('_',$element->getName());																				
+                                  $sumbol = (in_array(Eicra_File_Constants::PRICE,$e_name_arr,true)) ? '&nbsp;'.$currency->getSymbol() : '';
+                                  
+                                  switch($element->getType())
+                                  {
+                                      case 'Zend_Form_Element_File':                                                    
+                                                  $image_file_arr = array();                                                                                                
+                                              ?>
+                                              
+                                                  <div class="form-label-container">
+                                                      <div class="label_class <?php echo $this->escape($this->form_info['label_class']); ?>" style="<?php echo $this->escape($this->form_info['label_style']); ?>">
+                                                          <?php echo $element->getLabel(); if($element->isRequired() ){ ?><span class="star_class <?php echo $this->escape($this->form_info['star_class']); ?>" style="<?php echo $this->escape($this->form_info['star_style']); ?>">*</span><?php } ?>
+                                                      </div>
+                                                   </div>
+                                          
+                                                   <div class="form-field-container">
+                                                      <div class="form-field">
+                                                          <script type="text/javascript">
+                                                          $(function(){
+                                                              /**************************FILE UPLOAD START******************************/																					
+                                                              dynamicUploader("<?php echo $element->getName().'_upload'; ?>", "<?php echo $element->getName(); ?>", <?php echo $this->settings_json_info; ?>, languageArray(), "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+                                                              /**************************FILE UPLOAD END*********************************/
+                                                          });
+                                                          </script>
+                                                          <span class="ui-widget"><input type="file" name="<?php echo $element->getName(); ?>_upload" id="<?php echo $element->getName(); ?>_upload" /><input type="hidden" name="<?php echo $element->getName(); ?>" id="<?php echo $element->getName(); ?>" class="<?php echo $element->getName(); ?>_class empty_class" value="<?php echo $this->productInfo[$element->getName()]; ?>" /></span>
+                                                          <br /><span class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></span>
+                                                       </div>
+                                                       <div class="form-field-info">
+                                                          <?php if($element->getAttrib('info')){ ?><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?>
+                                                       </div>                                                      									
+                                                   </div>
+                                              
+                                                    <div class="form-label-container">
+                                                      <div class="label_class">&nbsp;</div>
+                                                    </div>
+                                                   
+                                                   <div class="form-field-container">
+                                                      <div class="form-field">
+                                                          <span id="selected_file_<?php echo $element->getName(); ?>">
+                                                                  <?php
+                                                                      $dynamic_image_view = '';
+                                                                      if(!empty($image_file_arr[0]))
+                                                                      {													
+                                                                          foreach($image_file_arr as $key => $value)
+                                                                          {	
+                                                                              $show_file_path  =		$new_file_info->getFilePath($value, $this->settings_info);																												
+                                                                              $img_code = '<span class="thumb"><img src="'.$show_file_path.'" title="'.$value.'" width="20" height="10" /></span>';
+                                                                              $down_link = (!$new_file_info->isImage($value)) ? '<br /><a href="'.$this->settings_info[$this->settings_info['file_path_field']].'/'.$value.'">'.$this->translator->translator("common_download", "", "Projects").'</a>' : '';
+                                                                              $del_link	=	'<a href="javascript:void(0)" class="delete_uploaded_image_link" field_name="'.$element->getName().'" file_name="'.$value.'" file_path="'.$this->settings_info[$this->settings_info['file_path_field']].'">'.$this->translator->translator("common_delete_title").'</a>'.$down_link;
+                                                                              $dynamic_image_view .= '<div class="upload-img box"><span>'.$img_code.'<br /><br />&nbsp;&nbsp;'.$del_link.'&nbsp;&nbsp;&nbsp;</span></div>';
+                                                                          }															
+                                                                      }
+                                                                      echo $dynamic_image_view;
+                                                                  ?>
+                                                              </span>&nbsp;
+                                                       </div>                                                     									
+                                                   </div>
+                                              <?php	
+                                          break;
+                                      case 'Zend_Form_Element_MultiCheckbox':
+                                      case 'Zend_Form_Element_Radio':
+                                              
+                                          ?>
+                                                  <div class="form-label-container">
+                                                      <div class="label_class <?php echo $this->escape($this->form_info['label_class']); ?>" style="<?php echo $this->escape($this->form_info['label_style']); ?>">
+                                                          <?php echo $element->getLabel(); if($element->isRequired() ){ ?><span class="star_class <?php echo $this->escape($this->form_info['star_class']); ?>" style="<?php echo $this->escape($this->form_info['star_style']); ?>">*</span><?php } ?>
+                                                      </div>
+                                                  </div>
+                                                  
+                                                  <div class="form-field-container">
+                                                      <div class="form-field">
+                                                          <span class="ui-widget"><div class="autos-features property-features vacationrental-features tours-features"><?php  echo $element; ?></div></span>
+                                                          <br /><span class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></span>
+                                                      </div>
+                                                      <div class="form-field-info"><?php if($element->getAttrib('info')){ ?><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?></div>
+                                                  </div>
+                                                  
+                                          <?php                                         
+                                          break;									
+                                      case 'Zend_Form_Element_Captcha':
+                                          ?>
+                                                <div class="form-label-container">
+                                                      <div class="label_class <?php echo $this->escape($this->form_info['label_class']); ?>" style="<?php echo $this->escape($this->form_info['label_style']); ?>">
+                                                          <?php echo $element->getLabel(); if($element->isRequired() ){ ?><span class="star_class <?php echo $this->escape($this->form_info['star_class']); ?>" style="<?php echo $this->escape($this->form_info['star_style']); ?>">*</span><?php } ?>
+                                                      </div>
+                                                  </div>
+                                                  
+                                                  <div class="form-field-container">
+                                                      <div class="form-field">
+                                                          <div class="captcha">
+                                                              <span class="ui-widget"><?php  echo $element; ?></span><br />
+                                                              <span class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></span>
+                                                          </div>
+                                                      </div>
+                                                      <div class="form-field-info"><?php if($element->getAttrib('info')){ ?><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?></div>
+                                                  </div>
+                                          <?php	
+                                          break;
+                                      default:
+                                                                                                          
+                                          ?>
+                                          
+                                          <div class="form-label-container">
+                                              <div class="label_class <?php echo $this->escape($this->form_info['label_class']); ?>" style="<?php echo $this->escape($this->form_info['label_style']); ?>" >
+                                                  <?php echo $element->getLabel(); if($element->isRequired() ){ ?><span class="star_class <?php echo $this->escape($this->form_info['star_class']); ?>" style="<?php echo $this->escape($this->form_info['star_style']); ?>">*</span><?php } ?>&nbsp;
+                                              </div>
+                                          </div>
+                                  
+                                          <div class="form-field-container">
+                                              <div class="form-field">
+                                                  <?php 										
+                                                          $id_f = $element->getAttrib('id');
+                                                          $id_arr = explode('_',$id_f);
+                                                          if(in_array(Eicra_File_Constants::DATE,$id_arr))
+                                                          {
+                                                          ?>
+                                                          <script type="text/javascript">
+                                                              $(function() {
+                                                                  calender('<?php echo $id_f; ?>');
+                                                              });
+                                                          </script>
+                                                          <?php
+                                                          }
+                                                          if($element->getType() == 'Zend_Form_Element_MultiCheckbox')
+                                                          {
+                                                              echo '<span class="ui-widget">'.$element.$sumbol.'</span>';
+                                                          }
+                                                          else
+                                                          {
+                                                              echo '<span class="ui-widget">'.$element.$sumbol.'</span>';
+                                                          }															
+                                                  ?><br />
+                                                  <span class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></span>                                              
+                                              </div>
+                                              <div class="form-field-info"><?php if($element->getAttrib('info')){ ?><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?></div>                                              
+                                           </div>                                     
+                                          <?php                                                 
+                                          break;										
+                                  }
+                              }
+                          }
+                      ?>
+                      </div>
+                        
+            		</fieldset>
+                    <?php
+					 $group_no = ($this->escape($this->form_info['group_no'])) ? (int)$this->escape($this->form_info['group_no']) : 1;
+						}
+					 ?>
+                </div>
+          	</form>
+            
+            <div class="clear btn-container">
+                <span class="form-button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><?php echo $this->translator->translator('common_reset'); ?></a></span>
+                <span class="form-button ui-widget-content-1"><a href="javascript: void(0);" class="add_user_btn"><?php echo $this->translator->translator('common_submit'); ?></a></span>
+        	</div>
+  	</div>
+    <!-- Email to Friend Form End-->
+</div>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg','Message'); ?>"></div>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar"></div>	
+</div>

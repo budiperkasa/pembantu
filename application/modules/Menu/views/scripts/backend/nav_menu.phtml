@@ -1,0 +1,32 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$draft = $frontController->getRequest()->getParam('draft');
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('menu_menu_name'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('listgrp','backend','Menu')) : ?>
+        	<li <?php if($getAction == 'listgrp' && strtolower($getController) == 'backend'){ ?> class="menu-grp selected"<?php }else{ ?>class="menu-grp"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Menu','controller'=>'backend', 'action'=>'listgrp'),'adminrout',true);?>" ><?php echo $translator->translator('menu_menu_grp'); ?></a>
+			</li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Menu')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'backend' && ($draft != '0' && $draft != '1')){ ?> class="menu-list selected"<?php }else{ ?>class="menu-list"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Menu','controller'=>'backend', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('menu_menu_list'); ?></a>
+            </li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Menu')) : ?>
+            <li <?php if($getAction == 'list' && strtolower($getController) == 'backend' && $draft == '0'){ ?> class="menu-publish last selected"<?php }else{ ?>class="menu-publish last"<?php } ?>>
+            	<a href="<?php echo $this->url(array('module' => 'Menu','controller'=>'backend', 'action'=>'list', 'draft' => '0'),'adminrout',true);?>"><?php echo $translator->translator('admin_menu_list_draft'); ?></a>
+            </li>
+			<?php endif; ?>
+        </ul>
+    </div>
+</div>

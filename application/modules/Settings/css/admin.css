@@ -1,0 +1,245 @@
+/**
+Pulse Pro Voting Script
+http://s.technabled.com/PulsePro
+**/
+.clear {
+clear:both;
+}
+
+.error, .success {
+	text-align:center;
+	border:1px solid #e20e1a;
+	padding:5px;
+	margin:0 0 5px 0;
+}
+
+.success {
+	border: 1px solid green;
+	background:#EBFFE6;
+}
+
+.error ul, .success ul {
+	list-style:none;
+}
+
+#header {
+/*	background:#333333;		Conflict with Eicra CMS Header
+	color:#ffffff;
+	padding:20px 0px;*/
+}
+
+#header h1 {
+/*	font-weight:normal;		Conflict with Eicra CMS Header
+	font-size:25px;
+	font-family:"Oswald", sans-serif;
+	float:left;
+	margin-left:10px;
+	margin-top:6px;*/
+}
+
+#header #admin-actions {
+	padding:8px;
+	background:#545454;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-color:#545454;
+	border-width:1px;
+	border-style:solid;
+	float:right;
+	margin-right:10px;
+}
+
+#admin-actions a {
+	color:#ffffff;
+}
+
+.login-form {
+	width:650px;
+	margin:80px auto;
+}
+
+.spinner {
+	line-height:17px;
+	background:transparent url("../images/spinner.gif") left center no-repeat;
+	padding-left:19px;
+	margin-left:4px;
+}
+
+.create-spinner {
+	line-height:17px;
+	background:transparent url("../images/create-spinner.gif") left center no-repeat;
+	padding-left:19px;
+	margin-left:4px;
+}
+
+.filter-select {
+	float:right;
+}
+
+.vote-stat, .centered {
+	vertical-align:middle;
+	text-align:center;
+}
+
+.right {
+	vertical-align:middle;
+	text-align:right;
+}
+
+.action_td {
+	width:200px;
+}
+
+.text{
+	font-size:14px;
+	padding:5px;
+ 	border-style:solid;
+	border-width:1px 1px 1px;
+	border-color:#CCCCCC #C3C3C3 #DDDDDD;
+	margin-right:4px;
+}
+
+.text.long {
+	width:350px;
+}
+
+div.pollpercent {
+	width:95%;	
+	border:0px solid #8C8070;
+	-moz-border-radius: 5px 5px 5px 5px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border-radius: 5px 5px 5px 5px;
+		
+	background-color: #FFC6E7;
+	background: -webkit-gradient(linear,left top,left bottom,from(rgba(237, 236, 234,0.70)),to(rgba(255, 191, 229,0.70)));
+	background: -moz-linear-gradient(top, rgba(237, 236, 234, 0.70), rgba(255, 191, 229,0.70));
+}
+
+div.weight {
+	margin-top:5px;
+	height:20px;
+	background-color: #7EAD21;
+	
+	background: -webkit-gradient(linear,right top,right bottom,from(rgba(133, 159, 242,0.85)),to(rgba(207, 217, 247,0.85)));
+	background: -moz-linear-gradient(top, rgba(133, 159, 242,0.85), rgba(207, 217, 247,0.85));
+	
+	background:    -moz-radial-gradient(45px 45px 45deg, circle cover,
+				 aqua 0%, rgba(133, 159, 242, 0) 100%, blue 100%);
+	background: -webkit-radial-gradient(45px 45px 45deg, circle cover,
+		 aqua 0%, rgba(133, 159, 242, 0) 100%, blue 100%);
+	background: -ms-radial-gradient(45px 45px 45deg, circle cover,
+		 aqua 0%, rgba(133, 159, 242, 0) 100%, blue 100%);
+	background: -o-radial-gradient(45px 45px 45deg, circle cover,
+		 aqua 0%, rgba(133, 159, 242, 0) 100%, blue 100%);
+	
+	-moz-border-radius: 5px 5px 5px 5px;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border-radius: 5px 5px 5px 5px;
+}
+
+/**
+Form styles
+**/
+.infoWrapper {
+	clear:both;
+	margin-top:10px;
+}
+
+.infoTitle {
+	color:#808080;
+	float:left;
+	width:230px;
+	text-align:right;
+	margin-right:5px;
+	line-height:29px;
+}
+
+.infoContent {
+	padding-left:130px;
+	text-align: left;
+}
+
+/**
+Search Box Styles
+**/
+#grayText, #search {
+    background: none repeat scroll 0 0 transparent;
+    padding-left: 5px;
+    position: absolute;
+    z-index: 100;
+    text-transform: lowercase;
+}
+#SearchBox {
+    height: 30px;
+}
+
+/* Not implemented
+#xBtn a {
+    color: #A1B9ED;
+    cursor: pointer;
+    font: 22px/22px Arial,sans-serif;
+    padding: 4px 3px 3px 348px;
+    margin-right:5px;
+    text-decoration: none;
+}*/
+
+#SearchBox .action_button {
+	margin-left:370px;
+}
+
+/** Button styles **/
+.action_button {
+	/*background:#EFEFEF;
+	outline:none;
+	text-decoration: none;
+	padding:4px 6px;
+	border:1px solid #333333;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	background: #fff -webkit-gradient(linear,left top,left bottom,from(rgba(0,0,0,0)),to(rgba(0,0,0,0.10)));
+	background: #fff -moz-linear-gradient(top,rgba(0,0,0,0),rgba(0,0,0,0.10));
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#00000000',endColorstr='#000000e5');
+	-webkit-box-shadow: rgba(0,0,0,0.15) 0 1px 1px,inset rgba(255,255,255,0.5) 0 1px 0;
+	-moz-box-shadow: rgba(0,0,0,0.15) 0 1px 1px,inset rgba(255,255,255,0.5) 0 1px 0;
+	box-shadow: rgba(0,0,0,0.15) 0 1px 1px,inset rgba(255,255,255,0.5) 0 1px 0;
+	-webkit-background-clip: border-box;
+	-moz-background-clip: border;
+	background-clip: border-box;
+	margin-right:4px;*/
+}
+
+.action_button:hover {
+    /*text-decoration: none;
+    border-color: rgba(0,0,0,0.50);
+    background: #c8c8c8;
+    background: #fff -webkit-gradient(linear,left top,left bottom,from(rgba(0,0,0,0.04)),to(rgba(0,0,0,0.15)));
+    background: #fff -moz-linear-gradient(top,rgba(0,0,0,0.04),rgba(0,0,0,0.15));
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#000000f5',endColorstr='#000000d9');
+    -webkit-background-clip: border-box;
+    -moz-background-clip: border;
+    background-clip: border-box;*/
+}
+
+.action_button:active {
+	text-decoration: none;
+    border-color: rgba(0,0,0,0.50);
+    background: #aaa;
+    background: #fff -webkit-gradient(linear,left top,left bottom,from(rgba(0,0,0,0.33)),to(rgba(0,0,0,0.10)));
+    background: #fff -moz-linear-gradient(top,rgba(0,0,0,0.33),rgba(0,0,0,0.10));
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#000000ab',endColorstr='#000000e5');
+    -webkit-box-shadow: inset rgba(0,0,0,0.5) 0 3px 7px;
+    -moz-box-shadow: inset rgba(0,0,0,0.5) 0 3px 7px;
+    box-shadow: inset rgba(0,0,0,0.5) 0 3px 7px;
+    -webkit-background-clip: border-box;
+    -moz-background-clip: border;
+    background-clip: border-box;
+}
+
+.tipsy { padding: 5px; font-size: 10px; opacity: 1; filter: alpha(opacity=100); background-repeat: no-repeat;  background-image: url(../images/tipsy.gif); }
+.tipsy-inner { padding: 5px 20px 4px 20px; background-color: black; color: white; max-width: 200px; text-align: center;font-size:1.2em;font-weight:bold; }
+.tipsy-inner { -moz-border-radius:3px; -webkit-border-radius:3px; }
+.tipsy-north { background-position: top center; }
+.tipsy-south { background-position: bottom center; }
+.tipsy-east { background-position: right center; }
+.tipsy-west { background-position: left center; }

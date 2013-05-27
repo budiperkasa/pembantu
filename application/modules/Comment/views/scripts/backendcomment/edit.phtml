@@ -1,0 +1,323 @@
+<?php
+$version = Zend_Registry::get('version');
+$this->commentForm->setEditor(Zend_Registry::get('config')->eicra->params->domain.$this->baseUrl());
+$this->commentForm->getEditor();
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {	
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'fade',
+			resizable: 'false',				
+			buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 10000);
+				  }
+		});
+	}
+	
+	$('select.comment_select_table').change(function() {		
+		var tableName = $('#table_name').val();
+		if(tableName != 0)
+		{
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Comment','controller' => 'backendcomment', 'action'     => 'getpages' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { table_name: tableName },
+				 beforeSend: function(){						
+							$('select#table_id').html('<option value="0"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+							$('#table_id_err').html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" border="0" height="15" class="left-float"/>');	
+						 },
+				success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					var option = '<option value="0"><?php echo $this->translator->translator("comment_select_page"); ?></option>';				
+					if(json_arr.status == 'ok')
+					{
+						for(var i = 0;i<json_arr.page_id.length;i++)
+						{
+							option += '<option value="'+json_arr.page_id[i]+'" >'+json_arr.page_title[i]+'</option>';
+						}
+						$('select#table_id').html(option);
+					}
+					else
+					{
+						$('select#table_id').html('<option value="0"><?php echo $this->translator->translator("no_page_found_in_table"); ?></option>');
+					}
+					$('#table_id_err').html('');
+				}
+			});
+		}
+		else
+		{
+			$('select#table_id').html('<option value="0"><?php echo $this->translator->translator("comment_select_page"); ?></option>');
+		}
+	});
+	
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+		$('#thumb').val('');
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				//
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+				fieldObj[filename] = (tinyMCE.get(filename)) ? tinyMCE.get(filename).getContent() : filevalue;			
+			}	
+		});
+		return fieldObj;
+	}
+	
+	$('a.edit_comment_btn').click(function() {			
+			
+		var formData = getFormData();
+		formData.id = "<?php echo $this->id;?>";
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Comment','controller' => 'backendcomment', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+});
+</script>
+
+<?php 
+	$check = new Comment_Controller_Helper_CheckOwner();	
+	$no_access = $this->translator->translator('Member_Access_deny_desc');
+	if (!$this->allow())
+	{
+		echo '<div class="grid_12 t_a_bottom">'.$no_access.'</div>';
+	}
+	else if(!$check->checkEntryBy('comment',(int)$this->id))
+	{
+		echo '<div class="grid_12 t_a_bottom">'.$no_access.'</div>';
+	}
+	else 
+	{
+?>
+
+<div id="container">
+<div class="title-container">
+	<div class="comments-edit"><h1><?php echo $this->translator->translator('comment_edit_page_title'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Comment','controller' => 'backendcomment', 'action'     => 'list'), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_comment_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <div id="button_top_bar"></div>
+    <form name="formCommentAdd" id="formAdd" method="post">
+    <div id="generalInfo">
+        	<fieldset class="fieldset last">
+                <legend class="legend"><?php echo $this->translator->translator('comment_add_page_info'); ?></legend>
+                <div class="form">
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->comment_title->getLabel();  if($this->commentForm->comment_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->commentForm->comment_title;  ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->commentForm->comment_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="comment_title_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->table_name->getLabel();  if($this->commentForm->table_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->commentForm->table_name; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->commentForm->table_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="table_name_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->table_id->getLabel();  if($this->commentForm->table_id->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->commentForm->table_id; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->commentForm->table_id->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="table_id_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->parent; ?>
+                        </div>
+                        
+                        <div class="field">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->comment_desc->getLabel(); if($this->commentForm->comment_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                            <div class="editor"><?php echo $this->commentForm->comment_desc; ?></div>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->commentForm->comment_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <span id="loaderLink"><a href="javascript:void(0);" onClick="loadTinyMCE('comment_desc');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php echo $this->translator->translator('comment_wyssiwyg_editor');?>" alt="<?php echo $this->translator->translator('comment_wyssiwyg_editor');?>" ></a></span>
+                            <div class="input-errors" id="comment_desc_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->commentForm->page_url->getLabel();  if($this->commentForm->page_url->isRequired()){ ?><span class="required">*</span><?php } ?>
+                        </div>
+                        
+                        <div class="field">
+                        	<?php echo $this->commentForm->page_url; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->commentForm->page_url->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="page_url_err"></div>
+                        </div>
+                    </div>                    
+             	</div>
+			</fieldset>
+	</div>
+	</form>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('comment_edit_page_title'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Comment','controller' => 'backendcomment', 'action'     => 'list'), 'adminrout',    true) ?>" class="back_btn_link"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_comment_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+<?php } ?>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg', $this->translator->translator('comment_edit_page_title')); ?>">
+</div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>
+</div>
+</div>

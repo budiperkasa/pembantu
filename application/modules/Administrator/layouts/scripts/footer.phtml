@@ -1,0 +1,11 @@
+<?php
+$license = new Zend_Session_Namespace('License');
+$validation_data = $license->license_data;
+$global_conf = Zend_Registry::get('global_conf');
+?>
+<div id="footer">
+	<p class="powered"><?php echo $this->translator->translator('common_footer_power'); ?></strong> <a href="http://www.<?php if(empty($global_conf['admin_footer_url'])){ echo $validation_data['vendor_domain']; }else{ echo $global_conf['admin_footer_url']; } ?>" target="_blank"><?php if(empty($global_conf['admin_footer'])){ echo $validation_data['footer_name']; }else{ echo $global_conf['admin_footer']; } ?></a><br />
+    <?php echo $this->translator->translator('common_footer_copy_right'); ?><?php echo date("Y"); ?> <?php echo $this->translator->translator('common_footer_all_right'); ?></p>
+    
+    <p class="version"><?php echo $this->translator->translator('common_vesrion_label'); ?> <?php echo Eicra_License_Version::getVersion(); ?></p>
+</div>

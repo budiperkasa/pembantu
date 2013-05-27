@@ -1,0 +1,250 @@
+<div id="container">
+<?php if (!$this->allow() || $this->roleForm->role_lock->getValue() == '0') : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('previlege_Access_deny_desc'); ?>
+	</div>
+<?php 
+else : 
+ 
+$version = Zend_Registry::get('version');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);		
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError()	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();	
+		$('span.empty_class').each(function(){
+			$(this).html('');
+		});	
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('#RoleForm').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('#RoleForm').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+				if($('input[name="'+filename+'[]"]').is(':checkbox'))
+				{
+					var val_arr = [];
+					$('input[name="'+filename+'[]"]:checkbox:checked').each(function(i){
+					 val_arr[i] = $(this).val();
+					});
+					filevalue = (val_arr[0] != null) ? val_arr.join(',') : null;					
+				}
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] =   filevalue;			
+		});
+		return fieldObj;
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	$('a.edit_btn').click(function() {				
+			var formData = getFormData();	
+			formData.role_id = '<?php echo $this->role_id; ?>';					
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'     => 'update'), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){
+					openLoaderDialog();
+					removeError();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));																		
+					}
+					else if(json_arr.status == 'errV')
+					{						
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else if(json_arr.status == 'errP')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+						addError('confirmPassword',json_arr.msg);
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				}
+		});
+	});
+	
+});
+
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+</script>
+
+<div class="title-container">
+    <div class="role-edit"><h1><?php echo $this->translator->translator('role_list_edit_head', $this->roleForm->role_name->getValue()); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <form name="RoleForm" id="RoleForm">					
+			<?php 								
+                $staticGroupsObj = $this->roleForm->getDisplayGroups();																
+                foreach($staticGroupsObj as $staticGroup)
+                {
+                    $elementsObj = $staticGroup->getElements();
+            ?>
+            <div id="button_top_bar"></div>
+            <fieldset class="fieldset">
+            	<legend class="legend"><?php echo $this->translator->translator($staticGroup->getLegend()); ?></legend>
+                
+                <?php
+					$c=1;
+					foreach($elementsObj as $element)
+					{		
+						$info = 	($element->getAttrib('info')) ? 	$element->getAttrib('info') : '';												
+				?>
+                <div class="form">
+                	<div class="form-row">
+                        <div class="label add-role-label">	
+                            <?php echo ''.$this->escape($element->getLabel()); if($element->isRequired() ){ ?><span class="required">*</span><?php }   echo '';
+                                echo '<div class="form-info">'.$info.'</div>';
+                            ?>	
+                        </div>
+                        
+                        <div class="field add-role-field">
+                            <?php if($element->getAttrib('title')){ ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?>
+                            <?php echo $element; ?>
+                            <div class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></div>
+                        </div>
+					</div>
+                </div>
+                <?php																
+						$c++;
+					}
+				?>
+            </fieldset>
+            <?php									
+				}
+			?>
+	</form>
+                    
+	<div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div  id="floatingbar">	
+    <h1><?php echo $this->translator->translator('role_list_edit_head', $this->roleForm->role_name->getValue()); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'role', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="edit_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('role_list_edit_head',  $this->roleForm->role_name->getValue())); ?>"></div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<?php endif; ?>
+</div>

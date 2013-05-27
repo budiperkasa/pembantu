@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backendvote" for="backend" description="Manage Vote Settings" langKey="permisson_vote_backend_setting">
+		<privilege for="dashboard" name="list" description="Setting List" langKey="permisson_vote_backendsetting_list" />
+		<privilege name="changestatus" description="Enable / Disable Voting" langKey="permisson_vote_backendsetting_enable_disable" />
+		<privilege name="bannedlist" description="Banned IP List" langKey="permisson_vote_backendsetting_bannedlist" />
+		<privilege name="createban" description="Create Banned IP" langKey="permisson_vote_backendsetting_createban" />
+		<privilege name="removefromban" description="Remove From Banned IP" langKey="permisson_vote_backendsetting_removefromban" />
+	</resource>
+</permissions>

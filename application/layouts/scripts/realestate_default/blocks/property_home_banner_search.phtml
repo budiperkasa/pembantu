@@ -1,0 +1,616 @@
+<?php
+class property_search_box
+{
+	protected	$_group = 1;
+	protected	$_limit = 3;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected	$_business_type_db;
+	protected	$_currency;
+	protected	$_cat_Info;
+	protected	$_mem_db;
+	protected	$_country_db;
+	protected	$translator;
+	protected	$postValue;
+	protected 	$_global_conf;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator  = Zend_Registry::get('translator');
+		
+		$frontController = Zend_Controller_Front::getInstance();		
+		
+		//DD Class
+		$this->_global_conf 		= Zend_Registry::get('global_conf');
+		$this->_currency 	= new Zend_Currency($this->_global_conf['default_locale']);
+		$this->_business_type_db = new Property_Model_DbTable_BusinessType();
+		$this->_cat_Info 	= new Property_Model_DbTable_Category();
+		$this->_mem_db 		= new Members_Model_DbTable_MemberList();
+		$this->_country_db 	= new Property_Model_DbTable_Country();
+		$this->postValue 	= $frontController->getRequest()->getPost();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$version = Zend_Registry::get('version');
+		$translator = Zend_Registry::get('translator');
+		$property_db = new Property_Model_DbTable_Properties();	
+		$country_info = $this->_country_db->getCountryName($this->_global_conf['default_country']);
+?>
+
+<script type="text/javascript">	
+$(function() {
+		
+	$( "#property_name_box" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->_view->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true); ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						property_name: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.property_name,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 2,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " " + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};		
+	
+	$( "#post_code_box" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->_view->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						post_code: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.post_code,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('property_post_code'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};
+		
+	$( "#property_price_box" ).autocomplete({
+		source: function( request, response ) {
+			$.ajax({
+				url: "<?php echo $this->_view->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				dataType: "json",
+				data: {
+					property_price: request.term
+				},
+				success: function( data ) {
+					if(data.status == 'ok')
+					{
+						response( $.map( data.search_data, function( item ) {
+							var property_primary_image	= item.property_primary_image;
+							var property_image	= item.property_image;
+							var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+							var room = item.property_location.split('<br />');
+							return {
+								label: item.property_name,
+								value: item.price,
+								pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+								room:item.property_room,
+								owner:item.owner_name,
+								location: room[1]
+							}
+						}));
+					}
+					else
+					{
+						response( $.map( data, function( item ) {
+							return 
+						}));
+					}
+				}
+			});
+		},
+		minLength: 1,
+		open: function() {
+			$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+		},
+		close: function() {
+			$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );				
+		}
+	})
+	.data( "autocomplete" )._renderItem = function( ul, item ) {
+		return $( "<li></li>" )
+			.data( "item.autocomplete", item )
+			.append( "<a>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('price'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+			.appendTo( ul );				
+	};	
+});
+
+$(document).ready(function() {
+	function stripslashes(str) 
+	{
+		str=str.replace(/\\'/g,'\'');
+		str=str.replace(/\\"/g,'"');
+		str=str.replace(/\\0/g,'\0');
+		str=str.replace(/\\\\/g,'\\');
+		return str;
+	}
+	$('select.country_id_box').change(function() {	
+			if($('select.country_id_box option:selected').val() == 'any' || $('select.country_id_box option:selected').val() =='')
+			{
+				$('select.area_id_box').html('<option value="any"><?php echo $this->translator->translator("common_select_area"); ?></option>');	
+				$('select.state_id_box').html('<option value="any"><?php echo $this->translator->translator("common_select_state"); ?></option>');
+			}
+			else
+			{	
+				$.ajax({
+					  url: "<?php echo $this->_view->url( array('module' =>'Property','controller' => 'frontend', 'action'     => 'states' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('select.country_id_box option:selected').val() },
+					  beforeSend: function(){						
+								$('select.state_id_box').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+								$('select.area_id_box').html('<option value="any"><?php echo $this->translator->translator("common_select_area"); ?></option>');			
+								$('#state_id_box_err').html('<img src="application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/search.gif" border="0"/>');	
+							 },
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("common_select_state"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.states.length;i++)
+							{
+								option += '<option value="'+json_arr.states[i].state_id+'" >'+stripslashes(json_arr.states[i].state_name)+'</option>';
+							}
+							$('select.state_id_box').html(option);
+						}
+						else
+						{
+							$('select.state_id_box').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#state_id_box_err').html('');
+					  }
+				});
+			}
+		});
+		
+	$('select.state_id_box').change(function() {		
+				
+		if($('select.state_id_box option:selected').val() == 'any' || $('select.state_id_box option:selected').val() == '')
+		{
+			$('select.area_id_box').html('<option value="any"><?php echo $this->translator->translator("common_select_area"); ?></option>');
+		}
+		else
+		{
+			$.ajax({
+				  url: "<?php echo $this->_view->url( array('module' => 'Property', 'controller' => 'frontend', 'action'     => 'areas' ), 'adminrout',    true) ?>",
+				  type: 'POST',
+				  data: { id: $('select.state_id_box option:selected').val() },
+				  beforeSend: function(){						
+						$('select.area_id_box').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+						$('#area_id_box_err').html('<img src="application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/search.gif" border="0" />');	
+						},
+				  success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					var option = '<option value="any"><?php echo $this->translator->translator("common_select_area"); ?></option>';				
+					if(json_arr.status == 'ok')
+					{
+						for(var i = 0;i<json_arr.cities.length;i++)
+						{
+							option += '<option value="'+json_arr.cities[i].city_id+'" >'+stripslashes(json_arr.cities[i].city)+'</option>';
+						}
+						$('select.area_id_box').html(option);
+					}
+					else
+					{
+						$('select.area_id_box').html('<option value="any">'+json_arr.msg+'</option>');
+					}
+					$('#area_id_box_err').html('');
+				  }
+			});
+		}
+	});	
+	
+	(function( $ ) {
+		$.widget( "ui.combobox", {
+			_create: function() {
+				var self = this,
+					select = this.element.hide(),
+					selected = select.children( ":selected" ),
+					value = selected.val() ? selected.text() : "";
+				var input = $( "<input>" )
+					.insertAfter( select )
+					.val( value )
+					.autocomplete({
+						delay: 0,
+						minLength: 0,
+						source: function( request, response ) {
+							var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+							response( select.children( "option" ).map(function() {
+								var text = $( this ).text();
+								if ( this.value && ( !request.term || matcher.test(text) ) )
+									return {
+										label: text.replace(
+											new RegExp(
+												"(?![^&;]+;)(?!<[^<>]*)(" +
+												$.ui.autocomplete.escapeRegex(request.term) +
+												")(?![^<>]*>)(?![^&;]+;)", "gi"
+											), "<strong>$1</strong>" ),
+										value: text,
+										option: this
+									};
+							}) );
+						},
+						select: function( event, ui ) {
+							ui.item.option.selected = true;
+							self._trigger( "selected", event, {
+								item: ui.item.option
+							});
+						},
+						change: function( event, ui ) {
+							if ( !ui.item ) {
+								var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+									valid = false;
+								select.children( "option" ).each(function() {
+									if ( this.value.match( matcher ) ) {
+										this.selected = valid = true;
+										return false;
+									}
+								});
+								if ( !valid ) {
+									// remove invalid value, as it didn't match anything
+									//alert($( this ).val());
+									//$( this ).val( "" );
+									//select.val( "" );
+									select.append('<option value="'+$( this ).val()+'">'+$( this ).val()+'</option>');
+									select.val( $( this ).val() );
+									return false;
+								}
+							}
+						}
+					})
+					.addClass( "ui-widget ui-widget-content ui-corner-left" );
+	
+				input.data( "autocomplete" )._renderItem = function( ul, item ) {
+					return $( "<li></li>" )
+						.data( "item.autocomplete", item )
+						.append( "<a>" + item.label + "</a>" )
+						.appendTo( ul );
+				};
+	
+				$( "<span>&nbsp;</span>" )
+					.attr( "tabIndex", -1 )
+					.attr( "title", "Show All Items" )
+					.insertAfter( input )
+					.button({
+						icons: {
+							primary: "ui-icon-triangle-1-s"
+						},
+						text: false
+					})
+					.removeClass( "ui-corner-all" )
+					.addClass( "ui-corner-right ui-button-icon" )
+					.click(function() {
+						// close if already visible
+						if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+							input.autocomplete( "close" );
+							return;
+						}
+	
+						// pass empty string as value to search for, displaying all results
+						input.autocomplete( "search", "" );
+						input.focus();
+					});
+			}
+		});
+	})( jQuery );
+});
+
+$(function() {
+	$( "#property_owner_box" ).combobox();		
+});
+</script>
+
+<div class="block-search">
+	<div class="block-content">
+	<h2><?php echo $this->translator->translator('block_search_title','','', $this->_front_template['theme_folder']); ?></h2>
+	<span class="slogan"><?php echo $this->translator->translator('block_search_slogan',$this->_view->escape($country_info['value']),'', $this->_front_template['theme_folder']); ?></span>
+	<hr />
+            
+	<form action="<?php echo $this->_view->url( array('module' => 'Property', 'controller' => 'search', 'action'     => 'items' ), 'Search-Items',    true); ?>" method="post" name="propertySearchBox" id="propertySearchBox">
+    	<input type="hidden" name="group_id_=" id="group_id" value="<?php echo $this->_group; ?>" /><input type="hidden" name="active_=" id="active" value="1" />   
+		<p class="name"><?php echo $this->translator->translator('block_search_name','','', $this->_front_template['theme_folder']); ?></p>
+        <input name="property_name_LIKE" id="property_name_box" type="text" class="name" value="<?php if(!empty($this->postValue['property_name_LIKE'])){ echo $this->postValue['property_name_LIKE']; }else{ echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); } ?>" />
+      	                  
+      	<div class="col clear">
+        	<p><?php echo $this->translator->translator('block_search_postcode','','', $this->_front_template['theme_folder']); ?></p>
+          	<input name="post_code_LIKE" id="post_code_box" value="<?php if(!empty($this->postValue['post_code_LIKE'])){ echo $this->postValue['post_code_LIKE']; }else{ echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); } ?>" type="text" size="20" />
+      	</div>
+                          
+		<div class="col">
+			<p><?php echo $this->translator->translator('block_search_type','','', $this->_front_template['theme_folder']); ?></p>                 
+	  		<?php $type_info = $this->_business_type_db->getOptions($this->_group); ?>
+      		<select name="property_type_=" id="property_type_box">
+            	<option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+				<?php
+				if($type_info)
+				{ 
+                    foreach($type_info as $info)
+                    {
+                        $selected = (!empty($this->postValue['property_type_=']) && $this->postValue['property_type_='] == $info['id']) ? ' selected="selected" ' : '';
+                ?>
+           		<option value="<?php echo $info['id']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($info['business_type']); ?></option>
+            	<?php
+                	}
+				}
+            	?>
+			</select>
+		</div>
+                          
+		<div class="col">
+			<p><?php echo $this->translator->translator('block_search_price','','', $this->_front_template['theme_folder']); ?></p>
+           	<input name="property_price_LIKE" id="property_price_box" value="<?php if(!empty($this->postValue['property_price_LIKE'])){ echo $this->postValue['property_price_LIKE']; }else{ echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); } ?>" type="text" size="20" />
+           	<p class="symbol"><?php echo $currency = $this->_currency->getSymbol(); ?></p>
+       	</div>
+                          
+		<div class="col clear">
+			<p><?php echo $this->translator->translator('block_search_price_min','','', $this->_front_template['theme_folder']); ?></p>
+			<?php $min_price_arr = $property_db->getPrice('ASC'); ?>
+            <select name="property_price_>=" id="property_price_>=">
+                <option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+                <?php
+				if($min_price_arr)
+				{
+					foreach($min_price_arr as $key=>$value)
+					{
+						if(!empty($value['property_price']))
+						{
+                        $selected = (!empty($this->postValue['property_price_>=']) && $this->postValue['property_price_>='] == $value['property_price']) ? ' selected="selected" ' : '';
+                ?>
+                    <option value="<?php echo $value['property_price']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_price']).' '.$currency; ?></option>
+                <?php
+                        }
+                    }
+				}
+                ?>
+            </select>  
+		</div>
+                          
+		<div class="col">
+			<p><?php echo $this->translator->translator('block_search_price_max','','', $this->_front_template['theme_folder']); ?></p>
+			<?php $max_price_arr = $property_db->getPrice('DESC'); ?>
+            <select name="property_price_<=" id="property_price_<=">
+                <option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+                <?php
+				if($max_price_arr)
+				{
+					foreach($max_price_arr as $key=>$value)
+					{
+						if(!empty($value['property_price']))
+						{
+                        $selected = (!empty($this->postValue['property_price_<=']) && $this->postValue['property_price_<='] == $value['property_price']) ? ' selected="selected" ' : '';
+                ?>
+                    <option value="<?php echo $value['property_price']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_price']).' '.$currency; ?></option>
+                <?php
+                        }
+                    }
+				}
+                ?>
+            </select>
+		</div>
+                          
+		<div class="col">
+			<p><?php echo $this->translator->translator('block_search_category','','', $this->_front_template['theme_folder']); ?></p>                   
+			<?php $cat_data = $this->_cat_Info->getOptions($this->_group); ?>
+            <select name="category_id_=" id="category_id_box">
+                <option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+                <?php
+				if($cat_data)
+				{
+                    foreach($cat_data as $info)
+                    {
+               			$selected = (!empty($this->postValue['category_id_=']) && $this->postValue['category_id_='] == $info['id']) ? ' selected="selected" ' : '';
+                ?>
+                		<option value="<?php echo $info['id']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($info['category_name']); ?></option>
+                <?php
+                    }
+				}
+                ?>
+            </select> 
+		</div>
+        
+        <div class="col clear">
+			<p><?php echo $this->translator->translator('block_search_country','','', $this->_front_template['theme_folder']); ?></p>
+          	<?php $country_data = $this->_country_db->getCountryInfo(); ?>
+			<select name="country_id_=" id="country_id_box" class="country_id_box country">
+            	<option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+            	<?php
+				if($country_data)
+				{
+                	foreach($country_data as $key=>$value)
+                	{
+                    $selected = (!empty($this->postValue['country_id_=']) && $this->postValue['country_id_='] == $key) ? ' selected="selected" ' : '';
+            	?>
+                <option value="<?php echo $key; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value); ?></option>
+            	<?php
+                	}
+				}
+            	?>
+          	</select>					  	   
+		</div>
+                                  
+      	<div class="col">
+          	<p><?php echo $this->translator->translator('block_search_state','','', $this->_front_template['theme_folder']); ?></p>
+          	<select name="state_id_=" id="state_id_box" class="state_id_box state">
+          		<option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+          	</select><span id="state_id_box_err"></span>
+      	</div>
+                          
+      	<div class="col clear">
+			<p><?php echo $this->translator->translator('block_search_area','','', $this->_front_template['theme_folder']); ?> &nbsp; <span id="area_id_box_err"></span></p>
+          	<select name="area_id_=" id="area_id_box" class="area_id_box">
+          		<option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+          	</select>
+      	</div>
+        
+		<div class="col">
+			<p><?php echo $this->translator->translator('block_search_room','','', $this->_front_template['theme_folder']); ?></p>
+			<select name="feature_room_no_>=" id="feature_room_no" class="room">
+            	<option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+            	<?php
+                	for($i = 1; $i<=200;$i++)
+                	{
+                    $selected = (!empty($this->postValue['feature_room_no_>=']) && $this->postValue['feature_room_no_>='] == $i) ? ' selected="selected" ' : '';
+            	?>
+                <option value="<?php echo $i; ?>"<?php echo $selected; ?>><?php echo $i; ?></option>
+            	<?php
+                	}
+            	?>
+			</select>
+		</div>
+       	
+        <div class="col">
+			<p><?php echo $this->translator->translator('block_search_bathroom','','', $this->_front_template['theme_folder']); ?></p>
+            <select name="feature_bathroom_>=" id="feature_bathroom" class="room">
+                <option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+                <?php
+                    
+                    for($i = 1; $i<=200;$i++)
+                    {
+                        $selected = (!empty($this->postValue['feature_bathroom_>=']) && $this->postValue['feature_bathroom_>='] == $i) ? ' selected="selected" ' : '';
+                ?>
+                    <option value="<?php echo $i; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($i); ?></option>
+                <?php
+                    }
+                ?>
+         	</select>
+		</div>
+                          
+		<div class="col last">
+			<p><?php echo $this->translator->translator('block_search_owner','','', $this->_front_template['theme_folder']); ?></p>
+           	<?php $mem_data = $this->_mem_db->getAllMembers(); ?>
+            <span class="ui-widget">
+           	<select name="property_owner_=" id="property_owner_box">
+                <option value="any"><?php echo $this->translator->translator('block_search_any','','', $this->_front_template['theme_folder']); ?></option>
+                <?php
+				if($mem_data)
+				{
+					foreach($mem_data as $key=>$value)
+					{
+                    $selected = (!empty($this->postValue['property_owner_=']) && $this->postValue['property_owner_='] == $key) ? ' selected="selected" ' : '';
+                ?>
+                    <option value="<?php echo $key; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value); ?></option>
+                <?php
+                    }
+				}
+                ?>
+          	</select>
+          	</span>
+		</div>
+        
+        <div class="btn-container">
+			<input type="submit" name="Submit" value="<?php echo $this->translator->translator('block_search_btn','','', $this->_front_template['theme_folder']); ?>" />
+        </div>
+	</form>
+	</div>
+</div>
+             
+<?php
+	}
+}
+try
+{
+	$property_search_box_class = new property_search_box($this);
+	$property_search_box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

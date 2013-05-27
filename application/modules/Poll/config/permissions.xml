@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backendgrp" for="backend" description="Manage Poll Group" langKey="permisson_poll_backendgrp">
+		<privilege for="dashboard" name="listgrp" description="Poll Group List" langKey="permisson_poll_backendgrp_listgrp" />
+		<privilege for="dashboard" name="addgrp" description="Add Poll Group" langKey="permisson_poll_backendgrp_addgrp" />
+		<privilege name="editgrp" description="Edit Poll Group" langKey="permisson_poll_backendgrp_editgrp" />
+		<privilege name="deletegrp" description="Delete Poll Group" langKey="permisson_poll_backendgrp_deletegrp" />
+		<privilege name="deleteallgrp" description="Delete All Poll Group" langKey="permisson_poll_backendgrp_deleteallgrp" />
+		<privilege name="publishgrp" description="Publish Poll Group" langKey="permisson_poll_backendgrp_publishgrp" />
+	</resource>
+	<resource name="backend" for="backend" description="Manage Poll Category" langKey="permisson_poll_backend">
+		<privilege for="dashboard" name="list" description="Poll Category List" langKey="permisson_poll_backend_list" />
+		<privilege for="dashboard" name="add" description="Add Category" langKey="permisson_poll_backend_add" />
+		<privilege name="edit" description="Edit Category" langKey="permisson_poll_backend_edit" />
+		<privilege name="delete" description="Delete Category" langKey="permisson_poll_backend_delete" />
+		<privilege name="deleteall" description="Delete All Category" langKey="permisson_poll_backend_deleteall" />
+		<privilege name="publish" description="Publish Category" langKey="permisson_poll_backend_publish" />
+		<privilege name="publishall" description="Publish All Category" langKey="permisson_poll_backend_publishall" />
+		<privilege name="featured" description="Featured Category" langKey="permisson_poll_backend_featured" />
+	</resource>
+	<resource name="backendpoll" for="backend" description="Manage Poll" langKey="permisson_poll_backendpoll">
+		<privilege for="dashboard" name="list" description="Poll List" langKey="permisson_poll_backendpoll_list" />
+		<privilege for="dashboard" name="add" description="Add Poll" langKey="permisson_poll_backendpoll_add" />
+		<privilege name="edit" description="Edit Poll" langKey="permisson_poll_backendpoll_edit" />
+		<privilege name="delete" description="Delete Poll" langKey="permisson_poll_backendpoll_delete" />
+		<privilege name="deleteall" description="Delete All Poll" langKey="permisson_poll_backendpoll_deleteall" />
+		<privilege name="publish" description="Publish Poll" langKey="permisson_poll_backendpoll_publish" />
+		<privilege name="publishall" description="Publish All Poll" langKey="permisson_poll_backendpoll_publishall" />
+		<privilege name="featured" description="Featured Poll" langKey="permisson_poll_backendpoll_featured" />
+	</resource>
+	<resource name="backendanswer" for="backend" description="Manage Answer" langKey="permisson_poll_backendanswer">
+		<privilege name="edit" description="Edit Answer" langKey="permisson_poll_backendanswer_edit" />
+		<privilege name="delete" description="Delete Answer" langKey="permisson_poll_backendanswer_delete" />
+		<privilege name="publish" description="Publish Answer" langKey="permisson_poll_backendanswer_publish" />
+	</resource>
+	<resource name="poll" for="frontend" description="Poll List" langKey="permisson_poll_list_poll_">
+		<privilege name="view" description="View the Frontend of Poll List" langKey="permisson_poll_list_poll_view" img="permisson_poll_list_poll_view.jpg" />
+		<privilege name="category" description="View the Category of Poll" langKey="permisson_poll_list_poll_category" img="permisson_poll_list_poll_category.jpg" />
+	</resource>
+	<dbtable name="poll_group" for="view">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="group_name" />
+	</dbtable>
+	<dbtable name="poll_category" for="category">
+		<tablefield name="category_order" />
+		<tablefield name="id" />
+		<tablefield name="category_name" />
+	</dbtable>
+</permissions>

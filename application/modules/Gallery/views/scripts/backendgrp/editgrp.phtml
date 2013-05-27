@@ -1,0 +1,947 @@
+<?php
+$version = Zend_Registry::get('version');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+	
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openPerfectTab(key_arr)
+	{
+		var err_id = '';
+		var sel = null;
+		var getTab = false;
+		
+		for(var i = 1; i <= $('#tabs').children('ul:first').children('li').length ; i++)
+		{				
+			for(var j= 0; j < key_arr.length; j++)
+			{	
+				err_id = '#'+key_arr[j].key+'_err';	
+				if($('#tabs-'+i+':has('+err_id+')').html())
+				{
+					sel = (i - 1);				
+					$("#tabs").tabs({ active: sel }).find(".ui-tabs-nav").sortable({axis:'xy'});	
+					$('#'+key_arr[j].key).focus();
+					getTab = true;
+					break;							
+				}
+			}
+			if(getTab == true)
+			{
+				break;
+			}
+		}
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			} 		
+			fieldObj[filename] = filevalue;
+		});
+		return fieldObj;
+	}
+	
+	$('a.edit_gallery_group_btn').click(function() {			
+			
+		var formData = getFormData();		
+		formData.id = '<?php echo $this->id; ?>';
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendgrp', 'action'     => 'editgrp' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));														
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+						openPerfectTab(json_arr.msg);
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});		
+	
+});
+
+
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="gallery-edit-group"><h1><?php echo $this->translator->translator('edit_gallery_group'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('gallery_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('gallery_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <form name="formGallery" id="formGallery" method="post" >
+    	<div id="button_top_bar"></div>
+        <div id="generalInfo">
+        	<div id="tabs">
+            	<ul>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('gallery_general_info'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('gallery_category_manage'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('gallery_product_manage'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('gallery_file_manage'); ?></a></li>
+                </ul>	
+            
+                <div id="tabs-1">
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_general_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->gallery_name->getLabel(); if($this->galleryGroupForm->gallery_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->gallery_name; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->gallery_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="gallery_name_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->role_id->getLabel(); if($this->galleryGroupForm->role_id->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->role_id; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->role_id->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="role_id_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->gallery_type->getLabel(); if($this->galleryGroupForm->gallery_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->gallery_type; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->gallery_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="gallery_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->category_on_off->getLabel(); if($this->galleryGroupForm->category_on_off->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->category_on_off; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->category_on_off->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="category_on_off_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->category_panel->getLabel(); if($this->galleryGroupForm->category_panel->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->category_panel; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->category_panel->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="category_panel_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->horizontal_panel->getLabel(); if($this->galleryGroupForm->horizontal_panel->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->horizontal_panel; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->horizontal_panel->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="horizontal_panel_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->num_of_pic_show->getLabel(); if($this->galleryGroupForm->num_of_pic_show->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->num_of_pic_show; ?>&nbsp;<?php echo $this->translator->translator('zero_pic_show'); ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->num_of_pic_show->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="num_of_pic_show_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->dynamic_form->getLabel(); if($this->galleryGroupForm->dynamic_form->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->dynamic_form;	 ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->dynamic_form->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="dynamic_form_err"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_general_meta_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php  echo $this->galleryGroupForm->meta_title->getLabel(); if($this->galleryGroupForm->meta_title->isRequired()){ ?><span class="required">*</span><?php }  ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->meta_title; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->meta_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->meta_keywords->getLabel(); if($this->galleryGroupForm->meta_keywords->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->meta_keywords; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->meta_keywords->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="meta_keywords_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->galleryGroupForm->meta_desc->getLabel(); if($this->galleryGroupForm->meta_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->meta_desc; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->meta_desc->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="news_desc_truncate_err"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset> 
+                </div>
+                
+                <div id="tabs-2">
+                	<fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_general_category_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->cat_num_per_page->getLabel();  if($this->galleryGroupForm->cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->cat_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->cat_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->cat_col_num->getLabel();  if($this->galleryGroupForm->cat_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->cat_col_num; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->cat_col_num->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="cat_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                             <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->cat_sort->getLabel();  if($this->galleryGroupForm->cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->cat_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->cat_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->cat_order->getLabel();  if($this->galleryGroupForm->cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->cat_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->cat_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="cat_order_err"></div>
+                                </div>
+                            </div>
+                    	</div>
+              		</fieldset>
+                    
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_latest_category_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_cat_on->getLabel();  if($this->galleryGroupForm->latest_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_cat_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_cat_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_cat_num_per_page->getLabel();  if($this->galleryGroupForm->latest_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_cat_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_cat_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_cat_sort->getLabel();  if($this->galleryGroupForm->latest_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_cat_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_cat_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_cat_order->getLabel();  if($this->galleryGroupForm->latest_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_cat_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_cat_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_cat_order_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                	</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_featured_category_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->fearured_cat_on->getLabel(); if($this->galleryGroupForm->fearured_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->galleryGroupForm->fearured_cat_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->fearured_cat_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="fearured_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->fearured_cat_num_per_page->getLabel(); if($this->galleryGroupForm->fearured_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->galleryGroupForm->fearured_cat_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->fearured_cat_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="fearured_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->fearured_cat_sort->getLabel(); if($this->galleryGroupForm->fearured_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->galleryGroupForm->fearured_cat_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->fearured_cat_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="fearured_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->fearured_cat_order->getLabel(); if($this->galleryGroupForm->fearured_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->galleryGroupForm->fearured_cat_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->fearured_cat_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="fearured_cat_order_err"></div>
+                                </div>
+                            </div>
+                    	</div>
+               		</fieldset>
+                </div>
+                
+                <div id="tabs-3">
+                	<fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_general_product_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_num_per_page->getLabel(); if($this->galleryGroupForm->file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_col_num->getLabel(); if($this->galleryGroupForm->file_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_col_num; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_col_num->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_sort->getLabel(); if($this->galleryGroupForm->file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_order->getLabel(); if($this->galleryGroupForm->file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_order_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->light_box_on->getLabel(); if($this->galleryGroupForm->light_box_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->light_box_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->light_box_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="light_box_on_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                 	</fieldset>
+                    
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_latest_product_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_file_on->getLabel(); if($this->galleryGroupForm->latest_file_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_file_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_file_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_file_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_file_num_per_page->getLabel(); if($this->galleryGroupForm->latest_file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_file_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_file_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_file_sort->getLabel(); if($this->galleryGroupForm->latest_file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_file_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_file_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->latest_file_order->getLabel(); if($this->galleryGroupForm->latest_file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->latest_file_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->latest_file_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="latest_file_order_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                 	</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_featured_product_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->featured_file_on->getLabel(); if($this->galleryGroupForm->featured_file_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->featured_file_on; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->featured_file_on->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="featured_file_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->featured_file_num_per_page->getLabel(); if($this->galleryGroupForm->featured_file_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->featured_file_num_per_page; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->featured_file_num_per_page->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="featured_file_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->featured_file_sort->getLabel(); if($this->galleryGroupForm->featured_file_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->featured_file_sort; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->featured_file_sort->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="featured_file_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->featured_file_order->getLabel(); if($this->galleryGroupForm->featured_file_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->featured_file_order; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->featured_file_order->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="featured_file_order_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                 	</fieldset>
+                </div>
+                
+                <div id="tabs-4">
+                	<fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_general_file_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_type->getLabel(); if($this->galleryGroupForm->file_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_type; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_size_max->getLabel(); if($this->galleryGroupForm->file_size_max->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->galleryGroupForm->file_size_max; ?>&nbsp;<?php echo $this->translator->translator('zero_file_size'); ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_size_max->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_size_max_err"></div>
+                                </div>
+                            </div>
+                    	</div>
+            		</fieldset>
+                    
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('gallery_thumb_info'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_path_category_thumb->getLabel(); if($this->galleryGroupForm->file_path_category_thumb->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_path_category_thumb; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_path_category_thumb->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_path_category_thumb_err"></div>
+                                </div>
+                            </div>
+                                                        
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_cat_thumb_type->getLabel(); if($this->galleryGroupForm->file_cat_thumb_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_cat_thumb_type; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_cat_thumb_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_cat_thumb_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_cat_thumb_width->getLabel(); if($this->galleryGroupForm->file_cat_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_cat_thumb_width; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_cat_thumb_width->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_cat_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_cat_thumb_height->getLabel(); if($this->galleryGroupForm->file_cat_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_cat_thumb_height; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_cat_thumb_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_cat_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_cat_thumb_resize_func->getLabel(); if($this->galleryGroupForm->file_cat_thumb_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_cat_thumb_resize_func; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_cat_thumb_resize_func->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_cat_thumb_resize_func_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_path_product_thumb->getLabel(); if($this->galleryGroupForm->file_path_product_thumb->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_path_product_thumb; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_path_product_thumb->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_path_product_thumb_err"></div>
+                                </div>
+                            </div>
+                                                        
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_thumb_type->getLabel(); if($this->galleryGroupForm->file_thumb_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_thumb_type; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_thumb_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_thumb_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_thumb_width->getLabel(); if($this->galleryGroupForm->file_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_thumb_width; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_thumb_width->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_thumb_height->getLabel(); if($this->galleryGroupForm->file_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_thumb_height; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_thumb_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_thumb_resize_func->getLabel(); if($this->galleryGroupForm->file_thumb_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_thumb_resize_func; ?>
+                                  	<div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_thumb_resize_func->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_thumb_resize_func_err"></div>
+                                </div>
+                            </div>
+                      	</div>
+                	</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                        <legend class="legend"><?php echo $this->translator->translator('only_for_image'); ?></legend>
+                            
+                        <div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_path_product_image->getLabel(); if($this->galleryGroupForm->file_path_product_image->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_path_product_image; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_path_product_image->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_path_product_image_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_path_product_video->getLabel(); if($this->galleryGroupForm->file_path_product_video->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_path_product_video; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_path_product_video->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_path_product_video_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->file_path_product_audio->getLabel(); if($this->galleryGroupForm->file_path_product_audio->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->file_path_product_audio; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->file_path_product_audio->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="file_path_product_audio_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->img_big_width->getLabel(); if($this->galleryGroupForm->img_big_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->img_big_width; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->img_big_width->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="img_big_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->img_big_height->getLabel(); if($this->galleryGroupForm->img_big_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->img_big_height; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->img_big_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="img_big_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->galleryGroupForm->img_big_resize_func->getLabel(); if($this->galleryGroupForm->img_big_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->galleryGroupForm->img_big_resize_func; ?>
+                                    <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->galleryGroupForm->img_big_height->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                                    <div class="input-errors" id="img_big_resize_func_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+               		</fieldset>
+                </div>
+               	
+                
+            </div>
+            <div id="metadata"></div>
+        </div>
+    </form>
+    
+   	<div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('gallery_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('gallery_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+    
+</div>
+
+<div  id="floatingbar">
+	<h1><?php echo $this->translator->translator('edit_gallery_group'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('gallery_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('gallery_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_gallery_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+</div>
+<?php endif; ?>	
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+</div>

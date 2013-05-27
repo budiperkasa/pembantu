@@ -1,0 +1,122 @@
+<?php
+class featured_product
+{
+	protected	$_group = 1;
+	protected	$_limit = 1;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$front_template = Zend_Registry::get('front_template');
+		$translator = Zend_Registry::get('translator');
+		$selectGroup = $this->_DBconn->select()
+					->from(array('gi' => Zend_Registry::get('dbPrefix').'gallery_group'), array('*'))
+					->where('gi.id = ?', $this->_group)->limit($this->_limit);
+		$galleryGroupInfo = $selectGroup->query()->fetchAll(); 
+		
+		$selectGP = $this->_DBconn->select()
+						->from(array('ga' => Zend_Registry::get('dbPrefix').'gallery_product'), array('*'))
+						->where('ga.group_id = ?', $this->_group)
+						->where('featured = ?','1')
+						->order($galleryGroupInfo[0]['featured_file_sort']." ".$galleryGroupInfo[0]['featured_file_order'])
+						->limit($galleryGroupInfo[0]['featured_file_num_per_page']);
+		$gCatInfo =  $selectGP->query()->fetchAll();	
+		
+		//GET MENU TITLE FOR LINK
+		$selectMenu = $this->_DBconn->select()
+								->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+								->where('ma.module_name = ?', 'Gallery')
+								->where('ma.controller_name = ?', 'frontend')
+								->where('ma.action_name = ?', 'view')
+								->limit(1);
+		$assign_menu =  $selectMenu->query()->fetchAll();
+		
+		$selectMenuTitle = $this->_DBconn->select()
+								->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+								->where('m.menu_id = ?', $assign_menu[0]['menu_id'])
+								->limit(1);
+		$menuTitle =  $selectMenuTitle->query()->fetchAll();
+?>
+    
+<div class="block block-featured-product">
+    <h1><?php echo $translator->translator('block_featured_title','', '', $this->_front_template['theme_folder']); ?></h1>
+    <?php
+	if(gCatInfo)
+	{
+		foreach($gCatInfo as $partial_entry)
+		{									
+			$link = $this->_view->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'productdetails','menu_id' =>  $this->_view->escape($menuTitle[0]['menu_title']),'product_title' => $this->_view->escape($partial_entry['product_title']) ), 'Details/:menu_id/:product_title',    false);
+			
+			if($this->_view->escape($partial_entry['product_thumb_primary']))
+			{ 
+				$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->_view->escape($partial_entry['product_thumb_primary']); 
+			}
+			else
+			{ 										
+				if($this->_view->escape($partial_entry['product_thumb']))
+				{
+					$product_thumb_val_arr = explode(',',$partial_entry['product_thumb']);
+					$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->_view->escape($product_thumb_val_arr[0]); 
+					
+				}
+				else
+				{
+					
+					if($this->_view->escape($partial_entry['product_file_primary']))
+					{
+						$thumb_image = 'data/frontImages/gallery/product_image/'.$this->_view->escape($partial_entry['product_file_primary']); 
+					}
+					else
+					{
+						$product_file_val_arr = explode(',',$partial_entry['product_file']);
+						$thumb_image = 'data/frontImages/gallery/product_image/'.$this->_view->escape($product_file_val_arr[0]); 
+					}
+				}		
+			}
+	  ?>
+	  
+		<div class="col">
+			<a href="<?php echo $link; ?>" ><img src="<?php echo $thumb_image; ?>" border="0" width="120" height="83" class="thumb"/></a>
+			<p class="block-title"><?php echo $this->_view->escape($partial_entry['product_name']); ?></p>
+		</div>
+	  <?php
+			}
+	}            
+  ?>
+  
+  <div class="more"><a href="Image-Gallery"><?php echo $translator->translator('block_gallery_link','', '', $this->_front_template['theme_folder']); ?></a></div>        
+</div>
+    
+<?php
+	}
+}
+
+try
+{
+$gallery_class = new featured_product($this);
+$gallery_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

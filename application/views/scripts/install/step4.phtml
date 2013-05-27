@@ -1,0 +1,163 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step4_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){		
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php/step3'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php'; ?>";
+		});	
+		$('#refresh').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php/step4'; ?>";
+		});		
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}	
+	//-->
+	</script>
+    <form id="step4frm" name="step4frm" method="post" action="<?php echo $this->baseUrl().'/install.php/step4'; ?>">
+        <fieldset>
+        <legend><?php echo $this->translator->translator('install_step_4_of_6'); ?></legend>
+      	<p>
+            <span class="title"><?php echo $this->translator->translator('install_step4_page_language'); ?></span>
+            <br /><br />
+           	<?php echo $this->translator->translator('install_step3_page_language'); ?> <?php echo $this->translator->translator('install_step3_page_info'); ?>
+      	</p>
+            
+		<div class="data-table">
+            <table border="0" width="100%" cellpadding="0" cellspacing="0" align="center" class="highlighter">
+                <thead>
+                    <tr> 
+                        <th width="40%"><?php echo $this->translator->translator('install_steps_table_title_library'); ?></th> 
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_recommended'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_current'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_passed'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>                 
+                    <tr> 
+                        <td class="center"><?php echo 'PHP'; ?></td> 
+                        <td class="center"><?php echo $this->translator->translator('install_php_version').' '.$this->translator->translator('install_php_version_hogher'); ?></td> 
+                        <td class="center"><?php echo phpversion(); ?></td> 
+                        <td class="center"><?php if ($this->requiredPHP === true): echo $this->translator->translator('install_steps_installed_pass'); else : echo $this->translator->translator('install_steps_not_installed_pass'); endif; ?></td> 
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="data-table">
+        	<table border="0" width="100%" cellpadding="0" cellspacing="0" align="center" class="highlighter">
+            	<thead>
+                	<tr> 
+                    	<th width="40%"><?php echo $this->translator->translator('install_steps_table_title_function'); ?></th>
+                    	<th width="20%"><?php echo $this->translator->translator('install_steps_table_title_recommended'); ?></th>
+                    	<th width="20%"><?php echo $this->translator->translator('install_steps_table_title_current'); ?></th>
+                    	<th width="20%"><?php echo $this->translator->translator('install_steps_table_title_passed'); ?></th>
+                	</tr>
+             	</thead>
+                
+              	<tbody>
+                	<?php foreach ($this->requiredFunctions as $ext => $loaded) : ?> 
+                	<tr> 
+                    	<td><?php echo $ext.'()'; ?></td> 
+                    	<td class="center"><?php echo $this->translator->translator('install_steps_installed'); ?></td> 
+                   		<td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_installed'); else : echo $this->translator->translator('install_steps_not_installed'); endif; ?></td> 
+                    	<td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_installed_pass'); else : echo $this->translator->translator('install_steps_not_installed_pass'); endif; ?></td> 
+                	</tr>
+                    <?php endforeach; ?>
+             	</tbody>
+          	</table>
+        </div>
+        
+        <div class="data-table">
+        	<table border="0" width="100%" cellpadding="0" cellspacing="0" align="center" class="highlighter">
+            	<thead>
+                	<tr>
+                        <th width="40%"><?php echo $this->translator->translator('install_steps_table_title_extension'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_recommended'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_current'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_passed'); ?></th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                	<?php foreach ($this->requiredExtensions as $ext => $loaded) : ?> 
+                    <tr> 
+                        <td><?php echo $ext; ?></td> 
+                        <td class="center"><?php echo $this->translator->translator('install_steps_loaded'); ?></td> 
+                        <td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_loaded'); else : echo $this->translator->translator('install_steps_not_loaded'); endif; ?></td> 
+                        <td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_installed_pass'); else : echo $this->translator->translator('install_steps_not_installed_pass'); endif; ?></td> 
+                    </tr> 
+                  	<?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="data-table">
+        	<table border="0" width="100%" cellpadding="0" cellspacing="0" align="center" class="highlighter last">
+            	<thead>
+                	<tr>
+                        <th width="40%"><?php echo $this->translator->translator('install_steps_table_title_folders'); ?></th> 
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_recommended'); ?></th> 
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_current'); ?></th>
+                        <th width="20%"><?php echo $this->translator->translator('install_steps_table_title_passed'); ?></th>
+                    </tr>
+                </thead>
+                
+               	<tbody>
+                	<?php foreach ($this->writableFiles as $ext => $loaded) : ?> 
+                    <tr> 
+                        <td><?php echo $ext; ?></td> 
+                        <td class="center"><?php echo $this->translator->translator('install_steps_writable'); ?></td> 
+                        <td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_writable'); else : echo $this->translator->translator('install_steps_not_writable'); endif; ?></td> 
+                        <td class="center"><?php if ($loaded): echo $this->translator->translator('install_steps_installed_pass'); else : echo $this->translator->translator('install_steps_not_installed_pass'); endif; ?></td> 
+                    </tr> 
+                   	<?php endforeach; ?>
+              	</tbody>
+            </table>
+      	</div>
+                                    
+        <div class="button-container">
+            <div class="icon"><input type="button" name="refresh" id="refresh" value="Refresh" class="button-refresh" /></div>
+            <div class="icon">
+            	<input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" />
+            	<input type="hidden" name="pass" id="pass" value="<?php echo $this->pass; ?>"  />
+            </div>
+            
+            
+                
+                <?php if ($this->pass) : ?>
+                <div class="icon"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-next" /></div>
+                <?php else : ?>
+                <div class="icon-inactive"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="buttonDisabled icon-disable" disabled="disabled" /></div>
+                <?php  endif; ?>
+            
+            
+            <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+        </div>       		
+        </fieldset>	
+    </form>

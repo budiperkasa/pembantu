@@ -1,0 +1,25 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('database_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('backup','backend','Database')) : ?>
+			<li <?php if($getAction == 'backup' && strtolower($getController) == 'backend'){ ?> class="database-backup selected"<?php }else{ ?>class="database-backup"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Database','controller'=>'backend', 'action'=>'backup'),'adminrout',true);?>"><?php echo $translator->translator('database_menu1'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','csv','Database')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'csv'){ ?> class="database-csv selected last"<?php }else{ ?>class="database-csv last"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Database','controller'=>'csv', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('database_menu2'); ?></a>
+			</li>
+			<?php endif; ?>				 
+        </ul>
+  	</div>
+</div>

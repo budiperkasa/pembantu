@@ -1,0 +1,165 @@
+<?php
+$front_template = Zend_Registry::get('front_template');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/mcdropdown/jquery.mcdropdown.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/mcdropdown/jquery.bgiframe.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/css/jqueryCSS/mcdropdown/jquery.mcdropdown.css');
+
+
+if(!empty($this->headerInfo['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->headerInfo['meta_keywords']);}
+if(!empty($this->headerInfo['meta_desc'])) { $this->headMeta()->setName('description',$this->headerInfo['meta_desc']); }
+$headTitle = ($this->headerInfo['gallery_name']) ? $this->headerInfo['gallery_name'] : $this->headerInfo['category_name'];
+$this->headTitle()->headTitle($headTitle,'SET')->setSeparator(' - ')->headTitle($this->headerInfo['meta_title']);
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+?>
+		
+<script type="text/javascript">
+	$(document).ready(function (){
+	$('#pro_list').hide('slow');
+	$('a.toggle_pro').click(function() {
+		var self = this;
+		$('#pro_list').slideToggle(500,function () {
+			var src = $(self).children("img").attr('src');
+			var input = (src == 'application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/minus.png') ? 'application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/plus.png' : 'application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/minus.png';
+			$(self).children("img").attr('src',input);
+		});
+		return false;
+	});
+	$('img[title]').qtip({			
+				position: { my: 'bottom left', at: 'top center' },
+				show: {  target: false, event: 'mouseover', effect: function(offset) { /*$(this).slideDown(200);*/ $(this).show(300); } },
+				hide: {  event: 'mouseout' , effect: function(offset) { /*$(this).slideUp(200);*/ $(this).hide(300); } },
+				style: { classes: 'ui-tooltip-frontend' }
+			});
+	var dd = $("#category").mcDropdown("#categorymenu");	
+});
+</script>
+<style type="text/css">
+.tooltip{
+	display:none;
+	background:transparent url(js/images/tooltip/white_arrow_big.png);
+	font-size:12px;
+	height:150px;
+	width:320px;
+	padding:25px;
+	/*padding-top:50px;*/
+	color:#333333;	
+}
+</style>
+<?php  
+$allow_obj = new Gallery_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+
+<div class="mod mod-gallery">
+    <div class="gallery-icon">
+        <h1><?php if($headTitle) { echo $headTitle; }else{ $menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); echo $this->escape($menu_name); } ?></h1>
+    </div>
+
+	<div class="clear">&nbsp;</div>
+
+    <div class="gallery">
+        <!-- Category Panel Start -->
+        <?php
+        if($this->group_datas['category_panel'] == '1')
+        {
+                $categoryPanel = new Gallery_View_Helper_CategoryPanel();
+                
+        ?>   
+        <div class="category-panel">
+        <a href="javascript:void(0);" class="toggle_pro toggle-link"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/plus.png" border="0" /><div class="toggle"><?php echo $this->translator->translator('gallery_frontend_common_category_list_title'); ?></div></a>
+        <div id="pro_list" class="clear">
+                <?php echo $categoryPanel->getCategories('0',$this,$this->group_datas['id'],null,$this->menu_id, $this->translator); ?>            
+            </div>
+        </div>
+        <?php
+            }
+        ?>
+        <!-- Category Panel End -->
+        
+        <?php if($this->group_datas['horizontal_panel'] == '1') { echo $this->partial('blocks/pathway.phtml'); } ?>
+        
+        <div class="gallery-container">
+            <?php
+                $i =1 ;
+                $check_child = new Gallery_View_Helper_SubCategory();
+                foreach ($this->view_datas as $entry=>$value): 	
+                if($this->group_datas['category_on_off'] == '1')
+                {
+                    $col_num =  $this->escape($this->group_datas['cat_col_num']);
+                    if($check_child->checkChild($value['id'],$value['group_id']))
+                    {
+                        $link = $this->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'categories','menu_id' => $this->escape($this->menu_id),'parent' => $this->escape($value['category_title']) ), 'Gallery-Category/:menu_id/:parent',    false);
+                    }
+                    else
+                    {
+                        $link = $this->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'viewproduct','menu_id' => $this->escape($this->menu_id),'parent' => $this->escape($value['category_title']),'group_id' => $this->escape($value['group_id']) ), 'Gallery-Product/:menu_id/:parent/:group_id',    false);
+                    }
+                }
+                else
+                {
+                    $col_num =  $this->escape($this->group_datas['file_col_num']);
+                }
+                
+                
+                    $img_title_desc 	 = '<b>'.$this->translator->translator('gallery_common_name').'</b> '.$this->escape($value['category_name']);	
+                    $img_title_desc 	.=	($this->escape($value['category_code'])) ? '<br /><b>'.$this->translator->translator('gallery_common_code').'</b> '.$this->escape($value['category_code']) : '';
+                    $img_title_desc 	.=	($this->escape($value['category_price'])) ? '<br /><b>'.$this->translator->translator('gallery_common_price').'</b> '.$this->escape($value['category_price']).'&nbsp;'.$currency->getSymbol() : '';
+                    $img_title_desc 	.=	($this->escape($value['category_desc'])) ? '<br /><b>'.$this->translator->translator('gallery_common_desc').'</b> '.strip_tags($this->escape($value['category_desc'])) : '';				
+            ?>
+            <div class="image-box">
+                <div  class="gallery-thumb">
+                    <a href="<?php echo $link; ?>"><img src="data/frontImages/gallery/category_thumb/<?php echo $this->escape($value['category_thumb']); ?>" border="0" class="thumb-img" title="<?php echo $img_title_desc ?>" <?php if($this->group_datas['file_cat_thumb_width'] && $this->group_datas['file_cat_thumb_resize_func'] != 'resizeToHeight'){ echo 'width="'.$this->escape($this->group_datas['file_cat_thumb_width']).'"'; } if($this->group_datas['file_cat_thumb_height'] && $this->group_datas['file_cat_thumb_resize_func'] != 'resizeToWidth'){ echo 'height="'.$this->escape($this->group_datas['file_cat_thumb_height']).'"'; } ?> /></a>
+                </div>
+                
+                <div class="info-container">
+                    <div class="img-label"><?php echo $this->translator->translator('gallery_frontend_common_list_title_label'); ?></div>
+                  	<div class="img-value"><a href="<?php echo $link; ?>"><?php echo $this->escape($value['category_name']); ?></a></div>
+                    <div class="img-label"><?php echo $this->translator->translator('gallery_frontend_common_list_image_no_label'); ?></div>
+                    <div class="img-value"><?php echo $this->translator->translator('gallery_frontend_common_list_image_no_datas', $check_child->countItems($value['id'],$value['group_id'])."&nbsp;"); ?></div>
+                </div>
+            </div>
+            <?php			
+                if($i % $col_num == 0)
+                {
+                    //echo "</div><div>";
+                }
+                $i++;
+                endforeach;	
+            ?>
+            <?php
+            $pages = $this->view_datas->getPages();		
+            if($pages->next > 1)
+            {
+            ?>
+            <div class="image-box">
+                <div  class="gallery-thumb more">
+                    <div class="more" title="<?php echo $this->translator->translator('gallery_frontend_common_next_page_title'); ?>">
+                        <a href="<?php echo $this->url(array('menu_id' => $this->menu_id,'parent' => $this->escape($this->parent_cat_info['category_title']),'page' => $pages->next),'Gallery-Category/:menu_id/:parent/:page',true); ?>"></a>
+                    </div>
+                </div>
+            </div>
+            <?php
+            }
+            ?>
+        </div>
+        
+        <?php	
+            if (!Zend_Auth::getInstance()->hasIdentity() && !empty($this->group_datas['num_of_pic_show'])) 
+            {		
+        ?>
+            <div class="login-bar"><span><a href="<?php echo $this->url(array('module'=>'Members','controller' => 'frontend','action' => 'login'),'Frontend-Login',true); ?>"><?php echo $this->translator->translator('gallery_frontend_login_link'); ?></a></span></div>
+        <?php
+            }
+        ?>
+    </div>
+
+	<div class="clear">&nbsp;</div>
+    <div>
+        <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'frontend/categories-pagination-flickr.phtml'); ?>
+    </div>
+</div>
+<?php endif; ?>

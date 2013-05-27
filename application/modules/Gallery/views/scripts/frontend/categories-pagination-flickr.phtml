@@ -1,0 +1,75 @@
+<?php
+if($this->last > 1)
+{
+
+$helper_path = $this->getHelpers();
+$doc_view = $helper_path[Doctype]->view;
+$frontController = Zend_Controller_Front::getInstance();
+$module = $frontController->getRequest()->getModuleName();
+$controller = $frontController->getRequest()->getControllerName();
+$action = $frontController->getRequest()->getActionName();
+$menu_id = $frontController->getRequest()->getParam('menu_id');
+
+foreach($doc_view->view_datas as $main_datas)
+{
+	$get_cat_id = $main_datas['parent'];	
+}
+
+$cat_id = ( $doc_view->group_datas['category_on_off'] == '0') ? '0' : $get_cat_id;
+if($cat_id != '0')
+{
+	$cat_db  = new Gallery_Model_DbTable_Category();
+	$cat_info = $cat_db->getCategoryInfo($cat_id);
+	$category_title = $cat_info['category_title'];
+}
+else
+{
+	$category_title = '0';
+}
+
+$parent	= ($frontController->getRequest()->getParam('parent'))? $frontController->getRequest()->getParam('parent') : $category_title;
+$translator = Zend_Registry::get('translator');
+?>
+
+<div class="flickr-pagination-container">    
+		<ul id="pagination-flickr">
+			<!-- First page link -->
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'parent' => $parent,'page' => $this->first),'Gallery-Category/:menu_id/:parent/:page',true); ?>"><?php echo $translator->translator('pagination_start'); ?></a></li>
+			<?php else: ?>
+					<li class="previous-off"><?php echo $translator->translator('pagination_start'); ?></li> 
+			<?php endif; ?>
+		
+			<!-- Previous page link -->
+		
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'parent' => $parent,'page' => $this->previous),'Gallery-Category/:menu_id/:parent/:page',true); ?>">&lt; <?php echo $translator->translator('pagination_previous'); ?></a></li>
+			<?php else: ?>
+				<li class="previous-off">&lt; <?php echo $translator->translator('pagination_previous'); ?></li>
+			<?php endif; ?>
+			<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<li><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'parent' => $parent,'page' => $page),'Gallery-Category/:menu_id/:parent/:page',true); ?>"><?php echo $this->numbers($page); ?></a></li>
+				<?php else: ?>
+					<li class="active"><?php echo $this->numbers($page); ?></li>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'parent' => $parent,'page' => $this->next),'Gallery-Category/:menu_id/:parent/:page',true); ?>"><?php echo $translator->translator('pagination_next'); ?> &gt;</a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_next'); ?> &gt;</li>
+			<?php endif; ?>
+			<!-- Last page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'parent' => $parent,'page' => $this->last),'Gallery-Category/:menu_id/:parent/:page',true); ?>"><?php echo $translator->translator('pagination_end'); ?></a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_end'); ?></li>
+			<?php endif; ?>
+            	<li>&nbsp; <span class="current_page"><?php echo $translator->translator('pagination_Page'); ?> <?php echo $this->numbers($this->current); ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->numbers($this->last); ?></span></li>
+		</ul>
+</div>
+<?php
+}
+?>

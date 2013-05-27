@@ -1,0 +1,22 @@
+<?php
+	$frontController = Zend_Controller_Front::getInstance();
+	$module = $frontController->getRequest()->getModuleName();
+	$controller = $frontController->getRequest()->getControllerName();
+	$action = $frontController->getRequest()->getActionName();
+	$translator = Zend_Registry::get('translator');
+?>
+
+<?php echo $translator->translator('pagination_results'); ?> <?php echo $this->currentItemCount; ?> - <?php echo $this->current; ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->last; ?>
+<div class="page-no">
+	<?php if (isset($this->previous)): ?><a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'page' => $this->previous),'adminrout',true); ?>"><</a><?php else: ?><<?php endif; ?> 
+	<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'page' => $page),'adminrout',true); ?>">[<?php echo $page; ?>]</a>
+				<?php else: ?>
+					<?php echo $page; ?>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+	<?php if (isset($this->next)): ?><a href="<?php echo $this->url(array('module' => $module,'controller' => $controller,'action' => $action,'page' => $this->next),'adminrout',true); ?>">></a><?php else: ?>><?php endif; ?>
+</div>

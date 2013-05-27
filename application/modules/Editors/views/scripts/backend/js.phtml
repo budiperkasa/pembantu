@@ -1,0 +1,608 @@
+<?php
+$version = Zend_Registry::get('version');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jqueryFileTree/jqueryFileTree.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/jqueryFileTree/jqueryFileTree.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Editors/css/editors.css');
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/lib/codemirror.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/ui/codemirror-ui.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/javascript/javascript.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/htmlmixed/htmlmixed.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/css/css.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/xml/xml.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/php/php.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/codemirror/mode/clike/clike.js');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/lib/codemirror.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/ui/codemirror-ui.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/mode/javascript/javascript.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/mode/xml/xml.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/mode/css/css.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/codemirror/mode/clike/clike.css');
+?>
+
+<style type="text/css">
+.CodeMirror{width:100% !important; height:800px;}
+.CodeMirror, .codemirror-ui-clearfix{width:100% !important;}
+.CodeMirror-lines{width:800px !important}
+</style>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	buttonShow('global', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+	$("#tabs").tabs({
+   					beforeActivate: function(event, ui) { 
+						switch(ui.newTab.index())
+						{
+							case 0:
+								buttonShow('global', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+								break;
+							case 1:
+								buttonShow('module', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+								break;
+							case 2:
+								buttonShow('layout', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+								break;
+							case 3:
+								buttonShow('restore', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+								break;
+							case 4:
+								buttonShow('delete', "<?php echo $this->translator->translator('editors_tab_common_select_file'); ?>");
+								break;
+						}
+					}
+				}).find(".ui-tabs-nav").sortable({axis:'xy'});
+	refreshTree();
+});
+
+function removeError()
+{
+	$('#file_global').html('');
+	$('#file_module').html('');
+	$('#file_layout').html('');
+	$('#file_restore').html('');
+	$('#actionMessage').html('');				
+}
+
+function openLoaderDialog()
+{
+	$('#dialog_loader').dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'fade',
+		resizable: 'false',				
+		open: function(event, ui)
+			 {
+				$("#progressbar").progressbar({
+					value:100
+	
+				});							
+			  }
+	});
+}
+
+function ucfirst (str) {   
+    var f = str.charAt(0).toUpperCase();
+    return f + str.substr(1);
+}
+
+function refreshTree()
+{
+	$('#fileTree_Global').fileTree({ root: '/', script: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'foldertree', 'file_ext' => 'js' ), 'adminrout',    true) ?>" , expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: "<?php echo $this->translator->translator('common_loading_language'); ?>"}, function(file) {  
+		openFile(file,'global');
+	});
+
+	$('#fileTree_Module').fileTree({ root: '/application/modules/', script: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'foldertree', 'file_ext' => 'js' ), 'adminrout',    true) ?>" , expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: "<?php echo $this->translator->translator('common_loading_language'); ?>"}, function(file) { 
+		openFile(file,'module');
+	});
+
+	$('#fileTree_Layout').fileTree({ root: '/application/layouts/scripts/', script: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'foldertree', 'file_ext' => 'js' ), 'adminrout',    true) ?>" , expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: "<?php echo $this->translator->translator('common_loading_language'); ?>"}, function(file) { 
+		openFile(file,'layout');
+	});
+
+	$('#fileTree_Restore').fileTree({ root: '/', script: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'foldertree' , 'file_ext' => 'back'), 'adminrout',    true) ?>" , expandEasing: 'easeOutBounce', collapseEasing: 'easeOutBounce', loadMessage: "<?php echo $this->translator->translator('common_loading_language'); ?>"}, function(file) { 
+		openFile(file,'restore');
+	});
+}
+
+function deleteThis(self, editor)
+{
+	var rel = $(self).attr('rel');
+	var upper_rel = ucfirst(rel);	
+	var file_path = $('#file_path_'+rel).val();
+	var file_content = editor.mirror.getValue();
+	if(file_path == '')
+	{
+		var msg = "<?php echo $this->translator->translator('editors_file_not_found_err'); ?>";
+		openMsgDialog(msg);
+	}
+	else
+	{
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'delete' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { rel : rel, file_path : file_path, file_content : file_content },
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();											
+					 },
+				success: function(response){	
+					//alert(response);				
+					var json_arr = eval("("+response+")");
+					closeLoaderDialog();
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						editor.mirror.setValue('');	
+						refreshTree();									
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	}
+}
+
+function deleteRestoreFile(self, editor)
+{
+	var rel = $(self).attr('rel');
+	var upper_rel = ucfirst(rel);	
+	var file_path = $('#file_path_'+rel).val();
+	var file_content = editor.mirror.getValue();
+	if(file_path == '')
+	{
+		var msg = "<?php echo $this->translator->translator('editors_file_not_found_err'); ?>";
+		openMsgDialog(msg);
+	}
+	else
+	{
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'   => 'deleterestore' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { rel : rel, file_path : file_path, file_content : file_content },
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();											
+					 },
+				success: function(response){	
+					//alert(response);				
+					var json_arr = eval("("+response+")");
+					closeLoaderDialog();
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						editor.mirror.setValue('');	
+						refreshTree(upper_rel);									
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	}
+}
+
+function manageFile(editor)
+{
+	$('a.edit_btn').unbind('click');
+	$('a.edit_btn').click(function(){
+		var self = this;
+		var rel = $(self).attr('rel');
+		var file_path = $('#file_path_'+rel).val();
+		var file_content = editor.mirror.getValue();
+		if(file_path == '')
+		{
+			var msg = "<?php echo $this->translator->translator('editors_file_not_found_err'); ?>";
+			openMsgDialog(msg);
+		}
+		else
+		{
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'     => 'js' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: { rel : rel, file_path : file_path, file_content : file_content },
+					beforeSend: function(){						
+							removeError();
+							openLoaderDialog();											
+						 },
+					success: function(response){	
+						//alert(response);				
+						var json_arr = eval("("+response+")");
+						closeLoaderDialog();
+						if(json_arr.status == 'ok')
+						{						
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));												
+						}
+						else
+						{
+							$('#actionMessage').html(errMsgDesign(json_arr.msg));
+						}
+					},
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#actionMessage').html(errMsgDesign(msg));
+					}
+			});
+		}
+	});
+	
+	$('a.delete_btn').unbind('click');
+	$('a.delete_btn').click(function(){
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('editors_file_delete_confirm')); ?>").dialog({
+			resizable: false,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteThis(self,editor);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});
+	});
+	
+	$('restore_delete_btn').unbind('click');
+	$('a.restore_delete_btn').click(function(){
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('editors_file_delete_confirm')); ?>").dialog({
+			resizable: false,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteRestoreFile(self,editor);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});
+	});
+	
+	$('a.restore_btn').unbind('click');
+	$('a.restore_btn').click(function(){
+		var self = this;
+		var rel = $(self).attr('rel');
+		var file_path = $('#file_path_'+rel).val();
+		var file_content = editor.mirror.getValue();
+		if(file_path == '')
+		{
+			var msg = "<?php echo $this->translator->translator('editors_file_not_found_err'); ?>";
+			openMsgDialog(msg);
+		}
+		else
+		{
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'     => 'restore' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: { rel : rel, file_path : file_path, file_content : file_content },
+					beforeSend: function(){						
+							removeError();
+							openLoaderDialog();											
+						 },
+					success: function(response){	
+						//alert(response);				
+						var json_arr = eval("("+response+")");
+						closeLoaderDialog();
+						if(json_arr.status == 'ok')
+						{						
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));												
+						}
+						else
+						{
+							$('#actionMessage').html(errMsgDesign(json_arr.msg));
+						}
+					},
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#actionMessage').html(errMsgDesign(msg));
+					}
+			});
+		}
+	});
+}
+	
+function closeLoaderDialog()
+{
+	$('#dialog_loader').dialog('option','hide','explode').dialog('close');
+}
+	
+function openFile(file,id_sufix)
+{
+	if(file)
+	{
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Editors','controller' => 'backend', 'action'     => 'open' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { file_path : file },
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();	
+						disableButtons(id_sufix);			
+					 },
+				success: function(response){	
+					//alert(response);				
+					var json_arr = eval("("+response+")");
+					closeLoaderDialog();
+					if(json_arr.status == 'ok')
+					{						
+						closeCodeMirror('body_'+id_sufix);	
+						var editor = openCodeMirror('body_'+id_sufix);
+						editor.mirror.setValue(json_arr.file_content);	
+						$('#file_path_'+id_sufix).val(json_arr.file_path);
+						$('#file_'+id_sufix).html(json_arr.file_name);
+						enableButtons(id_sufix);
+						manageFile(editor);												
+					}
+					else if(json_arr.status == 'errW')
+					{
+						closeCodeMirror('body_'+id_sufix);	
+						var editor = openCodeMirror('body_'+id_sufix);
+						editor.mirror.setValue(json_arr.file_content);
+						$('#file_path_'+id_sufix).val(json_arr.file_path);
+						$('#file_'+id_sufix).html(json_arr.file_name);
+						disableButtons(id_sufix);
+						
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));						
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	}
+	else
+	{
+		var msg = "<?php echo $this->translator->translator('editors_file_not_found_err'); ?>";
+		openMsgDialog(msg);
+	}
+}
+
+function enableButtons(id_sufix)
+{
+	$('a.edit_btn_'+id_sufix).each( function() {		
+		$(this).parent('div:first').css('display','inline');
+	});
+	$('a.delete_btn_'+id_sufix).each( function() {		
+		$(this).parent('div:first').css('display','inline');
+	});
+	$('a.restore_btn_'+id_sufix).each( function() {		
+		$(this).parent('div:first').css('display','inline');
+	});
+}
+
+function disableButtons(id_sufix)
+{
+	$('a.edit_btn').each( function() {		
+		$(this).parent('div:first').css('display','none');
+	});
+	$('a.delete_btn').each( function() {		
+		$(this).parent('div:first').css('display','none');
+	});
+	$('a.restore_delete_btn').each( function() {		
+		$(this).parent('div:first').css('display','none');
+	});
+	$('a.restore_btn').each( function() {		
+		$(this).parent('div:first').css('display','none');
+	});
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+
+function closeCodeMirror(id)
+{
+	$('#'+id).css('display','inline');	
+	var element = $('#'+id).parent();
+	$('div.codemirror-ui-clearfix').parent().remove();
+	$('div.CodeMirror').remove();					
+}
+
+function openCodeMirror(id)
+{
+	//first set up some variables
+	var textarea = document.getElementById(id);
+	var uiOptions = { path : 'js/codemirror', searchMode : 'popup' }
+	var codeMirrorOptions = { mode: "javascript", lineNumbers: true}
+	
+	//then create the editor	
+	var editor = new CodeMirrorUI(textarea,uiOptions,codeMirrorOptions);
+	return 	editor;									
+}
+</script>
+<div id="button_top_bar"></div>
+<div class="title-container">
+	<div class="js-editor"><h1><?php echo $this->translator->translator('Editors_js_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    
+    <div class="demo">
+        <div id="tabs">
+        	<ul>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('editors_tab_template_global'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('editors_tab_template_modules'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('editors_tab_template_layouts'); ?></a></li>
+                <li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('editors_tab_template_restore'); ?></a></li>
+            </ul>
+            
+            <div id="tabs-1">
+            	<div class="sidebar-editor">
+                    <div class="nav-editor">
+                        <div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('editors_tab_template_global'); ?></div></div>
+                        <div id="fileTree_Global" class="nav-body treebody">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-editor">
+                	<fieldset class="fieldset">
+                    	<div class="editor-button-container">
+                            <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_btn edit_btn_global" rel="global"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                            <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_btn delete_btn_global" rel="global"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+                        </div>
+                        <div class="clr"></div>
+                		<legend class="legend" id="file_global"><?php echo $this->translator->translator('editors_tab_common_select_file'); ?></legend>
+                        <input type="hidden" name="file_path_global" id="file_path_global" value="" />
+						<textarea name="body_global" id="body_global" style="display:none;" cols="150" rows="50"></textarea>
+                  	</fieldset>
+                </div>
+            </div>
+            
+            <div id="tabs-2">
+            	<div class="sidebar-editor">
+                    <div class="nav-editor">
+                        <div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('editors_tab_template_modules'); ?></div></div>
+                        <div id="fileTree_Module" class="nav-body treebody">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-editor">
+                	<fieldset class="fieldset">
+                    	<div class="editor-button-container">
+                            <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="edit_btn edit_btn_module" rel="module"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                            <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn delete_btn_module" rel="module"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+                        </div>
+                        <div class="clr"></div>
+                		<legend class="legend" id="file_module">&nbsp;</legend>
+                        <input type="hidden" name="file_path_module" id="file_path_module" value="" />
+						<textarea name="body_module" id="body_module" style="display:none;" cols="150" rows="50"></textarea>
+                  	</fieldset>
+                </div>
+            </div>
+            
+            <div id="tabs-3">
+            	<div class="sidebar-editor">
+                    <div class="nav-editor">
+                        <div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('editors_tab_template_layouts'); ?></div></div>
+                        <div id="fileTree_Layout" class="nav-body treebody">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-editor">
+                	<fieldset class="fieldset">
+                    	<div class="editor-button-container">
+                            <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="edit_btn edit_btn_layout" rel="layout"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                            <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn delete_btn_layout" rel="layout"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+                        </div>
+                        <div class="clr"></div>
+                		<legend class="legend" id="file_layout">&nbsp;</legend>
+                        <input type="hidden" name="file_path_layout" id="file_path_layout" value="" />
+						<textarea name="body_layout" id="body_layout" style="display:none;" cols="150" rows="50"></textarea>
+                  	</fieldset>
+                </div>
+            </div>
+            
+            <div id="tabs-4">
+            	<div class="sidebar-editor">
+                    <div class="nav-editor">
+                        <div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('editors_tab_template_restore'); ?></div></div>
+                        <div id="fileTree_Restore" class="nav-body treebody">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-editor">
+                	<fieldset class="fieldset">
+                    	<div class="editor-button-container">
+                            <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="restore_delete_btn delete_btn_restore" rel="restore"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+                            <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="restore_btn restore_btn_restore" rel="restore"><span class="icon reset"><?php echo $this->translator->translator('common_restore'); ?></span></a></span>
+                        </div>
+                        <div class="clr"></div>
+                		<legend class="legend" id="file_restore">&nbsp;</legend>
+                        <input type="hidden" name="file_path_restore" id="file_path_restore" value="" />
+						<textarea name="body_layout" id="body_restore" style="display:none;" cols="150" rows="50"></textarea>
+                  	</fieldset>
+                </div>
+            </div>
+        </div>
+  	</div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('Editors_js_page_name'); ?></h1>
+	
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="edit_btn edit_btn_global" rel="global"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="edit_btn edit_btn_module" rel="module"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="edit_btn edit_btn_layout" rel="layout"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+        
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn delete_btn_global" rel="global"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn delete_btn_module" rel="module"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn delete_btn_layout" rel="layout"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="restore_delete_btn delete_btn_restore" rel="restore"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+        
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="restore_btn restore_btn_restore" rel="restore"><span class="icon reset"><?php echo $this->translator->translator('common_restore'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('Editors_js_page_name')); ?>">
+<div id="dialog_loader" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<?php endif; ?>	
+</div>
+</div>

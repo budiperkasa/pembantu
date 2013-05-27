@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Utility" langKey="permisson_utility">
+		<privilege for="dashboard"  name="php" description="PHP Settings" langKey="permisson_utility_php"  />		
+		<privilege for="dashboard"  name="cache" description="Refresh all Cache" langKey="permisson_utility_cache"  />
+		<privilege for="dashboard"  name="log" description="Logs" langKey="permisson_utility_log"  />	
+	</resource>		
+</permissions>

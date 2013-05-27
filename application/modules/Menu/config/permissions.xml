@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Manage Menu" langKey="permisson_menu">
+		<privilege for="dashboard" name="list" description="View the list of Menu" langKey="permisson_menu_list" />
+		<privilege for="dashboard" name="add" description="Create new Menu" langKey="permisson_menu_add" />
+		<privilege name="edit" description="Edit a Menu" langKey="permisson_menu_edit" />
+		<privilege name="delete" description="Delete a Menu" langKey="permisson_menu_delete" />
+		<privilege name="publish" description="Active Deactive a Menu" langKey="permisson_menu_activeDeactive" />
+		<privilege name="primary" description="Default Menu" langKey="permisson_menu_dafault" />
+		<privilege for="dashboard" name="listgrp" description="View the list of Menu Group" langKey="permisson_menu_group_list" />
+		<privilege name="addgrp" description="Create new Menu Group" langKey="permisson_menu_group_add" />
+		<privilege name="editgrp" description="Edit a Menu Group" langKey="permisson_menu_group_edit" />
+		<privilege name="deletegrp" description="Delete a Menu Group" langKey="permisson_menu_group_delete" />
+		<privilege name="publishgrp" description="Active Deactive a Menu Group" langKey="permisson_menu_group_activeDeactive" />
+	</resource>		
+</permissions>

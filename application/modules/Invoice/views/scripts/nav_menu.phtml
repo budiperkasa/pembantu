@@ -1,0 +1,32 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+$modules_license = new Administrator_Controller_Helper_ModuleLoader();
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('invoice_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('list','setting','Invoice')  && $modules_license->checkModulesLicense('Invoice')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'setting'){ ?> class="invoice-settings selected"<?php }else{ ?>class="invoice-settings"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Invoice','controller'=>'setting', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('invoice_menu3'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Invoice')  && $modules_license->checkModulesLicense('Invoice')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backend'){ ?> class="invoice selected"<?php }else{ ?>class="invoice"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Invoice','controller'=>'backend', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('invoice_menu1'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('quotelist','backend','Invoice')  && $modules_license->checkModulesLicense('Invoice')) : ?>
+			<li <?php if($getAction == 'quotelist' && strtolower($getController) == 'backend'){ ?> class="quote selected last"<?php }else{ ?>class="quote last"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Invoice','controller'=>'backend', 'action'=>'quotelist'),'adminrout',true);?>"><?php echo $translator->translator('invoice_menu2'); ?></a>
+			</li>
+			<?php endif; ?>              
+		</ul>
+	</div>
+</div>

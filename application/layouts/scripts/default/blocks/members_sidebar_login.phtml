@@ -1,0 +1,254 @@
+<?php
+$translator = Zend_Registry::get('translator');
+$front_template = Zend_Registry::get('front_template');
+$this->loginForm = new Members_Form_LoginForm();
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+
+
+	/*$.ajax({
+		url: "<?php echo $this->url( array('module' => 'Members','controller' => 'frontend', 'action'     => 'token' ), 'adminrout',    false) ?>",
+			type: 'POST',
+			
+			success: function(response){
+				//alert(response);					
+				var json_arr = eval("("+response+")");										
+				if(json_arr.status == 'ok')
+				{
+					$('#token_box').val(json_arr.token);						
+					$('#token').val(json_arr.token);						
+				}
+			}
+	});*/
+
+
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});	
+	
+	
+	function resetFields()
+	{
+		$( "#login_box_frm" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage_partial').attr('class','none');
+		$('#actionMessage_partial').html('&nbsp;');
+				
+		$.each($('#login_box_frm').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_err').html('');									
+		});			
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_box_err';
+		var field_name = key+'_box';
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		$.each($('#login_box_frm').serializeArray(), function(i, field) {	
+				fieldname = field.name.split('_box');
+				fieldObj[fieldname[0]] = field.value;										
+		});
+		return fieldObj;
+	}
+	
+	$('input.login_btns').click(function() {
+				
+		var formData = getFormData();
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'frontend', 'action'     => 'auth' ), 'adminrout',    false) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeError();
+						$('#signout_frm').css('display','none');
+						$('#signin_frm').css('display','none');	
+						$('#loader_process').css('display','');			
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");			
+					refreshCaptchaBox(json_arr);							
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage_partial').attr('class','seccMess');
+						$('#actionMessage_partial').html(json_arr.msg);	
+						$('#signin_frm').css('display','none');	
+						$('#signout_frm').css('display','');
+						resetFields();																						
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage_partial').attr('class','errMess');
+						$('#actionMessage_partial').html("<?php echo $translator->translator('common_err','', '', $front_template['theme_folder']); ?>");
+						$('#signin_frm').css('display','');	
+						$('#signout_frm').css('display','none');
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#signin_frm').css('display','');	
+						$('#signout_frm').css('display','none');
+						$('#actionMessage_partial').attr('class','errMess');
+						$('#actionMessage_partial').html(json_arr.msg);
+					}
+					$('#loader_process').css('display','none');	
+				}
+		});
+	});	
+	
+	$('input.logout_btns').click(function() {
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'frontend', 'action'     => 'logout' ), 'adminrout',    false) ?>",
+			  	type: 'POST',
+				beforeSend: function(){						
+						removeError();
+						$('#signout_frm').css('display','none');
+						$('#loader_process').css('display','');			
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");										
+					if(json_arr.status == 'ok')
+					{	
+						$('#signin_frm').css('display','');	
+						$('#signout_frm').css('display','none');
+						$('#actionMessage_partial').attr('class','seccMess');
+						$('#actionMessage_partial').html(json_arr.msg);	
+																																	
+					}
+					else if(json_arr.status == 'errV')
+					{		
+						$('#signin_frm').css('display','');	
+						$('#signout_frm').css('display','none');				
+						$('#actionMessage_partial').attr('class','errMess');
+						$('#actionMessage_partial').html("<?php echo $translator->translator('common_err','', '', $front_template['theme_folder']); ?>");												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{		
+						$('#signin_frm').css('display','');	
+						$('#signout_frm').css('display','none');				
+						$('#actionMessage_partial').attr('class','errMess');
+						$('#actionMessage_partial').html(json_arr.msg);						
+					}	
+					$('#loader_process').css('display','none');	
+					refreshCaptchaBox(json_arr);					
+				}
+		});
+	});
+
+	$('a.refresh_tokens').click(function() {		
+		var self = this;	
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'frontend', 'action'     => 'token' ), 'adminrout',    false) ?>",
+			  	type: 'POST',
+				beforeSend: function(){	
+						var option = '<img src="data/adminImages/loginImages/token_ani.gif" border="0" width="15" height="15"  title="Refreshing Token" />';						
+						$(self).html(option);			
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");										
+					if(json_arr.status == 'ok')
+					{
+						$('#token_box').val(json_arr.token);						
+						$(self).html('<img src="data/adminImages/loginImages/token.png" border="0" width="15" height="15"  title="Click To Refresh Token" />');
+					}
+				}
+		});
+	});	
+		
+});
+
+function refreshCaptchaBox(json_arr)
+{
+	if(json_arr.captcha && json_arr.captcha.status && json_arr.captcha.status == 'ok')
+	{
+		var captcha_name = json_arr.captcha.captcha_name;
+		$('input[name="'+captcha_name+'[id]"]').prev('img').attr('src', json_arr.captcha.ImgUrl+json_arr.captcha.id+json_arr.captcha.Suffix);
+		$('input[name="'+captcha_name+'[id]"]').val(json_arr.captcha.id);
+		$('#'+captcha_name+'_box_err').html('');		
+	}
+}
+</script>
+
+<form name="login_box_frm" id="login_box_frm" method="post" action="">
+	<div class="block block-login">
+		<div class="block-heading">
+			<div class="symbol"><?php echo $translator->translator('block_memberlogin_title','','', $front_template['theme_folder']); ?></div>
+     	</div>
+        
+  		<div class="block-body">    
+        	<div id="signin_frm" style="display:<?php if(Zend_Auth::getInstance()->hasIdentity()){	?>none;<?php }?>">
+                    <div id="actionMessage_partial"></div>
+                    <p><?php echo $translator->translator('block_memberlogin_user','','', $front_template['theme_folder']); ?></p>
+                    <input name="username_box" type="text" id="username_box" size="10">
+                    <span id="username_box_err" class="signin_arr"></span>
+                    
+					<p><?php echo $translator->translator('block_memberlogin_password','','', $front_template['theme_folder']); ?></p>
+                   	<input name="password_box" type="password" id="password_box" size="10">
+                  	<span id="password_box_err" class="signin_arr"></span>
+                    
+                    <?php
+					if($this->loginForm->login_captcha)
+					{
+						$this->loginForm->login_captcha->getCaptcha()->setWidth('140');
+					?>                    
+                        
+					<?php $this->loginForm->login_captcha->setAttrib('class', 'captcha'); $this->loginForm->login_captcha->setAttrib('style', ''); echo $this->loginForm->login_captcha; ?>
+                   	<span id="login_captcha_box_err" class="signin_arr"></span>
+                        
+                    <?php
+					}
+					?>
+                    <input type="hidden" name="token_box" id="token_box" value="" />
+                    <span id="token_box_err"></span>
+                    <div class="clear">
+                        <label>
+                            <input type="button" name="Submit2" value="<?php echo $translator->translator('block_memberlogin_button','','', $front_template['theme_folder']); ?>" class="button login-btn login_btns">
+                        </label>
+                    </div>
+                    
+                    <div class="clear">&nbsp;</div>
+                    <input name="Input" type="checkbox" value="" />
+                    <?php echo $translator->translator('block_memberlogin_remember','','', $front_template['theme_folder']); ?>
+                    
+                    <a href="Forget-Password"><?php echo $translator->translator('block_memberlogin_forget','','', $front_template['theme_folder']); ?></a>
+                    
+                    <a href="Register" class="reg"><?php echo $translator->translator('block_memberlogin_newuser','','', $front_template['theme_folder']); ?></a>
+                </div>
+                
+                <div class="clear"></div>
+                
+                <div id="signout_frm" style="display:<?php if(!Zend_Auth::getInstance()->hasIdentity()){ ?>none;<?php }?>" class="btn-container">
+					<input type="button" name="login" value="<?php echo $translator->translator('block_memberlogout_button','','', $front_template['theme_folder']); ?>" class="logout_btns logout-btn" />
+  				</div>
+                
+                <div id="loader_process" style="display:none;">
+  					<div class="login-loader"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/login-loader.gif" border="0" /></div>
+             	</div>
+                
+		</div>      
+	</div>
+</form>

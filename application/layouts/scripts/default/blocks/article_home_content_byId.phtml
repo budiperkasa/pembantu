@@ -1,0 +1,102 @@
+<?php
+class featured_article
+{
+	protected	$_article_id = '2';
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected	$translator;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		$this->_view->setEscape('stripslashes');
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		$this->translator = Zend_Registry::get('translator');
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$front_template = Zend_Registry::get('front_template'); 
+		if(!empty($this->_article_id))
+		{
+			$selectArticle = $this->_DBconn->select()
+							->from(array('ga' => Zend_Registry::get('dbPrefix').'articles'), array('*'))
+							->where('ga.article_id = ?', $this->_article_id);
+			$articleInfo =  $selectArticle->query()->fetchAll();	
+			
+			if(count($articleInfo) > 0)
+			{
+				//GET MENU TITLE FOR LINK
+				$selectMenu = $this->_DBconn->select()
+										->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+										->where('ma.module_name = ?', 'Articles')
+										->where('ma.controller_name = ?', 'frontend')
+										->where('ma.action_name = ?', 'view')
+										->where('ma.page_id = ?', $articleInfo[0]['article_id']);
+				$assign_menu =  $selectMenu->query()->fetchAll();
+				
+				if(count($assign_menu) > 0)
+				{
+					$selectMenuTitle = $this->_DBconn->select()
+										->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+										->where('m.menu_id = ?', $assign_menu[0]['menu_id'])
+										->limit(1);
+					$menuTitle =  $selectMenuTitle->query()->fetchAll();
+				}
+			}
+		}
+	?>
+	<div class="block block-article">	
+		  <?php	             
+            if(count($assign_menu) > 0)
+            {
+				if($articleInfo)
+				{
+					foreach($articleInfo as $article)
+					{									
+						$link = $menuTitle[0]['menu_title'];									
+				  ?>
+				  <div>
+						<?php echo $this->truncate(stripslashes(strip_tags($article['article_content'], '<br><img>')),0,100); ?>
+				  </div>
+				  
+				  <div class="more">
+						<a href="<?php echo $link; ?>" ><?php echo $this->translator->translator('block_article_more_link','', '', $this->_front_template['theme_folder']); ?></a>
+				  </div>
+				
+				<?php
+					}
+				}
+            }
+            else
+            {
+                echo $this->translator->translator('block_article_by_id_not_found','', '', $this->_front_template['theme_folder']);
+            }
+        ?>
+	</div>					
+	<?php
+	}
+}
+
+try
+{
+$gallery_class = new featured_article($this);
+$gallery_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

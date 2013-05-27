@@ -1,0 +1,303 @@
+<?php
+$version = Zend_Registry::get('version');
+?>
+<style type="text/css">
+	span.thumb {
+		margin-left: 5px;
+		margin-bottom:1px;
+		padding: 5px;
+		float: left;
+		position: relative;  /* Set the absolute positioning base coordinate */
+		width: 25px;
+		height: 15px;	
+	}
+	span.thumb img {
+		width: 30px; height: 20px; /* Set the small thumbnail size */
+		-ms-interpolation-mode: bicubic; /* IE Fix for Bicubic Scaling */
+		border: 1px solid #ddd;
+		padding: 2px;
+		background: #f0f0f0;
+		position: absolute;
+		left: 0; top: 0;
+	}
+	span.thumb img.hover {
+		background:url(data/adminImages/commonImages/thumb_bg.png) no-repeat center center;  /* Image used as background on hover effect*/
+		border: 1px solid #ddd; /* Get rid of border on hover */
+	}
+</style>
+<script type="text/javascript">
+$(document).ready(function() {	
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'explode',
+			width : '250px',
+			resizable: true,				
+			buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 12000);
+				  }
+		});
+	}
+	
+	$("#upload-form").dialog({
+		autoOpen: false,
+		width: 910,
+		height: 590,
+		show: 'fade',			
+		modal: true
+	});	
+
+	$('a.upload_btn').click(function() {
+		var src = $("#i-upload-form").attr("src");		
+			$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'   => 'file' ), 'adminrout',    false) ?>");			
+			$('#upload-form').dialog('open');		
+	});	
+	
+	$('a.set_privillege_btn').click(function() {
+		var user_info = $(this).attr('rel');	
+		var src = $("#i-upload-form").attr("src");		
+			$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'   => 'file', 'user_info' => '' ), 'adminrout',    false) ?>"+user_info);			
+			$('#upload-form').dialog('open');		
+	});
+	
+	$('a.select_file_btn').click(function() {		 
+		
+			var currentIFrame = $('#i-upload-form');
+			var v = currentIFrame.contents().find("#file_name").val();
+			if(v == '' || v == null)
+			{
+				var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';				
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var file_arr =  v.split(',');							
+				var img_code = '<span class="thumb"><img src="'+file_arr[0]+'/'+file_arr[1]+'" width="45" height="35" /></span>';
+				$('#selected_file').html(img_code);
+				$('#category_thumb').val(file_arr[1]);
+				$("#upload-form").dialog('option','hide','explode').dialog('close');
+				imageThumbnil();
+			}
+		});
+	
+	$('a.close_dialog_btn').click(function() {		 
+		$("#upload-form").dialog('option','hide','explode').dialog('close');			
+	});
+		
+	$('a.reset_btn').click(function() {			
+		 resetFields();		
+	});
+	
+		
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();		
+		$('#selected_file').html('');				
+		$('#categoryTree').html('');
+		$('#category_parent').val('0');
+		$('#category_thumb').val('');
+		$('#dataId').html('Root (0)');		
+		if(tinyMCE.get('category_desc'))
+		{
+			tinyMCE.get('category_desc').setContent('');
+		}
+	}
+	
+	function removeError()
+	{
+		$('#category_name_err').html('');
+		$('#category_name').removeClass('ui-state-error');
+		$('#category_title_err').html('');
+		$('#category_title').removeClass('ui-state-error');
+		$('#group_id_err').html('');
+		$('#group_id').removeClass('ui-state-error');
+		$('#category_desc_err').html('');
+		$('#category_desc').removeClass('ui-state-error');
+		$('#category_thumb_err').html('');
+		$('#category_thumb').removeClass('ui-state-error');
+		
+		$('#actionMessage').attr('class','none');
+		$('#actionMessage').html('&nbsp;');
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append('<span style="color:#FF0000;font-width:bold;" >'+errMsg+"</span>");
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	/************************************************IMAGE THUMBNIL************************************************/
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '0', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '2px'
+			}, 400);
+	});
+	
+});	
+
+$(function() {
+		$("button, input:submit, a", ".demo").button();
+		
+		$("a", ".demo").click(function() { return true; });
+});
+
+
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+
+</script>
+<div id="content" style="padding-top:25px;text-align:left;">
+<?php if (!$this->allow('filepreview')) : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+	<td><table width="1000" border="0" align="center" cellpadding="0" cellspacing="0">
+	  <tr>
+		<td width="210" valign="top">
+		<?php echo $this->partial('index/member_menu.phtml');  ?>
+		</td>
+		<td width="790" valign="top"><table width="770" border="0" align="center" cellpadding="0" cellspacing="0">
+		  
+		  <tr>
+			<td width="775" height="28" class="title_1">
+				<div style="float:left"><img src="data/adminImages/commonImages/file-upload.gif" width="52" height="52" /></div>
+				<div style="padding-top:18px; float:left;">&nbsp;<?php echo $this->translator->translator('projects_filepreview_list_page_name'); ?></div>	
+			</td>
+		  </tr>
+		  <tr>
+			<td  height="4" bgcolor="#7EAD21"></td>
+		  </tr>
+		  <tr>
+			<td >&nbsp;</td>
+		  </tr>
+		 
+		 
+		  	<tr>
+				<td align="center" class="text_0">
+					<table width="750"  class="ui-widget ui-widget-content">
+					<thead>
+						<tr class="ui-widget-header">
+								<th width="45"><?php echo $this->translator->translator('projects_filepreview_list_page_file'); ?></th>
+								<th width="525"height="30"><?php echo $this->translator->translator('projects_filepreview_list_page_name'); ?></th>
+								<th><?php echo $this->translator->translator('common_download'); ?></th>
+							</tr>
+					</thead>
+					<tbody>
+						<?php
+																				
+							foreach($this->file_arr as $file)
+							{
+								$src = $this->baseUrl().$file['thumb_path'];
+								$path = Zend_Registry::get('config')->eicra->params->domain.$this->baseUrl().'/'.$file['path'].'/'.$this->escape($file['name']);	
+								$path_encoded = base64_encode($path);							
+						?>
+							<tr>
+								<td width="45"><span class="thumb"><img src="<?php echo $src; ?>" width="80" border="0" height="60" /></span></td>
+								<td align="left" style="padding-left:10px;"><?php echo $this->escape($file['name']); ?></td>
+								<td align="center" class="demo"><a href="<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'download','path' => $path_encoded ), 'adminrout',    true) ?>"  ><?php echo $this->translator->translator('common_download'); ?></a></td>
+							</tr>
+						<?php
+							}
+						?>
+					</tbody>
+					</table>
+				</td>
+			</tr>
+		
+		  <tr>
+			<td >&nbsp;</td>
+		  </tr>
+		  <tr>
+			<td >&nbsp;</td>
+		  </tr>
+		</table></td>
+	  </tr>
+	</table></td>
+  </tr>
+</table>
+<?php endif; ?>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg','Message'); ?>"></div> 
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<div id="upload-form" title="<?php echo $this->translator->translator('projects_file_manager_dialog'); ?>" align="center">	
+	<table width="880" border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+		<tr>
+			<td colspan="2" align="center">
+				<iframe id="i-upload-form" src="" width="890" height="500" style="border-style:none;" >
+				</iframe>
+			</td>
+		</tr>
+		<tr>
+			<td style="padding-right:5px;padding-bottom:5px;">
+				
+		  </td>
+			<td  style="padding-right:25px;padding-bottom:5px;">
+				<div class="extra_btn ui-widget-content-1" align="right"><a href="javascript:void(0);" class="close_dialog_btn"><?php echo $this->translator->translator('common_close'); ?></a></div>
+		  </td>
+		</tr>
+	</table>
+</div>
+</div>

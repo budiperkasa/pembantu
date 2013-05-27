@@ -1,0 +1,466 @@
+<?php
+if(!empty($this->view_datas[0]['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->view_datas[0]['meta_keywords']);}
+if(!empty($this->view_datas[0]['meta_desc'])) { $this->headMeta()->setName('description',$this->view_datas[0]['meta_desc']); }
+if(!empty($this->view_datas[0]['property_name'])) { $this->headTitle()->headTitle($this->view_datas[0]['property_name'],'SET')->setSeparator(' - ')->headTitle($this->view_datas[0]['meta_title']); }
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jtruncate/jquery.jtruncate.pack.js');
+$version = Zend_Registry::get('version');
+$front_template = Zend_Registry::get('front_template'); 
+
+$business_type_db = new Property_Model_DbTable_BusinessType();
+$cat_Info = new Property_Model_DbTable_Category();
+$mem_db = new Members_Model_DbTable_MemberList();
+$state_db = new Property_Model_DbTable_State();
+$area_db = new Property_Model_DbTable_Area();
+$country_db = new Property_Model_DbTable_Country();
+$property_db = new Property_Model_DbTable_Properties();
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$review_helper = new Review_View_Helper_Review();
+$maximum_stars_digit = $this->translator->translator('maximum_stars_digit');
+
+function property_truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+?>
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+		calender('check_in_book', 'check_out_book');
+		calender('check_out_book', 'check_in_book');
+			text_truncate();
+		$('a.toggle_desc').click(function() {
+			var self = this;
+			var id = $(self).attr('rel');			
+			$('#room_type_desc'+id).slideToggle(500,function () { });
+				return false;
+		  });
+		  
+		  $('#book_button').click(function() {
+		  	if($('#check_in_book').val() == '' || $('#check_out_book').val() == '' )
+			{
+				var msg = "<?php echo $this->translator->translator('property_check_in_out_selected_err'); ?>";
+				openMsgDialog(msg);
+				$('#check_in_book').focus();
+			}
+			else
+			{	
+				if($('#check_status').val() == '')
+				{
+					var msg = "<?php echo $this->translator->translator('property_check_availability_do'); ?>";
+					openMsgDialog(msg);
+				}
+				else
+				{		
+					if($('#check_status').val() == '1')
+					{
+						$('#formBook').submit();
+					}
+					else
+					{
+						var msg = "<?php echo $this->translator->translator('property_check_availability_err'); ?>";
+						openMsgDialog(msg);
+					}
+				}
+			}
+		  });	
+		  
+		  $('#check_availability_btn').click(function() {
+		  	if($('#check_in_book').val() == '' || $('#check_out_book').val() == '' )
+			{
+				var msg = "<?php echo $this->translator->translator('property_check_in_out_selected_err'); ?>";
+				openMsgDialog(msg);
+				$('#check_in_book').focus();
+			}
+			else
+			{					
+				$.ajax({
+					url: "<?php echo $this->url(array('module' => 'Property','controller' =>'book', 'action' => 'availability' ),'adminrout',true); ?>",
+						type: 'POST',
+						data: { property_id : $('#property_id').val(), check_in : $('#check_in_book').val(), check_out : $('#check_out_book').val()},
+						beforeSend: function(){
+								$('#check_result').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/loader.gif" border="0" height="30" />');
+							 },
+						success: function(response){
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							$('#check_result').html('');
+							if(json_arr.status == 'ok')
+							{
+								$('#check_result').html(json_arr.msg);	
+								$('#check_status').val(json_arr.check_status);	
+							}							
+							else
+							{
+								openMsgDialog(json_arr.msg);
+							}
+						},
+						error: function(xhr, status, error){	
+							$('#check_result').html('');						
+							var msg = "Error! " + xhr.status + " " + error;							
+							openMsgDialog(msg);
+						}
+				});
+			}
+		  });	
+		
+			
+});
+
+function openMsgDialog(msg)
+{
+$('#dialog_container').html(msg).dialog({
+			autoOpen: true,
+			modal: false,
+			show: 'explode',
+			resizable: true,				
+			buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 10000);
+				  }
+		});
+}
+
+function stripslashes(str) 
+{
+	str=str.replace(/\\'/g,'\'');
+	str=str.replace(/\\"/g,'"');
+	str=str.replace(/\\0/g,'\0');
+	str=str.replace(/\\\\/g,'\\');
+	return str;
+}
+
+function text_truncate()
+{
+	$('span.jTruncate').jTruncate({  
+		length:  90,  
+		minTrail: 0,  
+		moreText: "[<?php echo html_entity_decode($this->translator->translator('common_see_all'), ENT_QUOTES, "UTF-8"); ?>]",  
+		lessText: "[<?php echo html_entity_decode($this->translator->translator('common_hide'), ENT_QUOTES, "UTF-8"); ?>]",  
+		ellipsisText: "",  
+		moreAni: "fast",  
+		lessAni: 2000  
+	});
+}
+
+function calender(id,second_id)
+{
+	$("#"+id).datepicker({
+		showOn: 'button',
+		buttonImage: 'application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_property_img/calendar.png',
+		buttonImageOnly: true,		
+		monthNamesShort:<?php echo $this->translator->translator("common_calender_monthNamesShort"); ?>,
+		monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+		dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+		showAnim: 'slide',
+		buttonText: 'Calender',
+		dateFormat:'yy-mm-dd',
+		autoSize:false,
+		showButtonPanel:false,
+		changeMonth: true,
+		changeYear: true,
+		onSelect: function(dateText, inst) {
+			$('#check_status').val('');
+			$('#check_result').html('');
+			var id_type_arr = id.split('_');
+			var true_id = 		id_type_arr[0] + id_type_arr[1];			
+			var currentTime = new Date();
+			var currentDay = (currentTime.getDate() < 10) ? '0' + currentTime.getDate() : currentTime.getDate();
+			var currentMonth = ((currentTime.getMonth() + 1) < 10) ? '0' + (currentTime.getMonth() + 1) : (currentTime.getMonth() + 1);
+			var today = currentTime.getFullYear() + '-' + currentMonth + '-' + currentDay;				
+			if(true_id == 'checkin')
+			{
+				if( (dateText != '') && ( (toTimestamp(dateText) >= toTimestamp($('#'+second_id).val())) || (toTimestamp(dateText) < toTimestamp(today)) )  )
+				{					
+					var msg = "<?php echo $this->translator->translator('property_front_page_checkin_date_err'); ?>";
+					openMsgDialog(msg);					
+					$('#'+id).val('');
+				}
+				if(!is_30dayDiff(dateText, $('#'+second_id).val()))
+				{
+					var msg = "<?php echo $this->translator->translator('property_front_page_date_difference_err'); ?>";
+					openMsgDialog(msg);					
+					$('#'+id).val('');
+				}
+			}
+			else if(true_id == 'checkout')
+			{
+				if( (dateText != '') && ( (toTimestamp(dateText) <= toTimestamp($('#'+second_id).val())) || (toTimestamp(dateText) < toTimestamp(today)) )  )
+				{
+					var msg = "<?php echo $this->translator->translator('property_front_page_checkout_date_err'); ?>";
+					openMsgDialog(msg);
+					$('#'+id).val('');
+				}
+				if(!is_30dayDiff($('#'+second_id).val(), dateText))
+				{
+					var msg = "<?php echo $this->translator->translator('property_front_page_date_difference_err'); ?>";
+					openMsgDialog(msg);					
+					$('#'+id).val('');
+				}
+			}
+		}
+	});
+	$("img[class='ui-datepicker-trigger']").each(function(){ 
+			$(this).attr('style', '');
+		 });
+}
+
+function is_30dayDiff(checkin, checkout)
+{
+	if(checkin != '' && checkout != '')
+	{
+		var checkin_arr = checkin.split('-');
+		var checkout_arr = checkout.split('-');
+		var checkin_obj =new Date(checkin_arr[0], (checkin_arr[1] - 1), checkin_arr[2]);
+		var checkout_obj =new Date(checkout_arr[0], (checkout_arr[1] - 1), checkout_arr[2]);		
+		var one_day=1000*60*60*24;
+		var diff = Math.ceil((checkout_obj.getTime()-checkin_obj.getTime())/(one_day));	
+		if(diff > 30)
+		{
+			return false;
+		}	
+	}
+	return true;	
+}
+
+function toTimestamp(strDate){
+	 var datum = Date.parse(strDate);
+	 return datum/1000;
+}
+
+
+</script>
+<?php 
+$allow_obj = new Property_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+
+<div class="mod mod-booking">
+	<div class="booking-icon">
+        <h1><?php echo $this->translator->translator('property_front_page_booking_change'); ?></h1>
+    </div>
+    <div class="social">
+      	<!-- AddThis Button BEGIN -->
+        <div class="addthis_toolbox addthis_default_style">
+        <a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+        <a class="addthis_button_tweet"></a>
+        <a class="addthis_button_google_plusone" g:plusone:size="medium"></a>
+        <a class="addthis_counter addthis_pill_style"></a>
+        </div>
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e89660c7edb029a"></script>
+    	<!-- AddThis Button END -->
+    </div>
+
+	<div class="clear"></div>
+ 	
+	<form id="formBook" name="formBook" method="post" action="<?php echo $this->url( array('module' => 'Property', 'controller' => 'book', 'action'     => 'invoice' ), 'Property-Invoice',    true); ?>">
+    	
+	<?php 
+	if($global_conf['payment_system'] != 'On')
+	{
+		echo '<div class="infoMess">'.$this->translator->translator('common_payment_system_disable').'</div>';
+	
+	}
+	else
+	{ 
+      if($this->view_datas)
+      {
+   	?>
+  
+  	<div>
+    	<?php
+			foreach($this->view_datas as $entry)
+			{
+				$property_image_val_arr = explode(',',$entry['property_image']);
+				$property_image_no = count($property_image_val_arr);
+				if($this->escape($entry['property_primary_image']))
+				{ 
+					$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($entry['property_primary_image']); 
+				}
+				else
+				{ 
+					if($this->escape($entry['property_image']))
+					{							
+						$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($property_image_val_arr[0]); 
+					}
+					else
+					{
+						$thumb_image = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_property_img/no_image.png'; 
+					}		
+				}
+				if($this->group_datas['file_thumb_width'] && ($this->group_datas['file_thumb_resize_func'] == 'resizeToWidth' || $this->group_datas['file_thumb_resize_func'] == 'resize'))
+				{ 
+					$width = 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; 
+				}
+				else
+				{
+					$width = '';
+				} 
+				if($this->group_datas['file_thumb_height'] && ($this->group_datas['file_thumb_resize_func'] == 'resizeToHeight' || $this->group_datas['file_thumb_resize_func'] == 'resize'))
+				{ 
+					$height = 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; 
+				} 
+				else
+				{
+					$height = '';
+				}
+				
+				$featured_class = ($entry['featured'] == '1') ? 'products-featured' : '';
+
+			?>
+            <!-- Booking Option Start -->
+            <div class="mod-container">
+            	<h3><?php echo $this->translator->translator('property_list_page_book_title',$this->escape($entry['property_name'])); ?></h3>
+                    
+                <div class="col">
+                	<p><?php echo $this->translator->translator('property_list_page_search_check_in'); ?></p>
+                  	<input name="check_in" type="text" id="check_in_book" value="<?php echo $this->check_in_date; ?>"/>
+                </div>
+                    
+                <div class="col">
+                      <p><?php echo $this->translator->translator('property_list_page_search_check_out'); ?></p>
+                      <input name="check_out" type="text" id="check_out_book" value="<?php echo $this->check_out_date; ?>" />
+                </div>
+                
+                <input type="button" name="check_availability" id="check_availability_btn" value="<?php echo $this->translator->translator('property_front_page_label_check-availability'); ?>" /> &nbsp;
+               	<span id="check_result"></span>&nbsp;<input type="hidden" name="check_status" id="check_status" value="" /><input type="hidden" name="property_id" id="property_id" value="<?php echo $entry['id']; ?>" />  
+            </div>
+            <!-- Booking Option End -->
+            
+            <div class="products-list">
+            		<!-- list Header Start -->
+                    <div class="list-header">
+                    	<div class="header-row">
+                        	<div class="header-left">
+                            <span class="title-small"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" title="<?php echo $this->escape($entry['property_name']); ?>" link=""><?php echo $this->escape($entry['property_name']); ?></a></span><br />
+                            
+                            <span class="info">
+								<?php if(!empty($entry['feature_room_no'])){ echo (int)$this->escape($entry['feature_room_no']).' '.$this->translator->translator('property_front_page_room'); } if(!empty($entry['feature_bedroom'])){ echo ', '.(int)$this->escape($entry['feature_bedroom']).' '.$this->translator->translator('property_front_page_property_bedroom_no'); } ?>
+                                </span>  
+                            </div>
+                        
+                        	<div class="header-middle">
+                                <span class="products-mark"><?php $business_type_info = $business_type_db->getBusinessTypeInfo($entry['property_type']); echo $this->translator->translator('property_front_page_property_for'); ?></span>&nbsp;<span class="products-type"><?php echo $this->escape($business_type_info['business_type']); ?></span>
+                            </div>
+                        
+                        	<div class="header-right">                                                
+								<?php 
+                                    if(!empty($this->group_datas['review_id'])){ 
+                                    $review_no = $review_helper->getNumOfReviews($entry['id'], $this->escape($this->group_datas['review_id']));
+                                ?><span class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $entry['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></span> &nbsp; <span class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('common_review_no',htmlentities($review_no)); ?></a></span> <?php } ?>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- list Header End -->
+                    
+                    <!-- list Body Start --> 
+                    <div class="body-container <?php echo $featured_class; ?>">
+                         <div class="left-content">
+                                <div class="img-wrapper">
+                                <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" width="350" link="<?php echo $thumb_image; ?>" title="<?php echo $this->escape($entry['property_name']); ?>"><img src="<?php echo $thumb_image; ?>" <?php echo $width; ?> <?php echo $height; ?> border="0" class="thumb"/></a>
+                                    <div class="photo-count-container">
+                                        <div class="photo-count">
+                                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 1 ),'Property-details/:property_title/:tab',true); ?>" title="<?php echo $this->translator->translator('property_front_page_click_view_photos'); ?>"><?php echo $this->translator->translator('property_front_page_property_photo_no', $property_image_no); ?></a>
+                                        </div>
+                                    </div>                                            
+                                </div>
+                                
+                                <h2> 
+                                    <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" title="<?php echo $this->escape($entry['property_name']); ?>" link=""><?php echo $this->escape(property_truncate($entry['property_name'], 0, 5)); ?></a>
+                                </h2>
+                                
+                                <div class="products-stars">
+                                <?php
+                                    for($i = 1; $i < $maximum_stars_digit; $i++)
+                                    {
+                                        $property_stars = ($i <= $this->escape($entry['stars'])) ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-inactive.png' border='0'/>";
+                                        echo $property_stars.'&nbsp;';
+                                    }
+                                ?>
+                                </div>
+                                
+                                <div class="products-desc">
+                                    <p><?php echo $this->translator->translator('property_front_page_property_location'); ?></p> <?php $states = $state_db->getStateInfo($entry['state_id']); $areas = $area_db->getAreaInfo($entry['area_id']); echo $this->escape($areas['city']).', '.$this->escape($states['state_name']).', '.$this->escape($entry['post_code']).'.'; ?><br />
+                                    <p><?php echo $this->translator->translator('property_front_page_property_country'); ?></p> <?php $countries = $country_db->getCountryName($entry['country_id']); echo $this->escape($countries['value']); ?><br />
+
+                                    <p><?php echo $this->translator->translator('property_front_page_property_desc'); ?></p>
+                                    <span class="jTruncate"><?php echo $this->escape(strip_tags($entry['property_desc'])); ?></span>
+                                </div>
+                         </div>
+                         
+                         <div class="right-content">
+                            <span class="products-price"><?php  echo $this->translator->translator('property_front_page_price').$currency->getSymbol().' '.$this->price($this->escape($entry['property_price']));  ?></span>
+                            <ul class="products-options">
+                                <?php
+                                if(!empty($property_type_arr[0]) && in_array($entry['property_type'], $property_type_arr))
+                                  {
+                                ?>
+                                <li class="availability"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 4 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_label_check-availability'); ?></a></li>
+                                <?php
+                                  }
+                                  if(!empty($entry['feature_bathroom']))
+                                  {
+                                ?>	
+                                <li class="bathroom"><?php  echo (int)$this->escape($entry['feature_bathroom']).' '.$this->translator->translator('property_front_page_bathroom'); ?></li>
+                                <?php
+                                  }
+                                ?>
+                                
+                                <li class="kitchen"><?php echo ($entry['feature_kitchen']) ? $this->translator->translator('property_front_page_property_has_kitchen') : $this->translator->translator('property_front_page_property_no_kitchen') ; ?></li>
+                                
+                                <li class="garden"><?php echo ($entry['feature_garden']) ? $this->translator->translator('property_front_page_property_has_garden') : $this->translator->translator('property_front_page_property_no_garden') ; ?></li>
+
+                                <li class="garage"><?php echo ($entry['feature_garage']) ? $this->translator->translator('property_front_page_property_has_garage') : $this->translator->translator('property_front_page_property_no_garage') ; ?></li>
+                            </ul>                              
+                         </div>    
+                    </div>
+                    <!-- list Body End -->
+                    
+                    <!-- list footer start -->
+                    <div class="list-footer">
+                        <div class="footer-left">
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 5 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_f_b'); ?></a> | 
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 2 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_fpan'); ?></a>  | 
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 3 ),'Property-details/:property_title/:tab',true); ?>"><?php echo ucfirst(strtolower($this->translator->translator('property_front_page_property_map'))); ?></a>  | 
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']),'tab' => 1 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('property_front_page_property_photo'); ?></a> | 
+                            <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'emails', 'action' => 'friend','property_title' => $this->escape($entry['property_title']), 'form_id' => $this->translator->translator('email_to_friend_form_id') ),'Email-To-Friend/:property_title/:form_id',true); ?>"><?php echo $this->translator->translator('property_front_page_property_email_friend'); ?></a>
+                        </div>
+                        
+                        <div class="footer-right">
+                            <span class="products-book-btn"><?php  if(!empty($property_type_arr[0]) && in_array($entry['property_type'], $property_type_arr)){ ?><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'book', 'action' => 'booking','property_title' => $this->escape($entry['property_title']) ),'Book-Property/:property_title',true); ?>"><?php echo $this->translator->translator('property_front_page_property_book'); ?></a><?php } ?></span>
+                            <span class="products-details-btn"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($entry['property_title']) ),'Property-details/:property_title',true); ?>"><?php echo $this->translator->translator('property_front_page_property_more'); ?></a></span>
+                        </div>
+                    </div>
+                    <!-- list footer end -->
+            </div>
+            <?php
+				}
+			?>
+	</div>  
+	<?php
+    }		
+    ?>
+    <div class="btn-container"><input type="button" name="button" id="book_button" value="<?php echo $this->translator->translator('property_invoice_book_now'); ?>" /></div>
+	<?php
+	}
+	?>
+    </form>
+</div>
+
+<div class="clear"></div>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('property_front_page_dialog_name')); ?>"></div>
+<?php endif; ?>	

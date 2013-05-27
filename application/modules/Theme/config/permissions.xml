@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backendjquery" for="backend" description="Manage Jquery Theme" langKey="permisson_jquery_theme">
+		<privilege for="dashboard" name="list" description="View the list of Jquery Theme" langKey="permisson_jquery_theme_list" />
+		<privilege name="add" description="Create new Jquery Theme" langKey="permisson_jquery_theme_add" />
+		<privilege name="edit" description="Edit Jquery Theme" langKey="permisson_jquery_theme_edit" />
+		<privilege name="delete" description="Delete a Jquery Theme" langKey="permisson_jquery_theme_delete" />
+		<privilege name="primary" description="Default a Jquery Theme" langKey="permisson_jquery_theme_default" />
+	</resource>	
+	<resource name="template" for="backend" description="Manage Front Templates" langKey="permisson_frontend_template">
+		<privilege for="dashboard" name="list" description="View the list of Frontend Template" langKey="permisson_frontend_template_list" />
+		<privilege name="add" description="Add new Frontend Template" langKey="permisson_frontend_template_add" />
+		<privilege name="edit" description="Edit Frontend Template" langKey="permisson_frontend_template_edit" />
+		<privilege name="delete" description="Delete Frontend Template" langKey="permisson_frontend_template_delete" />
+		<privilege name="primary" description="Default a Frontend Template" langKey="permisson_frontend_template_default" />
+	</resource>		
+</permissions>

@@ -1,0 +1,414 @@
+/* ___________________________________________________________________________________
+   
+   CSS Framework for Eicra Realestate Script [Modules]
+   ___________________________________________________________________________________ */
+
+@charset "utf-8";
+
+/* GLOBAL MODULES ******************************************************************* */
+
+/* Module Titles -------------------------------------------------------------------- */
+
+.search-icon, .email-icon, .user-reg-icon, .packages-icon, .registration-icon, .users-icon, .password-icon, .feedback-icon, .send-feedback-icon, .sitemap-icon, .contact-icon, .news-icon, .gallery-icon, .chart-icon, .form-icon, .poll-icon, .comments-icon, .article-icon,
+
+/* Realestate Icon Start */
+.property-list-icon, .contact-owner-icon, .appointment-icon, .agent-search-icon, .agent-icon, .itinerary-icon, .booking-icon, .cart-icon, .invoice-icon
+{
+	float:right;
+	background-position:right center;
+	background-repeat:no-repeat;
+	padding:8px 55px 6px 0;
+}
+
+/* Realestate Icon End */
+
+.article-icon{ padding-left:0; padding-right:35px; }
+
+/* ********************************************************************************** */
+
+
+/* Gallery & News Category Panel Start ---------------------------------------------- */
+
+.category-panel a img{
+	float:right;
+}
+
+.category-panel a div.toggle{
+	float:right;
+	padding:4px 10px 0 0;
+}
+
+.cat-list{
+	margin:20px 10px 0 0;
+	float:right;
+}
+
+.cat-list ul li{
+	background-repeat:no-repeat;
+	background-position: 99% 4px;
+	padding:0 24px 0 0;
+}
+
+.cat-list .count{
+	unicode-bidi:embed;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Gallery Module ------------------------------------------------------------------- */
+
+.mod-gallery .gallery-container .image-box{
+	float:right;
+    margin: 15px 31px 0 0;					/* Gallery image column space settings */
+}
+
+.mod-gallery .gallery-container .image-box .gallery-thumb .more a{
+	background: url(../images/mod_img/right-arrow-rtl.png) no-repeat;
+}
+
+.mod-gallery .gallery-container .img-label{
+	float:right;
+	clear:right;
+	text-align:left;
+}
+
+.mod-gallery .gallery-container .img-value{
+	margin: 0 6px 0 0;
+	float:right;
+}
+
+.mod-gallery .login-bar  a{
+	background-repeat:no-repeat;
+	background-position:98% 2px;
+	padding:3px 25px 1px 0;
+}
+
+.mod-gallery .related .related-title{
+	background-repeat:no-repeat;
+	background-position:right center;
+	padding: 4px 38px 5px 0;
+}
+
+/* Gallery Chart Start */
+
+.mod-gallery .gallery-chart .chart-col-1.col-2{
+	padding-right:0;
+	padding-left:20px;
+	margin-right:0;
+}
+
+.mod-gallery .gallery-chart .chart-col-1.col-4{
+	text-align:left;
+}
+
+.mod-gallery .back-btn a{
+	float:left;
+	margin: 10px 0 0 -2px;
+}
+
+/* Gallery Chart End */
+
+.mod-gallery .result-title{
+	padding: 20px 15px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* News Module ---------------------------------------------------------------------- */
+
+.mod-news .calendar{
+	background-repeat:no-repeat;
+	background-image:url(../images/mod_img/calendar-rtl.png);
+	margin: 0 15px 0 0;
+	float:left;
+}
+
+.mod-news .calendar h1{
+	margin: 3px 16px 0 0;
+}
+
+.mod-news .calendar .year{
+	left:0;
+	right:44px;
+}
+
+.mod-news .news-title-scroll{
+	padding: 5px 5px 5px 0;
+}
+
+.mod-news .archive .row .col p.border{
+	border-right:0;
+	border-left:1px solid #CCC;
+}
+
+.mod-news .archive .list .year_name,
+.mod-news .archive .list .month_name{
+	margin: 5px 0 5px 10px;
+}
+
+.mod-news .archive .list .month_list{
+	margin-left:0;
+	margin-right:20px;
+}
+
+.mod-news .archive .month_list .cat_list a{
+	margin-left:0;
+	margin-right: 25px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Polls ---------------------------------------------------------------------------- */
+
+.mod-polls .poll-title{
+	background-repeat:no-repeat;
+	background-position:right center;
+}
+
+.mod-polls .btn a{
+	float:left;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Review  -------------------------------------------------------------------------- */
+
+.mod-review .review-header h4.icon{
+	background-repeat:no-repeat;
+	background-position: 98% center;
+	padding: 8px 30px 8px 0;
+}
+
+.mod-review .element{
+	text-align:right;
+	float:right;
+	clear:left;
+}
+
+.mod-review .value{
+	float:left;
+	margin: 0 10px 10px 0;
+}
+
+.mod-review .review-img{
+	margin: 5px 0 16px 5px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Site Map ------------------------------------------------------------------------- */
+
+.mod-sitemap{
+	margin: 10px 15px 0 0;
+	float:right;
+}
+
+.mod-sitemap .parent-item li{
+	background:url(../images/mod_img/arrow-rtl.gif) right 6px no-repeat;
+	padding:0 15px 0 0;
+}
+
+.mod-sitemap .child-item li{
+	background:url(../images/mod_img/arrow-small-rtl.png) right 6px no-repeat;
+	padding:0 15px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Member Resigtration -------------------------------------------------------------- */
+
+.mod-reg .type{
+	padding-left:0;
+	padding-right:20%;
+}
+
+.mod-reg .type input[type="radio"]{
+	margin:0 0 0 10px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Member Login --------------------------------------------------------------------- */
+
+.mod-login .login-box h1{
+	background-repeat:no-repeat;
+	background-position: 100% center;
+}
+
+.mod-login .login-img{
+	background-repeat:no-repeat;
+	background-position: right center;
+	margin: 10px 0 10px 38px;
+	float:left;
+}
+
+.mod-login .field-area{
+	float:right;
+}
+
+.mod-login .icon{
+	background-position:98% center;
+}
+
+.mod-login a.reg{
+	background-repeat:no-repeat;
+	background-position: right center;
+	padding:5px 28px 5px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Article -------------------------------------------------------------------------- */
+
+.mod-article .edit{
+	float:left;
+	margin:0 10px 10px 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Forms ---------------------------------------------------------------------------- */
+
+.form-label-container{
+	float:right;
+}
+
+.form-field-container{
+	float:right;
+}
+
+.form-field{
+	float:right;
+}
+
+.form-field-info{
+	padding:1px 10px 0 0;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Messages ------------------------------------------------------------------------- */
+
+.errors, .seccMess, .warning, .infoMess, .dataTables_empty{
+	padding:3px 30px 3px 3px;
+}
+
+.input-errors{
+	clear:right;
+}
+
+.infoMess{
+	background-repeat:no-repeat;
+	background-position: 99% center;
+}
+
+.warning,
+.dataTables_empty{
+	background-repeat:no-repeat;
+	background-position: 98% center;
+}
+
+.dataTables_empty{
+	padding: 10px 30px 10px 10px;
+	text-align:right !important;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* JQuery Customized Style ---------------------------------------------------------- */
+
+.ui-icon{
+	float:right;
+}
+
+.ui-state-success, .ui-widget-content .ui-state-success, .ui-widget-header .ui-state-success{
+	background-repeat:no-repeat;
+	background-position: 99% center;
+}
+
+.ui-widget .ui-autocomplete-input{
+	transform:scaleX(-1);
+	-moz-transform:scaleX(-1);
+	-o-transform:scaleX(-1);
+	-webkit-transform:scaleX(-1);
+	filter:FlipH;
+	-ms-filter:FliphH;
+}
+
+.ui-widget .ui-button{ 
+	margin-right: -1px;
+	transform:scaleX(-1);
+	-moz-transform:scaleX(-1);
+	-o-transform:scaleX(-1);
+	-webkit-transform:scaleX(-1);
+	filter:FlipH;
+	-ms-filter:FliphH;
+}
+
+.ui-datepicker-trigger{ 
+	margin:1px 10px 0;
+	float:right;
+}
+
+.hasDatepicker{
+	float:right;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Uploadify ------------------------------------------------------------------------ */
+
+.uploadifyQueueItem .cancel {
+	float:left;
+}
+	
+/* ---------------------------------------------------------------------------------- */
+
+/* Loader --------------------------------------------------------------------------- */
+
+.ui-autocomplete-loading{
+	background-position:left center;
+	background-repeat: no-repeat;
+}
+
+#full_payment_link{
+	padding:5px 0 0 5px;
+}
+
+.save_property_btn img{
+	margin:0 0 0 5px;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Thumb Upload --------------------------------------------------------------------- */
+
+span.thumbnail {
+	margin:0 5px 1px 0;
+	float:right;
+	clear:left;
+}
+
+span.thumbnail img {
+	right: 0;
+}
+
+span.thumbnail img.hover{
+	background-repeat: no-repeat;
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* Featured News Scroll ------------------------------------------------------------- */
+
+.news_title{
+	padding: 5px 5px 9px 0
+}
+
+/* ---------------------------------------------------------------------------------- */
+
+/* ___________________________________________________________________________________
+   
+   New CSS used by Developer
+   ___________________________________________________________________________________ */
+

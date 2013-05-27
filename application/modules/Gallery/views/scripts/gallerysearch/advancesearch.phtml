@@ -1,0 +1,238 @@
+<?php
+$version = Zend_Registry::get('version');  
+$front_template = Zend_Registry::get('front_template');
+if(!empty($group_datas['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->group_datas['meta_keywords']);}
+if(!empty($this->group_datas['meta_desc'])) { $this->headMeta()->setName('description',$this->group_datas['meta_desc']); }
+if(!empty($this->group_datas['gallery_name'])) { $this->headTitle()->headTitle($this->group_datas['gallery_name'],'SET')->setSeparator(' - ')->headTitle($this->group_datas['meta_title']); }
+
+echo $this->headTitle($this->translator->translator('gallery_advance_search_title'));
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/pirobox/pirobox.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/pirobox/css_pirobox/demo5/style.css'); 
+?>
+		
+<script type="text/javascript">
+	$(document).ready(function (){
+	
+	
+	
+	$('.pirobox').piroBox({
+			my_speed: 300, //animation speed
+			bg_alpha: 0.7, //background opacity
+			slideShow : false, // true == slideshow on, false == slideshow off
+			slideSpeed : 4, //slideshow duration in seconds(3 to 6 Recommended)
+			close_all : '.piro_close,.piro_overlay'// add class .piro_overlay(with comma)if you want overlay click close piroBox
+
+	});
+	
+	$('img[title]').qtip({			
+				position: { my: 'bottom left', at: 'top center' },
+				show: {  target: false, event: 'mouseover', effect: function(offset) { /*$(this).slideDown(200);*/ $(this).show(300); } },
+				hide: {  event: 'mouseout' , effect: function(offset) { /*$(this).slideUp(200);*/ $(this).hide(300); } },
+				style: { classes: 'ui-tooltip-frontend' }
+			});
+	
+	
+	
+	$('select.group_select_change').change(function() {		
+				
+		if($('select.group_select_change option:selected').val() == '')
+		{
+			$('select#category_id').html('<option value=""><?php echo $this->translator->translator("gallery_advance_category_select"); ?></option>');
+		}
+		else
+		{
+			$.ajax({
+				  url: "<?php echo $this->url( array('module' => 'Gallery', 'controller' => 'Gallerysearch', 'action'     => 'getcategories' ), 'adminrout',    false) ?>",
+				  type: 'POST',
+				  data: { group_id: $('select.group_select_change option:selected').val() },
+				  beforeSend: function(){						
+						$('select#category_id').html('<option value=""><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+						$('#category_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+						},
+				  success: function(response){
+					var json_arr = eval("("+response+")");
+					var option = '<option value=""><?php echo $this->translator->translator("gallery_advance_category_select"); ?></option>';				
+					if(json_arr.status == 'ok')
+					{
+						for(var i = 0;i<json_arr.id.length;i++)
+						{
+							option += '<option value="'+json_arr.id[i]+'" >'+stripslashes(json_arr.category_name[i])+'</option>';
+						}
+						$('select#category_id').html(option);
+					}
+					else
+					{
+						$('select#category_id').html('<option value="">'+json_arr.msg+'</option>');
+					}
+					$('#category_id_err').html('');
+				  }
+			});
+		}
+	})
+});
+
+	function stripslashes(str) 
+	{
+		str=str.replace(/\\'/g,'\'');
+		str=str.replace(/\\"/g,'"');
+		str=str.replace(/\\0/g,'\0');
+		str=str.replace(/\\\\/g,'\\');
+		return str;
+	}
+
+function PopupCenter(pageURL, title,w,h) {
+var left = (screen.width/2)-(w/2);
+var top = (screen.height/2)-(h/2);
+var targetWin = window.open (pageURL, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
+} 
+</script>
+
+<div class="mod mod-gallery">
+	<div class="search-icon">
+		<h1><?php echo $this->translator->translator('gallery_advance_search_title');?></h1>
+	</div>
+
+	<div class="clear">&nbsp;</div>
+
+	<div class="mod-container">
+        <form name="search_gallery_advance" method="post" action="<?php echo $this->url( array('module' => 'Gallery','controller' => 'Gallerysearch', 'action'     => 'advancesearch' ), 'Advance-Search',    true) ?>">
+            <div class="col">
+                <p><?php echo $this->advanceForm->product_name->getLabel();?></p>
+                <?php echo $this->advanceForm->product_name;?>
+              	<span id="product_name_err"></span> 
+            </div>
+            
+            <div class="col">
+				<p><?php echo $this->advanceForm->group_id->getLabel();?></p>
+               	<?php echo $this->advanceForm->group_id;?>
+              	<span id="group_id_err"></span>
+            </div>
+            
+            <div class="col">
+             	<p><?php echo $this->advanceForm->category_id->getLabel();?></p>
+              	<?php echo $this->advanceForm->category_id;?>
+               	<span id="category_id_err"></span>
+            </div>
+            
+            <div class="col">
+            	<p><?php echo $this->advanceForm->product_title->getLabel();?></p>
+				<?php echo $this->advanceForm->product_title;?>
+                <span id="product_title_err"></span>
+            </div>
+            
+            <div class="col">
+				<p><?php echo $this->advanceForm->product_code->getLabel();?></p>
+               	<?php echo $this->advanceForm->product_code;?>
+              	<span id="product_code_err"></span>
+            </div>
+            
+            <div class="col">
+         		<p><?php echo $this->advanceForm->product_desc->getLabel();?></p>
+              	<?php echo $this->advanceForm->product_desc;?>
+                <span id="product_desc_err"></span>
+            </div>
+            
+            <div class="clear btn-container">
+                <input type="submit" name="Submit" class="search_btn" value="<?php echo $this->translator->translator('gallery_front_page_search_button'); ?>" />
+            </div>
+        </form>    	
+	</div>
+	<?php
+    if($this->result)
+    	{
+    ?>
+    <div class="result-title"><?php echo $this->translator->translator('gallery_search_list_title'); ?>: <?php echo $this->translator->translator('gallery_search_list_found_title', count($this->result)); ?></div>
+    <?php
+    	}		
+    ?>
+    <div>
+        <div class="gallery-container">
+			 <?php
+                    if(count($this->advanceResult) > 0):
+						foreach ($this->advanceResult as $entry=>$value):
+							$group_datas = $this->viewHelper->_getGallery_info($value['group_id']);
+								
+							$link = $this->url( array('module' => 'Gallery','controller' =>'Gallerysearch','action' => 'searchdetails','id' => $value['id']), 'Search-Details/:id',    true);
+							
+							if($value['featured'] == '1')
+							{
+								$style = 'style="background: #FF0000;"';
+							}
+							else
+							{
+								$style = "";
+							}				
+							if($this->escape($value['product_thumb_primary']))
+							{ 
+								$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($value['product_thumb_primary']); 
+							}
+							else
+							{ 
+								if($this->escape($value['product_thumb']))
+								{
+									$product_thumb_val_arr = explode(',',$value['product_thumb']);
+									$thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($product_thumb_val_arr[0]); 
+								}
+								else
+								{
+									if($this->escape($value['product_file_primary']))
+									{
+										$thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($value['product_file_primary']); 
+									}
+									else
+									{
+										$product_file_val_arr = explode(',',$value['product_file']);
+										$thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+									}
+								}		
+							}
+							 
+							if($this->escape($value['product_file_primary']))
+							{
+								$light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($value['product_file_primary']); 
+							}
+							else
+							{
+								$product_file_val_arr = explode(',',$value['product_file']);
+								$light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+							}
+							$img_title_desc = '<b>'.$this->translator->translator('gallery_common_name').'</b> '.$this->escape($value['product_name']);	
+							$img_title_desc .=	($this->escape($value['product_code'])) ? '<br /><b>'.$this->translator->translator('gallery_common_code').'</b> '.$this->escape($value['product_code']) : '';
+							$img_title_desc .=	($this->escape($value['product_price'])) ? '<br /><b>'.$this->translator->translator('gallery_common_price').'</b> '.$this->escape($value['product_price']).'&nbsp;'.$currency->getSymbol() : '';
+							$img_title_desc .=	($this->escape($value['product_desc'])) ? '<br /><b>'.$this->translator->translator('gallery_common_desc').'</b> '.strip_tags($this->escape($value['product_desc'])) : '';
+					?>
+					
+					<div class="image-box">
+						<div class="gallery-thumb">
+							<a <?php if($group_datas['light_box_on'] == '1'){ ?>class="preview" link="<?php echo $thumb_image; ?>" width="300px" href="<?php echo $link; ?>" title="<?php echo $this->escape($value['product_title']); ?>" <?php }else{ ?> href="<?php echo $link; ?>" <?php } ?> ><img src="<?php echo $thumb_image; ?>" width="120" border="0" class="thumb-img" /></a>
+						</div>
+						<div class="info-container product-info product-label">
+							<span><?php echo $this->translator->translator('gallery_common_name'); ?></span> <a href="<?php echo $link; ?>"><?php echo $this->escape($value['product_name']); ?></a><br />
+								<span><?php echo $this->translator->translator('gallery_common_image_no'); ?></span> <?php echo count($product_file_val_arr); ?><br />
+								<?php if($value['product_code']){ ?>
+								<span><?php echo $this->translator->translator('gallery_common_code'); ?></span> <?php echo $this->escape($value['product_code']); ?><br />
+								<?php } ?>
+								<span><?php echo $this->translator->translator('gallery_common_price'); ?></span> <?php echo $this->escape($value['product_price']).'&nbsp;'.$currency->getSymbol(); ?><br />
+								<span><?php echo $this->translator->translator('gallery_common_cpyright'); ?></span> <?php echo $this->escape($global_conf['site_name']); ?><br />
+						</div>
+						
+						<div class="icon">
+							<div class="icon-bg"><span class="big-view"><a href="<?php echo $light_box_image; ?>" class="pirobox" title="<?php echo $this->escape($value['product_name']); ?>"></a></span></div>
+							<div class="icon-bg"><span class="img-details"><a href="<?php echo $link; ?>" title="Image Details"></a></span></div>
+						</div>
+					</div>
+					
+					<?php						
+						endforeach;				
+                    else:
+                        echo '<div class="result-title">'.$this->translator->translator('gallery_no_picture_found_error').'</div>';
+                    endif;			
+                ?>
+     	</div>
+	</div>
+</div>

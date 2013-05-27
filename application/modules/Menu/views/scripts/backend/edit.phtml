@@ -1,0 +1,1273 @@
+<?php
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/tree/javascripts/jquery.treeTable.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+$select_style = 'none';
+$ext_style = 'none'; 
+$required_title_label = '';
+if(!empty($this->external_link))
+{ 
+	$select_style = 'none';
+	$ext_style = 'inline'; 
+	$required_title_label = $this->translator->translator("required_title_label_link"); 
+}
+else if(!empty($this->page_combo->_select_page))
+{ 
+	$select_style = 'inline';
+	$ext_style = 'none'; 
+	$required_title_label = $this->translator->translator("required_title_label_item"); 
+}
+$accordon_active = (empty($this->page_combo->_select_page) && empty($this->external_link)) ? 'false' : '0';
+
+$auth = Zend_Auth::getInstance ();	
+$u_role_id = ($auth->hasIdentity ()) ? $auth->getIdentity()->role_id : '' ;
+$u_user_id = ($auth->hasIdentity ()) ? $auth->getIdentity()->user_id : '' ;	
+?>
+
+<script type="text/javascript">
+function initialization()
+{
+	if($("#sortTablePut").html())
+	{		
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTablePut").dataTable({
+				"bPaginate": false,
+				"bDestroy":true,
+				"bLengthChange": true,
+				"bSearchable": false,
+				"bFilter": false,
+				"bSort": false,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": false,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	lastClassAdd(oTable);
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	});
+	/****************************Sorting Table End*********************/
+	}
+}
+function popupConfirmDialog(inputHtml)
+{
+	$("#popup-confirm").html(inputHtml).dialog({
+				resizable: false,
+				width:750,
+				height:600,
+				modal: true,
+				show: 'fade',
+				hide: 'explode',
+				dialogClass: 'ui-dialog',
+				buttons: false
+	});
+}
+
+function closePopupConfirmDialog()
+{
+	$('#popup-confirm').dialog('option','hide','explode').dialog('close');
+}
+
+function  getSerializedData(layout_obj)
+{
+	var htmlInput = '<fieldset class="fieldset">';
+		htmlInput += '<legend class="legend"><?php echo $this->translator->translator("menu_layout_select"); ?></legend>';
+		htmlInput += '<div><div class="col-1">';
+		htmlInput += '	<div class="label"><?php echo $this->translator->translator("menu_system_link"); ?></div><hr class="dashed"/>';
+		htmlInput += '	<div class="layout-option"><a href="javascript:void(0);" rel="ext" class="put_layout"><?php echo $this->translator->translator("menu_system_external"); ?></a></div>';
+		htmlInput += '	<span class="layout-info"><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator("menu_system_external"); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div></span>';
+		htmlInput += '</div>';
+		
+		
+		var col_no = '1';
+	for(var i = 0; i < layout_obj.length; i++)
+	{
+		col_no = (i % 2 == 0) ? '2' : '1';
+		
+		htmlInput += '<div class="col-'+col_no+'">';
+		htmlInput += '	<div class="label">'+layout_obj[i].module+'</div><hr class="dashed"/>';
+		for(var j = 0;j < layout_obj[i].layouts.length; j++)
+		{
+			htmlInput += '	<div class="layout-option"><a href="javascript:void(0);" rel="'+layout_obj[i].module+','+layout_obj[i].layouts[j].name+','+layout_obj[i].layouts[j].table+'" class="put_layout">'+layout_obj[i].layouts[j].description+'</a></div>';
+			htmlInput += '	<span class="layout-info"><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="'+layout_obj[i].module+','+layout_obj[i].layouts[j].img+'"><p><span class="ui-icon ui-icon-info"></span></p></div></div></span>';
+		}
+		htmlInput += '</div>';
+		
+		
+		
+	}
+	htmlInput += '</div></fieldset>';
+	return htmlInput;
+}
+
+function popupLayoutImage()
+{
+    $('div.ui-widget-header').tooltip({			
+			content: function() {
+				var element = $( this );
+				var rel = element.attr('title');
+				var img_arr = rel.split(',');
+				if(img_arr[1])
+				{					
+					var img_path = '<?php echo $this->serverUrl().$this->baseUrl(); ?>/application/modules/'+img_arr[0]+'/images/'+img_arr[1];
+					return  "<img  src='"+img_path+"' width='250' />";
+				}
+				else
+				{
+					return rel;
+				}
+			},
+			track: true
+		});
+}
+
+function putLayoutData()
+{
+	$("a.put_layout").click(function() {
+	
+		$('#page_select').html('');	
+		$('#select_page').val('');	
+		$('a.article_category_btn').css('display','none');	
+		$('#external_link').css('display','none');	
+		$('#required_title_label').html('');
+		$('#create_new').html('');				
+			
+		var self = this;
+		var rel = $(self).attr('rel');
+		var layout_arr = rel.split(','); 
+		$('#module').val(layout_arr[0]);
+		$('#select_layout').val(rel);
+		$('#menu_type').val($(self).text());
+		if(layout_arr[0] == 'ext')
+		{
+			$('#required_title_label').html('<?php echo $this->translator->translator("required_title_label_link"); ?>');
+			$("#accordion").accordion({
+				active: 0,
+				collapsible:true,
+				autoHeight: true,
+				clearStyle: true 	
+			});
+			$('#external_link').css('display','inline');		
+		}
+		else
+		{			
+			$('#external_link').css('display','none');			
+			if(layout_arr[3])
+			{
+				if(layout_arr[3] == 'articles')
+				{
+					$('#create_new').html('<hr class="dashed"/><span class="other-btn ui-widget-content-1"><a href="javascript: void(0)" class="new_page_btn"><span class="icon add"><?php echo $this->translator->translator("menu_page_popup_button"); ?></span></a></span>');
+					popup_function();
+				}
+				$("#accordion").accordion({
+					active: 0,
+					collapsible:true,
+					autoHeight: true,
+					clearStyle: true 	
+				});
+				$('a.article_category_btn').css('display','inline');
+				$('#required_title_label').html('<?php echo $this->translator->translator("required_title_label_item"); ?>');
+			}
+			else
+			{
+				$("#accordion").accordion({
+					active: false,
+					collapsible:true,
+					autoHeight: true,
+					clearStyle: true 	
+				});
+				$('#required_title_label').html('');
+				$('a.article_category_btn').css('display','none');
+			}				
+		}
+		closePopupConfirmDialog();
+	});
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_message').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'explode',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+
+$(document).ready(function() {
+	 menuTreeGen();
+	 getPages();
+	 floatingbar('#floatingbar',"#button_top_bar",null);	
+	 initialization();
+	 imageThumbnil();
+	 deleteFiles("<?php echo $this->translator->translator('gallery_img_main','', 'gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related','', 'gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+	 
+	 $("a[rel='layout_btn']").click(function() {				
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'backend', 'action'     => 'types' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { test : 'test' },
+				beforeSend: function(){							
+						popupConfirmDialog('<div class="loader-big"><img src="application/modules/Administrator/layouts/scripts/images/loader/loader.gif" border="0" /></div>');																		
+					 },
+				success: function(response){
+					//alert(response);								
+					var json_arr = eval("("+response+")");					
+										
+					if(json_arr.status == 'ok')
+					{
+						var htmlInput = getSerializedData(json_arr.layout_obj);	
+						popupConfirmDialog(htmlInput);	
+						putLayoutData();
+						popupLayoutImage();	
+						$("#accordion").accordion({
+							active: false,
+							collapsible:true,
+							autoHeight: true,
+							clearStyle: true 	
+						});																				
+					}
+					else
+					{
+						popupConfirmDialog(json_arr.msg);
+					}
+				}
+		});	
+	});
+		
+	$("#accordion").accordion( {
+			active: <?php echo $accordon_active; ?>,
+			collapsible:true,
+			heightStyle: "content" 			
+			//icons: { 'header': 'ui-icon-plus', 'headerSelected': 'ui-icon-minus' }
+	});
+	
+	$('a.upload_btn').click(function() {
+		var group_id = $("#group_id").val();
+		$('input[name="primary_id_field_value"]').val(group_id);
+		
+		var file_content = $('#menu_image').val();
+		$('input[name="file_content"]').val(file_content);	
+		
+		$("#i-popup-form").attr("width",'550');
+		$("#i-popup-form").attr("height",'390');
+		$('a.select_file_btn').parents('span:first').css('display','none');
+		$('a.select_image_btn').parents('span:first').css('display','inline');
+		
+		var src = $("#i-popup-form").attr("src");	
+		$("#i-popup-form").attr("src", '');
+		
+		if(group_id != null && group_id != "")
+		{
+			$("#popupForm").attr("action", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action' => 'manager' ), 'adminrout',    true) ?>");			
+			$('#popup-form').dialog({
+					autoOpen: false,
+					title : "<?php echo $this->translator->translator("common_dialog_msg",$this->translator->translator("menu_accordon_image_option")); ?>",
+					width: 800,
+					height: 600,
+					show: 'fade',			
+					modal: true
+				}).dialog('open');
+			$('#popupForm').submit();	
+		}
+		else
+		{
+			msg = "<?php echo $this->translator->translator("menu_group_selected_err"); ?>";
+			openMsgDialog(msg);
+		}
+	});	
+	 
+	 $("#popup-form").dialog({
+		autoOpen: false,
+		width: 1250,
+		height: 780,
+		show: 'fade',			
+		modal: true
+	});
+	popup_function();
+	
+	$('a.select_image_btn').click(function() {		 
+		
+			var currentIFrame = $('#i-popup-form');
+			var selected_files = currentIFrame.contents().find("input[name='selected_files']").val();
+			var primary_file_field = currentIFrame.contents().find("input[name='primary_file_field']").val();
+			var file_path	=	currentIFrame.contents().find("input[name='file_path']").val();
+			var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+			if(selected_files_arr.length == '0')
+			{
+				var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';				
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var img_path = file_path +'/'+ selected_files_arr[0]; 	
+				var del_link = '<a href="javascript:void(0)" class="delete_image_lnk" rel="'+selected_files_arr[0]+'"><?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?></a>';						
+				var img_code = '<div class="upload-img box"><span><span class="thumb"><img src="'+img_path+'" width="45" height="35" class="bdr" /></span><br /><br />&nbsp;&nbsp;'+del_link+'&nbsp;&nbsp;&nbsp;&nbsp;</span></div>';
+				$('#selected_file_'+primary_file_field).html(img_code);
+				$('#'+primary_file_field).val(selected_files_arr[0]);
+				$("#i-popup-form").attr("src", '');
+				$("#i-popup-form").html('');
+				$("#popup-form").dialog('option','hide','explode').dialog('close');
+				deleteFiles("<?php echo $this->translator->translator('gallery_img_main','', 'gallery'); ?>", "<?php echo $this->translator->translator('gallery_img_related','', 'gallery'); ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove' ), 'adminrout',    true) ?>", "<?php echo $this->translator->translator('common_delete_title'); ?>");	
+				imageThumbnil();
+			}
+		});
+	
+	$('a.select_file_btn').click(function() {			
+		var currentIFrame = $('#i-popup-form');
+		var last_id = currentIFrame.contents().find("#last_id").val();
+		var article_name_field = currentIFrame.contents().find("#article_name_field").val();
+		if(last_id != '' && article_name_field != '')
+		{
+			putNewItem(last_id,last_id,article_name_field);
+			$("#i-popup-form").attr("src", "");
+			$("#i-popup-form").html('');	
+			$("#popup-form").dialog('option','hide','explode').dialog('close');	
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('menu_page_insert_page_err'); ?>";
+			openMsgDialog(msg);
+		}				
+	});
+	
+	$('a.close_dialog_btn').click(function() {	
+		$("#i-popup-form").attr("src", "");
+		$("#i-popup-form").html('');		 
+		$("#popup-form").dialog('option','hide','explode').dialog('close');			
+	});	
+	 
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();
+				
+		$('#module').val('<?php echo addslashes($this->menuForm->module->getValue()); ?>');
+		$('#select_layout').val('<?php echo addslashes($this->menuForm->select_layout->getValue()); ?>');
+		$('#select_page').val('<?php echo addslashes($this->page_combo->_select_page); ?>');
+		$('#menu_image').val('<?php echo addslashes($this->menuForm->menu_image->getValue()); ?>');
+		$('#page_select').html('<?php echo addslashes($this->page_combo->_combobox); ?>');
+		$('#selected_file_menu_image').html('<?php if($this->menuForm->menu_image->getValue()){ echo '<span class="thumb"><img src="'.$this->serverURL().$this->baseURL().'/data/frontImages/menuImages/'.$this->menuForm->menu_image->getValue().'" width="30" height="30" /></span>'; } ?>');
+		$('#create_new').html('<?php echo addslashes($this->page_combo->_create_new_page); ?>');
+		$('#required_title_label').html('<?php echo addslashes($required_title_label); ?>');
+		$('a.article_category_btn').css('display','<?php echo $select_style; ?>');
+		$('#external_link').css('display','<?php echo $ext_style; ?>');		
+		
+		$('#manuTree').html('<?php echo addslashes($this->menuTree); ?>');
+		$('#category_parent').val('<?php echo $this->parent_id; ?>');
+		$('#dataId').html('<?php echo $this->parent_name." (".$this->parent_id.")"; ?>');
+		menuTreeGen();
+		popup_function();
+		getPages();
+		initialization();
+		imageThumbnil();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('form').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('form').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] =  filevalue;			
+		});
+		fieldObj.menu_id = '<?php echo $this->menu_id; ?>';
+		return fieldObj;
+	}
+	
+	$('a.edit_menu_btn').click(function() {			
+			
+		var formData = getFormData();
+		var layout_arr 	= formData.select_layout.split(',');
+		if(formData.module == 'ext' && ($('#external_link').val() == '' || $('#external_link').val() == null))
+		{	
+			var msg = "<?php echo $this->translator->translator('menu_ext_link_empty'); ?>";
+			openMsgDialog(msg);
+		}
+		else
+		{	
+			if(layout_arr[3] && ($('#select_page').val() == '' || $('#select_page').val() == null))
+			{
+				var msg = "<?php echo $this->translator->translator('menu_select_item_empty'); ?>";
+				openMsgDialog(msg);
+			}
+			else
+			{
+				$.ajax({
+					url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'backend', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: formData,
+						beforeSend: function(){						
+								removeError();
+								openLoaderDialog();				
+							 },
+						success: function(response){
+							//alert(response);					
+							var json_arr = eval("("+response+")");					
+							closeLoaderDialog();					
+							if(json_arr.status == 'ok')
+							{
+								$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+								if(json_arr.menuInfo.menu_title)
+								{
+									$('#menu_title').val(json_arr.menuInfo.menu_title);
+								}
+								if(json_arr.menuInfo.menu_name)
+								{
+									$('#menu_name').val(json_arr.menuInfo.menu_name);
+								}
+								refreshMenuTree();											
+							}
+							else if(json_arr.status == 'errV')
+							{								
+								$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+														
+								for(var i= 0; i < json_arr.msg.length; i++)
+								{
+									focusFirst(json_arr.msg[i].key, json_arr.msg[i].value, i);
+									addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+								}
+							}
+							else
+							{
+								$('#actionMessage').html(errMsgDesign(json_arr.msg));
+							}
+						},
+						error: function(xhr, status, error){
+							closeLoaderDialog();
+							var msg = "Error! " + xhr.status + " " + error;				
+							$('#actionMessage').html(errMsgDesign(msg));
+						}
+				});
+			}
+		}
+	});
+	
+/***********************************Get Menu Group***************************************/
+	$('select.menu_select_group').change(function() {		
+		$('#group_id_loader').html('<img src="images/ajax_loader7.gif" border="0" width="15" height="15" />');
+		var group_id = $('#group_id').val();
+		if(group_id != '')
+		{
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'groupmenu' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { grp_id: group_id },
+				success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						var tree = '<table class="example" id="dnd-example">'+
+										'<tbody ><tr id="node-0">'+
+										 '<td>'+
+											'<span class="folder"><?php echo $this->translator->translator("menu_page_menu_root"); ?></span>'+
+										'</td>'+
+									'</tr>';
+							tree += json_arr.groupMenu+'</tbody></table>';
+						$('#manuTree').html(tree);
+						menuTreeGen();
+					}
+					else
+					{
+						$('#manuTree').html('');
+					}
+					$('#group_id_err').html('');
+					$('#group_id_loader').html('');
+				}
+			});
+		}
+		else
+		{
+			$('#manuTree').html('');
+			$('#group_id_err').html('');
+			$('#group_id_loader').html('');
+		}		
+	});
+	
+		
+	
+});
+/********************************Menu Tree Function*******************************************/
+function menuTreeGen()
+{
+	$(".example").treeTable({
+	  initialState: "expanded"
+	});
+	
+	// Drag & Drop Example Code
+	$("#dnd-example .file, #dnd-example .folder").draggable({
+	  helper: "clone",
+	  opacity: .75,
+	  refreshPositions: true,
+	  revert: "invalid",
+	  revertDuration: 300,
+	  scroll: true
+	});
+	
+	
+	$("#dnd-example .folder").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) { 
+			var fieldObj = {};
+				fieldObj.id = $(ui.draggable).parents("tr")[0].id;
+				fieldObj.to =	this.id;
+			var url = "<?php echo $this->url( array('module' => 'Menu','controller' => 'backend', 'action'     => 'parent' ), 'adminrout',    true) ?>";
+		  $($(ui.draggable).parents("tr")[0]).postDataTo(this,fieldObj,url);
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	 $("#dnd-example .file").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) { 
+			var fieldObj = {};
+				fieldObj.id = $(ui.draggable).parents("tr")[0].id;
+				fieldObj.to =	this.id;
+			var url = "<?php echo $this->url( array('module' => 'Menu','controller' => 'backend', 'action'     => 'parent' ), 'adminrout',    true) ?>";
+		  $($(ui.draggable).parents("tr")[0]).postDataTo(this,fieldObj,url);
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	// Make visible that a row is clicked
+	$("table#dnd-example tbody tr").mousedown(function() {
+	  $("tr.selected").removeClass("selected"); // Deselect currently selected rows
+	  $(this).addClass("selected");
+	});
+	
+	// Make sure row is selected when span is clicked
+	$("table#dnd-example tbody tr span").mousedown(function() {
+		var node_id = $(this).parents("tr")[0].id.substr(5);
+		var node_name = $(this).html()+' ('+node_id+')';
+		$('#category_parent').val(node_id);
+		$('#dataId').html(node_name);
+	  $($(this).parents("tr")[0]).trigger("mousedown");
+	});
+}
+
+function getPages()
+{	
+	$('a.article_category_btn').unbind('click');		
+	$('a.article_category_btn').click(function() {	
+		var layout = $('#select_layout').val();			
+		if(layout != '')
+		{	
+			var layout_arr = 	layout.split(',');
+		}
+		if(layout != '')
+		{
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'  => 'getpages' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { layout_name: layout },
+				beforeSend: function(){						
+					popupConfirmDialog('<div class="loader-big"><img src="application/modules/Administrator/layouts/scripts/images/loader/loader.gif" border="0" /></div>');
+				},
+				success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					
+					if(json_arr.status == 'ok')
+					{
+						if(json_arr.pageRes != 'noPage')
+						{
+							putPageResults(json_arr.pageRes);
+						}	
+						else
+						{
+							var msg = json_arr.msg;
+							openMsgDialog(msg);
+						}
+					}
+					else
+					{
+						var msg = json_arr.msg;
+						openMsgDialog(msg);
+					}
+				}
+			});
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('menu_layout_not_selected'); ?>";
+			openMsgDialog(msg);
+		}	
+	});
+}
+
+function putSelectedItem()
+{
+	$('a.insert_item').unbind('click');
+	$('a.insert_item').click(function(){
+		var self = this;		
+		var inputHTML = '<table id="sortTablePut" width="100%" align="center" cellpadding="0" cellspacing="0">';
+		inputHTML += '<thead>';
+		inputHTML += '<tr>';		
+		inputHTML += '<th width="15%"><?php echo $this->translator->translator("common_order"); ?></th>';
+		inputHTML += '<th width="9%"><?php echo $this->translator->translator("menu_list_page_id"); ?></th>';
+		inputHTML += '<th><?php echo $this->translator->translator("manu_layout_name_title"); ?></th>';
+		inputHTML += '</tr>';
+		inputHTML += '</thead>';
+		inputHTML += '<tbody>';
+		inputHTML += '<tr><td class="center">'+$(self).parents('tr:first').children('td:nth-child(2)').text()+'</td>';
+		inputHTML += '<td class="center">'+$(self).parents('tr:first').children('td:nth-child(3)').text()+'</td>';
+		inputHTML += '<td>'+$(self).text()+'</td></tr>';
+		inputHTML += '</tbody>';	
+		inputHTML += '</table>';
+		$('#page_select').html(inputHTML);		
+		$('#select_page').val($(self).parents('tr:first').children('td:nth-child(3)').text());
+		
+		/****************************Sorting Table Start*********************/
+		var oTable = $("#sortTablePut").dataTable({
+					"bPaginate": false,
+					"bDestroy":true,
+					"bLengthChange": true,
+					"bSearchable": false,
+					"bFilter": false,
+					"bSort": false,
+					"bInfo": false,
+					"bAutoWidth": true,
+					"bProcessing": false,
+					"bSortClasses": false,
+					"bStateSave": false,
+					"bServerSide": false,
+					"aaSorting": [[ 1, "asc" ]],				
+					"aoColumnDefs": [ 
+							{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+						],
+					"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+				}); 	
+		
+		lastClassAdd(oTable);
+		$('td', oTable.fnGetNodes()).hover( function() {		
+			$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+		}, function() {
+			$('td.highlighted').removeClass('highlighted');
+		});
+		/****************************Sorting Table End*********************/
+		closePopupConfirmDialog();
+	});	
+}
+
+function putNewItem(order_id,id,name)
+{		
+	var inputHTML = '<table id="sortTablePut" width="100%" align="center" cellpadding="0" cellspacing="0">';
+	inputHTML += '<thead>';
+	inputHTML += '<tr>';		
+	inputHTML += '<th width="15%"><?php echo $this->translator->translator("common_order"); ?></th>';
+	inputHTML += '<th width="9%"><?php echo $this->translator->translator("menu_list_page_id"); ?></th>';
+	inputHTML += '<th><?php echo $this->translator->translator("manu_layout_name_title"); ?></th>';
+	inputHTML += '</tr>';
+	inputHTML += '</thead>';
+	inputHTML += '<tbody>';
+	inputHTML += '<tr><td class="center">'+order_id+'</td>';
+	inputHTML += '<td class="center">'+id+'</td>';
+	inputHTML += '<td>'+name+'</td></tr>';
+	inputHTML += '</tbody>';	
+	inputHTML += '</table>';
+	$('#page_select').html(inputHTML);
+	$('#select_page').val(id);
+	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTablePut").dataTable({
+				"bPaginate": false,
+				"bDestroy":true,
+				"bLengthChange": true,
+				"bSearchable": false,
+				"bFilter": false,
+				"bSort": false,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": false,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 
+	
+	lastClassAdd(oTable);	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	});
+	/****************************Sorting Table End*********************/		
+}
+
+function putMultiSelectedItems()
+{
+	$('a.article_insert_btn').unbind('click');
+	$('a.article_insert_btn').click(function(){
+		var self = this;	
+		
+		if($('input.check_btn:checked').length > 0)
+		{	
+			var inputHTML = '<table id="sortTablePut" width="100%"  align="center" cellpadding="0" cellspacing="0">';
+			inputHTML += '<thead>';
+			inputHTML += '<tr>';		
+			inputHTML += '<th width="15%"><?php echo $this->translator->translator("common_order"); ?></th>';
+			inputHTML += '<th width="9%"><?php echo $this->translator->translator("menu_list_page_id"); ?></th>';
+			inputHTML += '<th><?php echo $this->translator->translator("manu_layout_name_title"); ?></th>';
+			inputHTML += '</tr>';
+			inputHTML += '</thead>';
+			inputHTML += '<tbody>';
+			var select_page = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				select_page = (i == 0) ? $('input.check_btn:checked:eq('+i+')').val() : select_page +','+$('input.check_btn:checked:eq('+i+')').val();
+				inputHTML += '<tr><td class="center">'+$('input.check_btn:checked:eq('+i+')').val()+'</td>';
+				inputHTML += '<td class="center">'+$('input.check_btn:checked:eq('+i+')').parents('tr:first').children('td:nth-child(3)').text()+'</td>';
+				inputHTML += '<td>'+$('input.check_btn:checked:eq('+i+')').parents('tr:first').children('td:nth-child(4)').text()+'</td></tr>';
+			}
+			inputHTML += '</tbody>';	
+			inputHTML += '</table>';			
+			$('#page_select').html(inputHTML);
+			$('#select_page').val(select_page);
+			
+			/****************************Sorting Table Start*********************/
+			var oTable = $("#sortTablePut").dataTable({
+						"bPaginate": false,
+						"bDestroy":true,
+						"bLengthChange": true,
+						"bSearchable": false,
+						"bFilter": false,
+						"bSort": false,
+						"bInfo": false,
+						"bAutoWidth": true,
+						"bProcessing": false,
+						"bSortClasses": false,
+						"bStateSave": false,
+						"bServerSide": false,
+						"aaSorting": [[ 1, "asc" ]],				
+						"aoColumnDefs": [ 
+								{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+							],
+						"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+					}); 
+			lastClassAdd(oTable);	
+			
+			$('td', oTable.fnGetNodes()).hover( function() {		
+				$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+			}, function() {
+				$('td.highlighted').removeClass('highlighted');
+			});
+			/****************************Sorting Table End*********************/
+			closePopupConfirmDialog();
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('item_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});	
+}
+
+function putPageResults(pageRes)
+{
+	var inputHTML = '<div class="chart"><div class="data-table"><table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">';
+	inputHTML += '<thead>';
+	inputHTML += '<tr>';
+	inputHTML += '<th width="4%"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>';
+	inputHTML += '<th width="15%"><?php echo $this->translator->translator("common_order"); ?></th>';
+	inputHTML += '<th width="12%"><?php echo $this->translator->translator("menu_list_page_id"); ?></th>';
+	inputHTML += '<th><?php echo $this->translator->translator("manu_layout_name_title"); ?></th>';
+	inputHTML += '</tr>';
+	inputHTML += '</thead>';
+	inputHTML += '<tbody>';	
+	var active_status = '';
+	var chk_disabled = '';
+	var link_class = 'insert_item';
+	for(var i = 0;i < pageRes.length; i++)
+	{
+		if(pageRes[i][3])
+		{
+			active_status = (pageRes[i][3] == '1') ?  '' : ' <span style="color:#FF0000">(<?php echo $this->translator->translator("common_unpublished_language"); ?>)</span>';
+			chk_disabled =	(pageRes[i][3] == '1') ?  '' : ' disabled="disabled"';
+			link_class =	(pageRes[i][3] == '1') ?  'insert_item' : '';
+		}
+		
+		inputHTML += '<tr>';
+		inputHTML += '<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="'+pageRes[i][1]+'" class="check_btn" '+chk_disabled+' /></td>';
+		inputHTML += '<td class="center">'+pageRes[i][0]+'</td>';
+		inputHTML += '<td class="center">'+pageRes[i][1]+'</td>';
+		inputHTML += '<td><a href="javascript:void(0);" class="'+link_class+'">'+pageRes[i][2]+active_status+'</a></td>';
+		inputHTML += '</tr>';
+	}
+	inputHTML += '</tbody>';	
+	inputHTML += '</table></div></div>';
+	inputHTML += '<div class="button-container clr"><span class="button ui-widget-content-1"><a class="article_insert_btn" href="javascript:void(0);"><span class="icon insert"><?php echo $this->translator->translator("menu_layout_select_all"); ?></span></a></span></div>';
+	popupConfirmDialog(inputHTML);
+	putSelectedItem();
+	putMultiSelectedItems();
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": true,
+				"aLengthMenu" : [ 2, 10, 25, 50, 100 ],
+				"bDestroy":true,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": true,
+				"sPaginationType": "full_numbers",
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			});
+	lastClassAdd(oTable); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+	
+	/****************************Sorting Table End*********************/
+	$('input.checkAll_btn').unbind('click');
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);		
+			$('input.check_btn[disabled="disabled"]').attr('checked', false);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+}
+
+/************************************************IMAGE THUMBNIL************************************************/
+function imageThumbnil()
+{	
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-30px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-20px',
+				top: '80%',
+				left: '50%',
+				width: '40px', /* Set new width */
+				height: '40px', /* Set new height */
+				padding: '2px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '1000'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '0', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '30px', /* Set height back to default */
+				padding: '2px'
+			}, 400);
+	});
+}
+
+/********************************Refresh Menu Tree*******************************************/
+function refreshMenuTree()
+{
+	var group_id = $('#group_id').val();
+	var parent = $('#category_parent').val();
+	if(group_id != '')
+	{
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'groupmenu' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: { grp_id: group_id , parent : parent},
+			success: function(response){				
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					var tree = '<table class="example" id="dnd-example">'+
+									'<tbody ><tr id="node-0">'+
+									 '<td>'+
+										'<span class="folder"><?php echo $this->translator->translator("menu_page_menu_root"); ?></span>'+
+									'</td>'+
+								'</tr>';
+						tree += json_arr.groupMenu+'</tbody></table>';
+					$('#manuTree').html(tree);
+					menuTreeGen();
+				}
+				else
+				{
+					$('#manuTree').html('');
+				}					
+			}
+		});
+	}
+	else
+	{
+		$('#manuTree').html('');			
+	}	
+}
+
+
+/************************************Popup Function******************************************/
+function popup_function()
+{
+	$('a.new_page_btn').unbind('click');
+	$('a.new_page_btn').click(function() {	
+		$('a.select_image_btn').parents('span:first').css('display','none');
+		$('a.select_file_btn').parents('span:first').css('display','inline');
+		$("#i-popup-form").attr("width",'1200');
+		$("#i-popup-form").attr("height",'680');	
+		var src = $("#i-popup-form").attr("src");
+		$("#i-popup-form").attr("src", "<?php echo $this->url( array('module' => 'Articles','controller' => 'backend', 'action'     => 'add', 'popup' => 'popup' ), 'adminrout',    true) ?>");			
+		$('#popup-form').dialog({
+				autoOpen: false,
+				title : '<?php echo $this->translator->translator("menu_page_popup_dialog"); ?>',
+				width: '95%',
+				height: 590,
+				show: 'fade',			
+				modal: true
+			}).dialog('open');			
+	});		
+}
+</script>
+<div id="container">
+<?php if (!$this->allow() || ($auth->getIdentity()->access_other_user_article != '1' && $u_user_id != $this->entry_by)) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="menu-edit"><h1><?php echo $this->translator->translator('menu_edit_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_menu_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<form name="formArticle" id="formArticle" method="post">
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<div id="nav">
+    		<div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator("menu_page_menu_tree"); ?></div></div>
+    		<div id="manuTree" class="nav-body treebody">
+           		<?php echo $this->menuTree; ?>	
+            </div>
+       	</div>
+    </div>
+    
+    <div id="content-inner-middle">
+    	<div id="actionMessage"></div>
+        <div id="button_top_bar"></div>
+        <div id="generalInfo">
+        	<fieldset class="fieldset">
+                <legend class="legend"><?php echo $this->translator->translator('menu_add_page_info'); ?></legend>
+                <div class="form">
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->menu_name->getLabel(); ?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->menu_name; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->menu_name->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="menu_name_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->menu_title->getLabel(); ?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->menu_title; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->menu_title->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="menu_title_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->show_after_login->getLabel(); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->show_after_login; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->show_after_login->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="show_after_login_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->target->getLabel(); ?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->target; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->target->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="target_err"></div>
+                        </div>
+                    </div>
+
+					<div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->group_id->getLabel(); ?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->group_id; ?><span id="group_id_loader"></span>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->group_id->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <div class="input-errors" id="group_id_err"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->parent->getLabel(); ?>
+                        </div>
+                        
+                        <div class="field">
+                            <span id="dataId"><?php echo $this->parent_name." (".$this->parent_id.")"; ?></span><?php echo $this->menuForm->parent; ?>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="label">
+                            <?php echo $this->menuForm->menu_type->getLabel(); ?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php echo $this->menuForm->module;echo $this->menuForm->select_layout;echo $this->menuForm->menu_type; ?>
+                            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->menuForm->menu_type->getAttrib('title')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+                            <span class="select-btn ui-widget-content-1"><a rel="layout_btn" href="javascript:void(0);"><span class="icon select"><?php echo $this->translator->translator('menu_module_select'); ?></span></a></span>
+                            <div class="input-errors" id="menu_type_err"></div>
+                        </div>
+                    </div>
+				</div>
+           	</fieldset>
+        </div>
+	</div>
+    
+    <div id="sidebar-inner-right">
+    	<div id="accordion">
+			<h3><a href="#"><?php echo $this->translator->translator('menu_accordon_required_setting'); ?></a></h3>
+				<div>
+                	<input type="hidden" name="select_page" id="select_page" value="<?php echo $this->page_combo->_select_page; ?>"/><span id="required_title_label" class="label"><?php echo $required_title_label; ?></span>
+					<input type="text" name="external_link" id="external_link" value="<?php echo $this->external_link; ?>" style="display:<?php echo $ext_style; ?>;" size="18" />
+                    
+                    <span class="select-btn ui-widget-content-1"><a class="article_category_btn" href="javascript:void(0);" style="display:<?php echo $select_style; ?>">
+                    	<span class="icon select"><?php echo $this->translator->translator('menu_module_select'); ?></span></a>
+					</span>
+                    <span id="create_new"><?php echo $this->page_combo->_create_new_page; ?></span>
+                    <div class="input-errors" id="select_page_err"></div>
+                    <div><div class="chart"><div class="data-table" id="page_select"><?php echo $this->page_combo->_combobox; ?></div></div></div>
+				</div>
+                
+				<h3><a href="#"><?php echo $this->translator->translator('menu_accordon_image_option'); ?></a></h3>
+				<div>
+                	<div class="left-float">
+                    	<span class="label"><?php echo $this->menuForm->menu_image->getLabel(); ?></span>
+                        <?php echo $this->menuForm->menu_image; ?><span class="select-btn ui-widget-content-1"><a class="upload_btn" href="javascript:void(0);"><span class="icon select"><?php echo $this->translator->translator('menu_module_select'); ?></span></a></span>
+                    </div>
+                    <span id="selected_file_menu_image">
+                    	<?php if($this->menuForm->menu_image->getValue()){ echo '<div class="upload-img box"><span><span class="thumb"><img src="'.$this->serverURL().$this->baseURL().'/data/frontImages/menuImages/'.$this->menuForm->menu_image->getValue().'" width="30" height="30" class="bdr" /></span><br /><br />&nbsp;&nbsp;<a href="javascript:void(0)" class="delete_image_lnk" rel="'.$this->menuForm->menu_image->getValue().'">'. $this->translator->translator("common_delete") . '</a>&nbsp;&nbsp;&nbsp;&nbsp;</span></div>'; } ?>
+                    </span>
+				</div>
+                
+				<h3><a href="#"><?php echo $this->translator->translator('menu_accordon_template_setting'); ?></a></h3>
+				<div>
+                	<span class="label">
+                    	<?php echo $this->menuForm->menu_template->getLabel(); ?>
+                        <?php echo $this->menuForm->menu_template; ?>
+                    </span>
+				</div>
+			</div>
+          	<div id="popup-confirm" title="<?php echo $this->translator->translator('menu_layout_panel'); ?>"></div>
+			<div id="dialog_message" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('menu_edit_page_name')); ?>"></div>
+			<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+				<div id="progressbar" ></div>	
+			</div>
+    </div>
+    
+    <div class="button-container clr">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_menu_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+</form>
+<?php endif; ?>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('menu_edit_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Menu','controller' => 'Backend', 'action'     => 'list' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="edit_menu_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="popup-form" title="<?php echo $this->translator->translator('menu_page_popup_dialog'); ?>">	
+	<div>
+    	<form id="popupForm" target="i-popup-form" method="post" action="" >
+            <input type="hidden" name="table_name" value="menu_group"/>
+            <input type="hidden" name="primary_id_field" value="id"/>
+            <input type="hidden" name="primary_id_field_value" value=""/>
+            <input type="hidden" name="primary_file_field" value="menu_image"/>
+           	<input type="hidden" name="file_content"  value=""/>       
+            <input type="hidden" name="file_path_field" value="file_path_menu_image"/>
+            <input type="hidden" name="file_extension_field" value="file_type"/>
+            <input type="hidden" name="file_max_size_field" value="file_max_size"/>
+    	</form>
+    	<iframe id="i-popup-form" name="i-popup-form" src="" class="iframe-article"></iframe>      	
+    </div>
+    <div class="button-container">
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="select_file_btn"><span class="icon insert"><?php echo $this->translator->translator('menu_page_popup_insert'); ?></span></a></span>
+        <span class="button  ui-widget-content-1" style="display:none;"><a href="javascript:void(0);" class="select_image_btn"><span class="icon insert"><?php echo $this->translator->translator("menu_page_popup_insert_image"); ?></span></a></span>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+    </div>
+</div>
+</div>

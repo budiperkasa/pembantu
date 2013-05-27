@@ -1,0 +1,135 @@
+<?php 
+class voiceview
+{
+	protected	$_form_id = '11';
+	protected	$_group_id = '1';
+	protected	$_limit = 5;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+		
+		$selectGP = $this->_DBconn->select()
+						->from(array('ga' => Zend_Registry::get('dbPrefix').'forms_general'), array('*'))
+						->where('ga.form_id = ?', $this->_form_id)
+						->where('ga.active = ?', '1')
+						->order("ga.id DESC")
+						->limit($this->_form_id);
+		$gCatInfo =  $selectGP->query()->fetchAll();
+?>
+			
+<div class="block block-review">
+	<div class="block-heading">
+		<div class="symbol"><?php echo $translator->translator('block_review_title','','', $this->_front_template['theme_folder']); ?></div>
+	</div>
+    <div class="block-body">
+        <?php
+            $field_db = new Members_Model_DbTable_Fields();
+            $fieldsInfo = $field_db->getFieldsInfo(11);
+            $fields_db = new Members_Model_DbTable_FieldsValue();
+            
+            $form_db = new Members_Model_DbTable_Forms();
+            $form_info = $form_db->getFormsInfo($this->_form_id);
+            
+            $c = 1;
+            if($gCatInfo)
+			{    
+				foreach($gCatInfo as $reviewInfo)
+				{ 
+					$c++;
+					if($c % 2 == 0)
+					{
+						$bgcolor = 'bg-1';
+					}
+					else
+					{
+						$bgcolor = 'bg-2';
+					}
+					$link = 'Review-Details/'.$reviewInfo['id'].'/'.$this->_group_id;
+					if($fieldsInfo)
+					{
+						foreach($fieldsInfo as $fields)
+						{ 
+							$value_info = $fields_db->getFieldsValue($reviewInfo['id'],$this->_form_id,$this->_view->escape($fields->id));														
+							 if($value_info)
+							 {
+								if($this->_view->escape($fields->field_name) == 'default_image')
+								{
+									$files_arr = explode(',',$value_info[0]['field_value']);
+									$ext = Eicra_File_Utility::GetExtension($this->_view->escape($files_arr[0]));
+									if($ext == 'jpg' || $ext == 'JPG' || $ext == 'png' || $ext == 'PNG' || $ext == 'bmp' || $ext == 'BMP' || $ext == 'gif' || $ext == 'GIF')
+									{
+										$default_image = '<a href="'.$link.'"><img src="'.$this->_view->escape($form_info['attach_file_path']).'/'.$this->_view->escape($files_arr[0]).'" width="50" height="50" class="thumb"/></a>';
+									}
+									else       
+									{
+										$default_image =  '<a href="'.$link.'">'.$this->_view->escape($files_arr[0]).'</a>'; 
+									}
+									
+								}
+								if($this->_view->escape($fields->field_name) == 'review_title')
+								{
+									$review_title =  $this->truncate($this->_view->escape(strip_tags($value_info[0]['field_value'])),0,20); 
+								}
+								if($this->_view->escape($fields->field_name) == 'review_details')
+								{
+									$review_details =  $this->truncate($this->_view->escape(strip_tags($value_info[0]['field_value'])),0,20); 
+								}
+							}
+						}
+					}	
+					if(empty($default_image))
+					{
+						$default_image = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_img/avatar.png';
+					}
+				?>
+					<div class="block-content <?php echo $bgcolor ?>">
+						<?php echo $default_image ?>
+						<span class="block-title"><?php echo $review_title ?></span><br />
+						<?php echo $review_details ?><br />
+						<span><a href="<?php echo $link ?>"><?php echo $translator->translator('block_review_more','','', $this->_front_template['theme_folder']); ?></a></span>
+					</div>
+				<?php
+				}
+			}
+            ?>
+            
+            <div class="link-btn"><a href="Review-Write/<?php echo $this->_group_id; ?>/<?php echo $this->_form_id; ?>" class="link-btn"><span><?php echo $translator->translator('block_review_write','','', $this->_front_template['theme_folder']); ?></span></a></div>
+    </div>             
+</div>
+
+<?php
+	}		
+	
+}
+
+$box_class = new voiceview($this);
+try
+{
+	$box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo 'You have to create menu first';
+}
+?>

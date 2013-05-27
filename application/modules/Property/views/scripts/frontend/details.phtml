@@ -1,0 +1,2624 @@
+<?php
+$version = Zend_Registry::get('version');
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri(); 
+$front_template = Zend_Registry::get('front_template');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/BookingCalendar/js/jquery.dop.BookingCalendar.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/BookingCalendar/css/jquery.dop.BookingCalendar.css');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/gallery/jquery.ad-gallery.js'); 
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/raty/js/jquery.raty.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/gallery/jquery.ad-gallery.css');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/jquery.scrollTo.js');
+
+if(!empty($this->view_datas['meta_keywords'])){ $this->headMeta()->setName('keywords',$this->view_datas['meta_keywords']); }
+if(!empty($this->view_datas['meta_desc'])) { $this->headMeta()->setName('description',$this->view_datas['meta_desc']); }
+if(!empty($this->view_datas['property_name'])) { $this->headTitle()->headTitle($this->escape($this->view_datas['property_name']),'SET')->setSeparator(' - ')->headTitle($this->view_datas['meta_title']); }
+
+function isnot_int($property_owner)
+{
+	$r = true;			
+	if(is_numeric($property_owner))
+	{ 
+		if(is_int((int)$property_owner))
+		{
+			$r = false;
+		}				
+	}
+	return $r;
+}
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$business_type_db = new Property_Model_DbTable_BusinessType();
+$cat_Info = new Property_Model_DbTable_Category();
+$mem_db = new Members_Model_DbTable_MemberList();
+$property_db = new Property_Model_DbTable_Properties();
+$nextProperty = $property_db->getNextProperty($this->view_datas['id'],$this->view_datas['group_id'], null);
+$prevProperty = $property_db->getPrevProperty($this->view_datas['id'],$this->view_datas['group_id'], null);
+$auth = Zend_Auth::getInstance ();
+$hasIdentity = $auth->hasIdentity ();
+$maximum_stars_digit = $this->translator->translator('maximum_stars_digit');
+// 1ist param options are : like, inline, plus_minus, horizontal, triangle
+$vote = new Vote_Controller_Helper_ShowVoteButton('inline','property_page' );
+
+$property_type_arr = explode(',', $this->translator->translator('property_front_page_rent_id'));
+
+//Dynamic Form
+if(!empty($this->group_datas['dynamic_form']))
+{   
+	$this->group_datas['form_id'] = $this->group_datas['dynamic_form']; 
+	$proForm = new Property_Form_ProductForm ($this->group_datas);	
+	$dynamic_valu_db = new Members_Model_DbTable_FieldsValue();	
+	$this->view_datas	=	$dynamic_valu_db->getFieldsValueInfo($this->view_datas,$this->view_datas['id']);	
+	$proForm->populate($this->view_datas);			
+}
+
+if($this->view_datas['area_id'])
+{												
+	try
+	{
+		$area_db = new Property_Model_DbTable_Area();
+		$area_info = $area_db->getAreaInfo($this->view_datas['area_id']);		
+	}
+	catch(Exception $e)
+	{
+		
+	}
+}
+if($this->view_datas['state_id'])
+{
+	try
+	{
+		$state_db = new Property_Model_DbTable_State();
+		$state_info = $state_db->getStateInfo($this->view_datas['state_id']);
+	}
+	catch(Exception $e)
+	{
+		
+	}
+}
+if($this->view_datas['country_id'])
+{
+	try
+	{
+		$country_db = new Property_Model_DbTable_Country();
+		$country_info = $country_db->getCountryName($this->view_datas['country_id']);
+	}
+	catch(Exception $e)
+	{
+	}
+}
+
+$this->tab = (($this->tab == 7 || $this->tab == 5) && (empty($property_type_arr[0]) || !in_array($this->view_datas['property_type'], $property_type_arr))) ? ($this->tab - 1) : $this->tab; 
+?>
+<script type="text/javascript">
+function scrolling(class_name)
+{
+	$.easing.elasout = function(x, t, b, c, d) {
+		var s=1.70158;var p=0;var a=c;
+		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+		if (a < Math.abs(c)) { a=c; var s=p/4; }
+		else var s = p/(2*Math.PI) * Math.asin (c/a);
+		return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+	};
+	$('a.'+class_name).click(function(){//$.scrollTo works EXACTLY the same way, but scrolls the whole screen
+		var rel = $(this).attr('rel');
+		var id_arr = rel.split('-');
+		var id_no = parseInt(id_arr[1]);
+		<?php			
+			if(empty($property_type_arr[0]) || !in_array($this->view_datas['property_type'], $property_type_arr))
+			{
+			?>
+				if(id_no == '8' || id_no == '7')
+				{
+					--id_no;
+				}
+			<?php
+			}
+			?>
+		$('#tabs').tabs({ active: --id_no });
+		$.scrollTo( rel , 1500, { easing:'swing' });		
+		return false;
+	});
+}
+
+
+function changeImageScrolling()
+{
+	$.easing.elasout = function(x, t, b, c, d) {
+		var s=1.70158;var p=0;var a=c;
+		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+		if (a < Math.abs(c)) { a=c; var s=p/4; }
+		else var s = p/(2*Math.PI) * Math.asin (c/a);
+		return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+	};
+	
+	 
+	 $("a.change_img").click(function(){
+			var self = this;
+			var src = $(self).children("img:nth-child(1)").attr('src');			
+			$("div.ad-image").children("img:nth-child(1)").attr('src',src);							
+			$.scrollTo( '#gallery' , 1500, { easing:'swing' });			
+			return false;
+		});
+}
+
+ $(function() {				
+	var galleries = $('.ad-gallery').adGallery({
+					slideshow: {
+                       enable: true,
+                       autostart: true,
+                       speed: 5000,
+                       start_label: 'Start',
+                       stop_label: 'Stop',
+                       stop_on_scroll: true,
+                       countdown_prefix: '(',
+                       countdown_sufix: ')',
+                       onStart: false,
+                       onStop: false
+                     }
+					 });
+	$('#switch-effect').change(
+	  function() {
+		galleries[0].settings.effect = $(this).val();
+		return false;
+	  }
+	);
+	$('#toggle-slideshow').click(
+	  function() {
+		galleries[0].slideshow.toggle();
+		return false;
+	  }
+	);
+	$('#toggle-description').click(
+	  function() {
+		if(!galleries[0].settings.description_wrapper) {
+		  galleries[0].settings.description_wrapper = $('#descriptions');
+		} else {
+		  galleries[0].settings.description_wrapper = false;
+		}
+		return false;
+	  }
+	);
+  });
+
+
+$(function() {
+		$('#slickbox').hide();
+		$('a.slick-slidetoggle').click(function() {
+			$('#slickbox').slideToggle(400);
+			return false;
+		  });
+		 <?php if($this->tab == '4'){ ?>			 
+				$('#dialog_calendar').DOPBookingCalendar({'Type':'FrontEnd', 'DataURL':'<?php echo $this->url( array("module"=> "Property", "controller" => "frontend", "action"     => "load", "id" => $this->escape($this->view_datas["id"]) ), "adminrout",    true) ?>','Currency':'<?php echo $currency->getSymbol(); ?>', 'AvailableText':"<?php echo $this->translator->translator("calerdar_AvailableText", '', '', $front_template['theme_folder']); ?>", 'BookedText':"<?php echo $this->translator->translator("calerdar_BookedText", '', '', $front_template['theme_folder']); ?>", 'UnavailableText':"<?php echo $this->translator->translator("calerdar_UnavailableText", '', '', $front_template['theme_folder']); ?>"});
+		<?php  } ?>
+		$("#tabs").tabs({ 
+				active: <?php echo $this->tab; ?>, 
+				select: function(event, ui) {   					      
+					$('#dialog_calendar').DOPBookingCalendar({'Type':'FrontEnd', 'DataURL':'<?php echo $this->url( array("module"=> "Property", "controller" => "frontend", "action"     => "load", "id" => $this->escape($this->view_datas["id"]) ), "adminrout",    true) ?>','Currency':'<?php echo $currency->getSymbol(); ?>', 'AvailableText':"<?php echo $this->translator->translator("calerdar_AvailableText", '', '', $front_template['theme_folder']); ?>", 'BookedText':"<?php echo $this->translator->translator("calerdar_BookedText", '', '', $front_template['theme_folder']); ?>", 'UnavailableText':"<?php echo $this->translator->translator("calerdar_UnavailableText", '', '', $front_template['theme_folder']); ?>"});
+				} 		
+		}).find(".ui-tabs-nav").sortable({axis:'xy'});
+		$("#matchTabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+		$("a.change_img").click(function(){
+			var self = this;
+			var src = $(self).children("img:nth-child(1)").attr('src');
+			$("img.big_image").attr('src',src);
+		});
+		
+	});
+	
+(function( $ ) {
+	$.widget( "ui.combobox", {
+		_create: function() {
+			var self = this,
+				select = this.element.hide(),
+				selected = select.children( ":selected" ),
+				value = selected.val() ? selected.text() : "";
+			var input = $( "<input>" )
+				.insertAfter( select )
+				.val( value )
+				.autocomplete({
+					delay: 0,
+					minLength: 0,
+					source: function( request, response ) {
+						var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+						response( select.children( "option" ).map(function() {
+							var text = $( this ).text();
+							if ( this.value && ( !request.term || matcher.test(text) ) )
+								return {
+									label: text.replace(
+										new RegExp(
+											"(?![^&;]+;)(?!<[^<>]*)(" +
+											$.ui.autocomplete.escapeRegex(request.term) +
+											")(?![^<>]*>)(?![^&;]+;)", "gi"
+										), "<strong>$1</strong>" ),
+									value: text,
+									option: this
+								};
+						}) );
+					},
+					select: function( event, ui ) {
+						ui.item.option.selected = true;
+						self._trigger( "selected", event, {
+							item: ui.item.option
+						});
+					},
+					change: function( event, ui ) {
+						if ( !ui.item ) {
+							var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( $(this).val() ) + "$", "i" ),
+								valid = false;
+							select.children( "option" ).each(function() {
+								if ( this.value.match( matcher ) ) {
+									this.selected = valid = true;
+									return false;
+								}
+							});
+							if ( !valid ) {
+								// remove invalid value, as it didn't match anything
+								//alert($( this ).val());
+								//$( this ).val( "" );
+								//select.val( "" );
+								select.append('<option value="'+$( this ).val()+'">'+$( this ).val()+'</option>');
+								select.val( $( this ).val() );
+								return false;
+							}
+						}
+					}
+				})
+				.addClass( "ui-widget ui-widget-content ui-corner-left" );
+
+			input.data( "autocomplete" )._renderItem = function( ul, item ) {
+				return $( "<li></li>" )
+					.data( "item.autocomplete", item )
+					.append( "<a>" + item.label + "</a>" )
+					.appendTo( ul );
+			};
+
+			$( "<span>&nbsp;</span>" )
+				.attr( "tabIndex", -1 )
+				.attr( "title", "Show All Items" )
+				.insertAfter( input )
+				.button({
+					icons: {
+						primary: "ui-icon-triangle-1-s"
+					},
+					text: false
+				})
+				.removeClass( "ui-corner-all" )
+				.addClass( "ui-corner-right ui-button-icon" )
+				.click(function() {
+					// close if already visible
+					if ( input.autocomplete( "widget" ).is( ":visible" ) ) {
+						input.autocomplete( "close" );
+						return;
+					}
+
+					// pass empty string as value to search for, displaying all results
+					input.autocomplete( "search", "" );
+					input.focus();
+				});
+		}
+	});
+})( jQuery );
+
+$(function() {
+	$( "#property_owner" ).combobox();		
+});
+
+$(function() {
+		
+		$( "#property_name" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						property_name: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.property_name,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 2,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " " + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};
+		
+		$( "#post_code" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						post_code: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.post_code,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('property_post_code'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};
+		
+		$( "#property_price" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						property_price: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.price,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );				
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->translator->translator('price'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );				
+		};
+});
+
+$(document).ready(function() {	
+	
+	changeImageScrolling();
+				
+	scrolling('payment_btn');
+	
+	scrolling('review_btn');	
+	
+	scrolling('calendar_btn');	
+	
+	scrolling('additional_photo_btn');
+	
+	$('a.print_btn').click(function (event){
+	
+			var width = 1200;
+    		var height = 700;
+			var left = parseInt((screen.availWidth/2) - (width/2));
+   			var top = parseInt((screen.availHeight/2) - (height/2));
+			var windowSizeArray = [ "width="+width+",height="+height+",left="+left+",top="+top+"screenX=" + left + ",screenY=" + top + ",scrollbars=yes",
+									"width="+width+",height="+height+",scrollbars=yes" ];
+			var url = "<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'print','property_title' => $this->escape($this->view_datas['property_title']) ),'Property-print/:property_title',true); ?>";
+			var windowName = "popUp";
+			var windowSize = windowSizeArray[$(this).attr("rel")];
+
+			window.open(url, windowName, windowSize);
+
+			event.preventDefault();
+
+		});
+	
+	
+	
+	function stripslashes(str) 
+	{
+		str=str.replace(/\\'/g,'\'');
+		str=str.replace(/\\"/g,'"');
+		str=str.replace(/\\0/g,'\0');
+		str=str.replace(/\\\\/g,'\\');
+		return str;
+	}
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_container').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'explode',
+					resizable: true,				
+					buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{									
+								if($('#' + event.target.id).dialog('isOpen'))
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+								}
+							}, 10000);
+						  }
+				});
+	}
+	
+	$('a.save_property_btn').click(function() {
+		var self = this;
+		var id = $(self).attr('rel');
+		$.ajax({
+			  url: "<?php echo $this->url( array('module' =>'Property','controller' => 'frontend', 'action'     => 'save' ), 'adminrout',    true) ?>",
+			  type: 'POST',
+			  data: { id: id },
+			  beforeSend: function(){						
+						$(self).html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" border="0" height="15" />');
+					 },
+					 
+			  success: function(response){
+				//alert(response);
+				var json_arr = eval("("+response+")");							
+				if(json_arr.status == 'ok')
+				{
+					openMsgDialog(json_arr.msg);
+				}
+				else
+				{
+					openMsgDialog(json_arr.msg);
+				}
+				$(self).html('<?php echo $this->translator->translator("property_front_page_save_property"); ?>');
+			  }
+		});
+	});
+	
+	$('#country_id').change(function() {	
+			if($('#country_id option:selected').val() == 'any' || $('#country_id option:selected').val() =='')
+			{
+				$('#area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');	
+				$('#state_id').html('<option value="any"><?php echo $this->translator->translator("property_select_state"); ?></option>');
+			}
+			else
+			{	
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' =>'Property','controller' => 'frontend', 'action'     => 'states' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('#country_id option:selected').val() },
+					  beforeSend: function(){						
+								$('#state_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+								$('#area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');			
+								$('#state_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							 },
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("property_select_state"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.states.length;i++)
+							{
+								option += '<option value="'+json_arr.states[i].state_id+'" >'+stripslashes(json_arr.states[i].state_name)+'</option>';
+							}
+							$('#state_id').html(option);
+						}
+						else
+						{
+							$('#state_id').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#state_id_err').html('');
+					  }
+				});
+			}
+		});
+		
+	$('#state_id').change(function() {		
+				
+		if($('#state_id option:selected').val() == 'any' || $('#state_id option:selected').val() == '')
+		{
+			$('#area_id').html('<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>');
+		}
+		else
+		{
+			$.ajax({
+				  url: "<?php echo $this->url( array('module' => 'Property', 'controller' => 'frontend', 'action'     => 'areas' ), 'adminrout',    true) ?>",
+				  type: 'POST',
+				  data: { id: $('#state_id option:selected').val() },
+				  beforeSend: function(){						
+						$('#area_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+						$('#area_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+						},
+				  success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					var option = '<option value="any"><?php echo $this->translator->translator("property_select_area"); ?></option>';				
+					if(json_arr.status == 'ok')
+					{
+						for(var i = 0;i<json_arr.cities.length;i++)
+						{
+							option += '<option value="'+json_arr.cities[i].city_id+'" >'+stripslashes(json_arr.cities[i].city)+'</option>';
+						}
+						$('#area_id').html(option);
+					}
+					else
+					{
+						$('#area_id').html('<option value="any">'+json_arr.msg+'</option>');
+					}
+					$('#area_id_err').html('');
+				  }
+			});
+		}
+	});	
+});
+function raty (id, start_point)
+{
+	$('#'+id+'_star').raty({
+	  path: 'js/jquery/raty/img/',						  
+	  hintList:		"<?php echo $this->translator->translator("common_rating_hintList"); ?>",
+	  number:     <?php $hint_arr = explode(', ',str_replace('[', '', str_replace(']', '', $this->translator->translator('common_rating_hintList')))); echo count($hint_arr); ?>,
+	  start: start_point,
+	  readOnly:   true					 
+	});
+}
+</script>
+
+<style type="text/css">	
+#dialog_calendar{background-color: #f0f0f0; background: url('js/jquery/BookingCalendar/images/loader-big.gif') no-repeat center center;}
+.dialogPosition {position:fixed;}
+</style>
+
+<?php 
+$allow_obj = new Property_View_Helper_Allow();
+if (!$allow_obj->allowRule('details',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+	<?php if($this->view_datas['active'] == '1') : ?>
+	<div class="mod mod-details">
+	  	<!-- Top Bar Start -->
+        <div class="nav-bar">
+			<div class="nav-row">
+              	<div class="nav-col first"> 
+				<?php
+                    if(!empty($prevProperty))
+                    {
+                ?>
+                <span class="prev"><a href="<?php echo 'Property-details/'.$this->escape($prevProperty['property_title']); ?>"><?php echo $this->translator->translator('property_front_page_prev_property'); ?></a></span>
+                <?php
+                    }
+                    else
+                    {
+                ?>
+                <span class="no-link"><?php echo $this->translator->translator('property_front_page_prev_property'); ?></span>
+                <?php
+                }
+                ?>
+               	</div>
+				<div class="nav-col"><span class="search"><a href="#" class="slick-slidetoggle"><?php echo $this->translator->translator('property_front_page_new_search'); ?></a></span> </div>
+              	<div class="nav-col">
+              	<?php
+                	if ($hasIdentity)
+                	{
+              	?>
+                <span class="save"><a  href="javascript:void(0);" class="save_property_btn" rel="<?php echo $this->escape($this->view_datas['id']); ?>"><?php echo $this->translator->translator('property_front_page_save_property'); ?></a></span>
+                <?php
+                }
+              	?>
+              	</div>
+              	<div class="nav-col last">
+				<?php
+                    if(!empty($nextProperty))
+                    {
+              	?>
+                <span class="next"><a href="<?php echo 'Property-details/'.$this->escape($nextProperty['property_title']); ?>"><?php echo $this->translator->translator('property_front_page_next_property'); ?></a></span>
+                <?php
+                    }
+                    else
+                    {
+                ?>
+                <span class="no-link"><?php echo $this->translator->translator('property_front_page_next_property'); ?></span>
+                <?php
+                    }
+                ?>
+              	</div>
+			</div>
+       	</div>
+		<!-- Top Bar End -->
+		
+		<div class="clear"></div>
+		
+		<!-- Realestate Slick Search Start -->
+		<div id="slickbox" class="mod-container mod-advance-search">
+			<form id="formSearch" name="formSearch" method="post" action="<?php echo $this->url( array('module' => 'Property', 'controller' => 'search', 'action'     => 'items' ), 'Search-Items',    true) ?>">
+					<input type="hidden" name="group_id_=" id="group_id" value="<?php echo $this->escape($this->group_datas['id']); ?>" /><input type="hidden" name="active_=" id="active" value="1" />
+					<div class="col clear">
+						<p><?php echo $this->translator->translator('property_list_page_search_name'); ?></p>
+						<input type="text" name="property_name_LIKE" id="property_name" value="" size="40" class="name" />
+					</div>
+					
+					<div class="col">
+						<p><?php echo $this->translator->translator('property_list_page_search_postcode'); ?></p>
+						<input type="text" name="post_code_LIKE" id="post_code" />
+					</div>
+					
+					<div class="col">
+						<p><?php echo $this->translator->translator('property_list_page_search_price'); ?></p>
+						<input type="text" name="property_price_LIKE" id="property_price" value="" />
+						<span><?php echo $currency->getSymbol(); ?></span>
+					</div>
+					
+					<div class="col">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_pro_type'); ?></p>
+                        
+                        <?php $type_info = $business_type_db->getOptions($this->group_datas['id']); ?>
+						<select name="property_type_=" id="property_type">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($type_info as $info)
+							{
+						?>
+							<option value="<?php echo $info['id']; ?>"><?php echo $this->escape($info['business_type']); ?></option>
+						<?php
+							}
+						?>
+						</select>
+                   	</div>
+                    
+                    <div class="col">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_category'); ?></p>
+                        <?php
+							$cat_data = $cat_Info->getOptions($this->group_datas['id']);
+						?>
+						<select name="category_id_=" id="category_id" class="category">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($cat_data as $info)
+							{
+						?>
+							<option value="<?php echo $info['id']; ?>"><?php echo $this->escape($info['category_name']); ?></option>
+						<?php
+							}
+						?>
+						</select>
+                    </div>
+                    
+                    <div class="col">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_price_min'); ?></p>
+                        <?php
+							$min_price_arr = $property_db->getPrice('ASC');
+						?>
+						<select name="property_price_>=" id="property_price">
+							<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+							<?php
+							
+							foreach($min_price_arr as $key=>$value)
+							{
+								if(!empty($value['property_price']))
+								{										
+							?>
+								<option value="<?php echo $this->price($value['property_price']); ?>"><?php echo $this->price($this->escape($value['property_price'])).' '.$currency->getSymbol(); ?></option>
+							<?php
+									}
+								}
+							?>
+						</select>
+                    </div>
+                    
+					<div class="mod-col">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_price_max'); ?></p>
+						<?php
+							$max_price_arr = $property_db->getPrice('DESC');
+						?>
+						<select name="property_price_<=" id="property_price">
+							<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+							<?php
+							
+							foreach($max_price_arr as $key=>$value)
+							{
+								if(!empty($value['property_price']))
+								{
+									
+							?>
+								<option value="<?php echo $this->price($value['property_price']); ?>"><?php echo $this->price($this->escape($value['property_price'])).' '.$currency->getSymbol(); ?></option>
+							<?php
+								}
+							}
+							?>
+						</select>
+					</div>
+					
+					<div class="col clear">
+						<p><?php echo $this->translator->translator('property_list_page_search_country'); ?></p>
+						<?php
+							$country_db = new Property_Model_DbTable_Country();
+							$country_data = $country_db->getCountryInfo();
+						?>
+						<select name="country_id_=" id="country_id" class="country_id country">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($country_data as $key=>$value)
+							{
+						?>
+							<option value="<?php echo $key; ?>"><?php echo $this->escape($value); ?></option>
+						<?php
+							}
+						?>
+						</select>
+					</div>
+					
+					<div class="col">
+						<p><?php echo $this->translator->translator('property_list_page_search_state'); ?></p>
+						
+						<select name="state_id_=" id="state_id" class="state_id state" >
+							<option value="any"><?php echo $this->translator->translator('property_select_state'); ?></option>																			
+						</select>
+						<span id="state_id_err"></span>
+					</div>
+                    
+                    <div class="col">
+						<p><?php echo $this->translator->translator('property_list_page_search_area'); ?></p>
+						<select name="area_id_=" id="area_id" class="area_id mod-list area">
+						<option value="any"><?php echo $this->translator->translator('property_select_area'); ?></option>																			
+						</select><span id="area_id_err"></span>
+					</div>
+					
+					<div class="col clear">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_owner'); ?></p>
+						<?php
+							$mem_data = $mem_db->getAllMembers();
+						?>
+						<span class="ui-widget">
+						<select name="property_owner_=" id="property_owner">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							foreach($mem_data as $key=>$value)
+							{
+						?>
+							<option value="<?php echo $key; ?>"><?php echo $this->escape($value); ?></option>
+						<?php
+							}
+						?>
+						</select>
+						</span>
+					</div>
+					
+					<div class="col">
+                    	<p><?php echo $this->translator->translator('property_list_page_search_room'); ?></p>
+						<select name="feature_room_no_>=" id="feature_room_no">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							for($i = 1; $i<=200;$i++)
+							{
+						?>
+							<option value="<?php echo $i; ?>"><?php echo $this->escape($i); ?></option>
+						<?php
+							}
+						?>
+						</select>
+				   	</div>
+				   
+				  	<div class="col">
+						<p><?php echo $this->translator->translator('property_list_page_search_bathroom'); ?></p>
+						<select name="feature_bathroom_>=" id="feature_bathroom">
+						<option value="any"><?php echo $this->translator->translator('common_any_language'); ?></option>
+						<?php
+							
+							for($i = 1; $i<=200;$i++)
+							{
+								$selected = ($this->postValue['feature_bathroom_>='] == $i) ? ' selected="selected" ' : '';
+						?>
+							<option value="<?php echo $i; ?>"<?php echo $selected; ?>><?php echo $this->escape($i); ?></option>
+						<?php
+							}
+						?>
+						</select>
+					</div>
+					
+					<div class="clear btn-container">
+                    	<input type="submit" id="" name="Submit" value="<?php echo $this->translator->translator('property_front_page_search_button'); ?>" />
+                    </div>
+			</form>
+		</div>
+		
+		<!-- Realestate Slick Search End -->
+		
+		<h1><?php echo $this->escape($this->view_datas['property_name']); ?></h1>
+		<div class="products-type"><?php echo strtoupper($this->escape($this->businessTypeInfo['business_type'])); ?></div> 
+      	<div class="clear"></div>
+		<!-- Realestate Info Start -->
+		<div class="products-info">
+			<div class="products-stars">
+				<?php
+					for($i = 1; $i < $maximum_stars_digit; $i++)
+					{
+						$property_stars = ($i <= $this->escape($this->view_datas['stars'])) ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-inactive.png' border='0'/>";
+						echo $property_stars.'&nbsp;';
+					}
+				?>
+			</div>
+			
+			<ul class="products-options">
+					<?php  
+					  if(!empty($property_type_arr[0]) && in_array($this->view_datas['property_type'], $property_type_arr))
+					  { 
+					?>
+					<li class="availability"><a href="javascript: void(0);" class="calendar_btn" rel="#tabs-5"><?php echo $this->translator->translator('property_front_page_label_check-availability'); ?></a></li>
+					<?php
+					  }
+					  if(!empty($this->view_datas['feature_bathroom']))
+					  {
+					?>
+					
+					<li class="bathroom"><?php  echo (int)$this->escape($this->view_datas['feature_bathroom']).' '.$this->translator->translator('property_front_page_bathroom');   ?></li>
+					<?php
+					  }
+					?>
+					
+					<li class="kitchen"><?php echo ($this->view_datas['feature_kitchen']) ? $this->translator->translator('property_front_page_property_has_kitchen') : $this->translator->translator('property_front_page_property_no_kitchen') ; ?></li>
+					
+					<li class="garden"><?php echo ($this->view_datas['feature_garden']) ? $this->translator->translator('property_front_page_property_has_garden') : $this->translator->translator('property_front_page_property_no_garden') ; ?></li>
+				  
+					<li class="garage"><?php echo ($this->view_datas['feature_garage']) ? $this->translator->translator('property_front_page_property_has_garage') : $this->translator->translator('property_front_page_property_no_garage') ; ?></li>
+			</ul>	
+		</div>
+		
+		<div class="products-info right">
+			<div class="products-price"><?php echo $this->translator->translator('property_front_page_price').$currency->getSymbol().''.$this->price($this->escape($this->view_datas['property_price']));  ?></div>
+			
+			<div class="products-review">
+				<span class="products-write-review"><?php if(!empty($this->group_datas['review_id'])){ $review_no = (!empty($this->review_datas)) ? htmlentities($this->review_datas['review_no']) : htmlentities('0'); ?><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $this->view_datas['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></span> &nbsp; <span class="products-review-count"><a href="javascript:void(0);" class="review_btn" rel="#tabs-8"><?php echo $this->translator->translator('common_review_no',$review_no); ?></a></span><?php } ?>
+			</div>
+			
+			<div class="products-vote">
+				<p><?php echo $this->translator->translator('property_front_page_label_voting'); ?></p>
+                <span><?php  $vote->showButton($this->view_datas['id'] , $this->escape($this->view_datas['property_name'])); ?></span>
+			</div>
+            <?php if($global_conf['payment_system'] == 'On'){ ?>
+            <?php  if(!empty($property_type_arr[0]) && in_array($this->view_datas['property_type'], $property_type_arr)){ ?>
+			<div class="clear">
+				<span class="form-button"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'book', 'action' => 'booking','property_title' => $this->escape($this->view_datas['property_title']) ),'Book-Property/:property_title',true); ?>" class="book_btn" ><?php echo $this->translator->translator('property_front_page_book_btn'); ?></a></span>
+			</div>
+			<?php } ?>
+            <?php } ?>
+		</div>
+		<!-- Realestate Info End -->
+        <div class="clear">&nbsp;</div>
+		<!-- Realestate Details Middle Tab Start -->
+		<div class="products-middle-tab">	
+			<ul>
+				<li><a href="javascript:void(0);" class="print_btn" rel="0"><?php echo $this->translator->translator('common_print'); ?></a></li>
+				<li><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'emails', 'action' => 'friend','property_title' => $this->escape($this->view_datas['property_title']), 'form_id' => $this->translator->translator('email_to_friend_form_id') ),'Email-To-Friend/:property_title/:form_id',true); ?>"><?php echo $this->translator->translator('common_email_to_friend'); ?></a></li>
+				<li><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'emails', 'action' => 'appointment','property_title' => $this->escape($this->view_datas['property_title']), 'form_id' => $this->translator->translator('appointment_form_id') ),'Appointment/:property_title/:form_id',true); ?>"><?php echo $this->translator->translator('common_appointment'); ?></a></li>
+				<li><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'emails', 'action' => 'owner','property_title' => $this->escape($this->view_datas['property_title']), 'form_id' => $this->translator->translator('contact_owner_form_id') ),'Contact-Owner/:property_title/:form_id',true); ?>"><?php echo $this->translator->translator('common_contact'); ?></a></li>
+				<li><a href="javascript: void(0);" class="payment_btn" rel="#tabs-7" ><?php echo $this->translator->translator('property_front_page_Title_payment'); ?></a></li>
+			</ul>
+		</div>
+		
+		<div class="products-middle-tab-area">
+				<!-- Slide Show Start -->
+				<div class="products-slideshow">
+					<?php
+						$property_image_val_arr = explode(',',$this->view_datas['property_image']);
+						if($this->escape($this->view_datas['property_primary_image']))
+						{ 
+							$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($this->view_datas['property_primary_image']); 
+						}
+						else
+						{ 
+							if($this->escape($this->view_datas['property_image']))
+							{					
+								$thumb_image = 'data/frontImages/property/property_image/'.$this->escape($property_image_val_arr[0]); 
+							}
+							else
+							{
+								$thumb_image = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_property_img/no_image.png';
+							}		
+						}
+						if($this->group_datas['img_big_width'] && ($this->group_datas['img_big_resize_func'] == 'resizeToWidth' || $this->group_datas['img_big_resize_func'] == 'resize' ))
+						{ 
+							$width = 'width="'.$this->escape($this->group_datas['img_big_width']).'"'; 
+						}
+						else
+						{
+							$width = '';
+						} 
+						if($this->group_datas['img_big_height'] && ( $this->group_datas['img_big_resize_func'] == 'resizeToHeight' || $this->group_datas['img_big_resize_func'] == 'resize' ))
+						{ 
+							$height = 'height="'.$this->escape($this->group_datas['img_big_height']).'"'; 
+						} 
+						else
+						{
+							$height = '';
+						}
+					?>
+				
+					<div id="container">
+						<div id="gallery" class="ad-gallery">
+						  <div class="ad-image-wrapper"></div>
+						  <div class="ad-controls"></div>
+							<div class="ad-nav">
+								<div class="ad-thumbs">
+								  <ul class="ad-thumb-list" style="min-width:100%;">
+										<li>
+										  <a href="<?php echo $thumb_image; ?>">
+												<img src="<?php echo $thumb_image; ?>"  width="70" height="50" title="<?php echo $this->escape($this->propertyForm->property_name->getValue()); ?>" alt="<?php echo $this->escape($area_info['city']).', '.$this->escape($country_info['value']); ?>"  class="image0" /></a>
+										  </a>
+										</li>
+										<?php									
+											foreach($property_image_val_arr as $key=>$value)
+											{									
+												if($thumb_image != 'data/frontImages/property/property_image/'.$value)
+												{
+										?>
+										<li> 
+											<a href="data/frontImages/property/property_image/<?php echo $value; ?>"> <img src="data/frontImages/property/property_image/<?php echo $value; ?>"  width="70" height="50" title="<?php echo $this->escape($this->propertyForm->property_name->getValue()); ?>" alt="<?php echo $this->escape($area_info['city']).', '.$this->escape($country_info['value']); ?>"  class="image0" /></a> 
+										</li>
+										  <?php
+												}		
+											}
+											?>		
+									</ul>
+								</div>
+							</div>
+						</div>
+					
+						<div class="switch">
+							<select id="switch-effect">
+							  <option value="slide-hori">Slide horizontal</option>
+							  <option value="slide-vert">Slide vertical</option>
+							  <option value="resize">Shrink/grow</option>
+							  <option value="fade">Fade</option>
+							  <option value="">None</option>
+							</select>
+							<a href="#" id="toggle-slideshow">Toggle slideshow</a> | <a href="#" id="toggle-description">Toggle description outside image</a>
+						</div>
+					</div>
+				</div>
+				<!-- Slide Show End -->
+				
+				<!-- Realestate Match Start -->
+				<div class="match-container">
+					<div id="matchTabs">
+					<ul>
+						<li><a href="<?php echo $tab_base_link; ?>#matchTabs-1"><?php echo $this->translator->translator('property_front_page_match_price'); ?></a></li>                        
+						<!--<li><a href="#matchTabs-2"><?php //echo $this->translator->translator('property_front_page_match_state'); ?></a></li>-->
+						<li><a href="<?php echo $tab_base_link; ?>#matchTabs-3"><?php echo $this->translator->translator('property_front_page_match_agent'); ?></a></li>
+						<li><a href="<?php echo $tab_base_link; ?>#matchTabs-4"><?php echo $this->translator->translator('property_front_page_match_related'); ?></a></li>
+					</ul>
+					<div class="match-tab-container" id="matchTabs-1">
+						<?php
+                                $propertyMatchPrice = $property_db->getPropertyMatchPrice($this->escape($this->view_datas['id']),$this->price($this->escape($this->view_datas['property_price'])),10);
+                                if($propertyMatchPrice)
+                                {							
+                                    foreach($propertyMatchPrice as $match_info)
+                                    {
+                        ?>
+                          <div class="products-match">
+                                <span><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>"   title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><?php echo $this->escape($match_info['property_name']); ?></a></span>
+                                <div class="products-star">
+                                <?php
+                                    $property_stars = (int) $this->escape($match_info['stars']);
+                                                                                               
+                                      for($i = 1; $i <= $maximum_stars_digit ; $i++)
+                                      {
+                                          $print_stars = ($i <= $property_stars )  ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-inactive.png' border='0' />";
+                                          echo $print_stars.'&nbsp;';
+                                      }
+                                ?>									
+                                </div>
+                                
+                                <?php
+                                    if(!empty($this->group_datas['review_id']))
+                                    { 
+                                        $review_match_no = htmlentities($this->review_helper->getNumOfReviews($match_info['id'], $this->group_datas['review_id']));
+                                ?>
+                                <div class="products-review">
+                                    <div class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>" ><?php echo $this->translator->translator('common_review_no',$review_match_no); ?></a>&nbsp;</div>
+                                    <div class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $match_info['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></div>
+                                </div>
+                                <?php
+                                }
+                                ?>
+                                
+                                <div class="thumb">
+                                    <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" link="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><img src="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  width="70" height="50" border="0" alt="<?php echo strip_tags($this->escape($match_info['property_name'])); ?>" /></a>
+                                </div>
+                                
+                                <div class="products-desc">
+                                <?php
+                                    $related_feature_amenities_arr = explode(',', $match_info['feature_amenities']);
+                                    foreach($related_feature_amenities_arr as $facilities_key => $facilities_value)
+                                    {
+                                        echo $this->escape($facilities_value).'<br />';
+                                        if($facilities_key >= 4){ break; }
+                                    }
+                                ?>
+                                </div>
+                           </div>
+                        <?php
+                                }  
+                            }
+                        ?>
+					</div>
+					<div class="match-tab-container" id="matchTabs-2" style="display:none;">
+						<?php
+                            $propertyMatchRegion = $property_db->getPropertyMatchRegion($this->escape($this->view_datas['id']),$this->escape($this->view_datas['state_id']),10);
+                            if($propertyMatchRegion)
+                            {	
+                                foreach($propertyMatchRegion as $match_info)
+                                {
+                        ?>
+                        <div class="products-match">                           
+                                <span><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>"  title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><?php echo $this->escape($match_info['property_name']); ?></a></span>
+
+                                <div class="products-star">
+                                <?php
+                                 $property_stars = (int) $this->escape($match_info['stars']);
+                                                                                           
+                                  for($i = 1; $i <= $maximum_stars_digit ; $i++)
+                                  {
+                                      $print_stars = ($i <= $property_stars )  ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-inactive.png' border='0' />";
+                                      echo $print_stars.'&nbsp;';
+        
+                                  }
+                                ?>										
+                                </div>
+                                
+                                <?php
+                                    if(!empty($this->group_datas['review_id']))
+                                    { 
+                                        $review_match_no = htmlentities($this->review_helper->getNumOfReviews($match_info['id'], $this->group_datas['review_id']));
+                                ?>
+                                <div class="products-review">
+                                    <div class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>" ><?php echo $this->translator->translator('common_review_no',$review_match_no); ?></a>&nbsp;</div>
+                                    <div class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $match_info['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></div>
+                                </div>
+                                <?php
+                                }
+                                ?>
+                                
+                                <div class="thumb">
+                                    <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" link="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><img src="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  width="70" height="50" border="0" alt="<?php echo strip_tags($this->escape($match_info['property_name'])); ?>" /></a>
+                                </div>
+                                
+                                <div class="products-desc">
+                                <?php
+                                    $related_feature_amenities_arr = explode(',', $match_info['feature_amenities']);
+                                    foreach($related_feature_amenities_arr as $facilities_key => $facilities_value)
+                                    {
+                                        echo $this->escape($facilities_value).'<br />';
+                                        if($facilities_key >= 4){ break; }
+                                    }
+                                ?>
+                                </div>
+                           </div>
+                        <?php	
+                                }
+                             
+                            }
+                        ?>		   
+					</div>
+					<div class="match-tab-container" id="matchTabs-3">
+						<?php
+                            $propertyMatchAgent = $property_db->getPropertyMatchAgent($this->escape($this->view_datas['id']),$this->escape($this->view_datas['property_owner']),10);
+                            if($propertyMatchAgent)
+                            {
+                                foreach($propertyMatchAgent as $match_info)
+                                {
+                        ?>	
+                        <div class="products-match">
+                            <span><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>" title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><?php echo $this->escape($match_info['property_name']); ?></a></span>
+                            
+                            <div class="products-star">
+                            <?php
+                             $property_stars = (int) $this->escape($match_info['stars']);
+                                                                                       
+                              for($i = 1; $i <= $maximum_stars_digit ; $i++)
+                              {
+                                  $print_stars = ($i <= $property_stars )  ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-inactive.png' border='0' />";
+                                  echo $print_stars.'&nbsp;';
+    
+                              }
+                            ?>								
+                            </div>
+                            
+                            <?php
+                                if(!empty($this->group_datas['review_id']))
+                                { 
+                                    $review_match_no = htmlentities($this->review_helper->getNumOfReviews($match_info['id'], $this->group_datas['review_id']));
+                            ?>
+                            <div class="products-review">							
+                                <div class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('common_review_no',$review_match_no); ?></a>&nbsp;</div>
+                                <div class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $match_info['id'] ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></div>
+                            </div>
+                            <?php
+                            }
+                            ?>
+                            
+                            <div class="thumb">
+                                <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($match_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" link="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  title="<?php echo $this->escape($match_info['property_name']); ?>" width="300"><img src="data/frontImages/property/property_image/<?php echo $match_info['property_primary_image']; ?>"  width="70" height="50" border="0" alt="<?php echo strip_tags($this->escape($match_info['property_name'])); ?>" /></a>
+                            </div>
+                            
+                            <div class="products-desc">
+                            <?php
+                                $related_feature_amenities_arr = explode(',', $match_info['feature_amenities']);
+                                foreach($related_feature_amenities_arr as $facilities_key => $facilities_value)
+                                {
+                                    echo $this->escape($facilities_value).'<br />';
+                                    if($facilities_key >= 4){ break; }
+                                }
+                            ?>
+                            </div>
+                       </div>
+                        <?php   
+                                }          
+                            }
+                        ?>                    
+					</div>
+					<div class="match-tab-container" id="matchTabs-4">
+						<?php						
+                        if($this->view_datas['related_items'])
+                        {
+                            $related_items_arr = explode(',',$this->view_datas['related_items']);
+                            
+                            foreach($related_items_arr as $key=>$value)
+                            {
+                                $get_related_info = $property_db->getPropertiesInfo($value);
+                        ?>
+                        <div class="products-match">                  
+                                <span><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($get_related_info['property_title']) ),'Property-details/:property_title',true); ?>" title="<?php echo $this->escape($get_related_info['property_name']); ?>" width="300"><?php echo $this->escape($get_related_info['property_name']); ?></a></span>
+                                <div class="products-star">
+                                <?php
+                                 $property_stars = (int) $this->escape($get_related_info['stars']);
+                                                                                           
+                                  for($i = 1; $i <= $maximum_stars_digit ; $i++)
+                                  {
+                                      $print_stars = ($i <= $property_stars )  ? "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-active.png' border='0' />" : "<img src='application/layouts/scripts/".$front_template['theme_folder']."/images/mod_property_img/star-small-inactive.png' border='0' />";
+                                      echo $print_stars.'&nbsp;';
+                                  }
+                                 ?>							
+                                </div>
+                                
+                                <?php
+                                    if(!empty($this->group_datas['review_id']))
+                                    { 
+                                        $review_match_no = htmlentities($this->review_helper->getNumOfReviews($value, $this->group_datas['review_id']));
+                                ?>
+                                
+                                <div class="products-review">
+                                    <div class="products-review-count"><a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($get_related_info['property_title']),'tab' => 7 ),'Property-details/:property_title/:tab',true); ?>"><?php echo $this->translator->translator('common_review_no',$review_match_no); ?></a>&nbsp;</div>
+                                    <div class="products-write-review"><a href="<?php echo $this->url( array('module' => 'Review','controller' => 'frontend', 'action'     => 'write', 'group_id' => $this->escape($this->group_datas['review_id']), Eicra_File_Constants::ITEM_ID => $value ), 'Review-Write/:group_id/:item_id',    true); ?>"><?php echo $this->translator->translator('common_write_review'); ?></a></div>
+                                </div>
+                                <?php
+                                }
+                                ?>
+                                
+                                <div class="thumb">
+                                    <a href="<?php echo $this->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'details','property_title' => $this->escape($get_related_info['property_title']) ),'Property-details/:property_title',true); ?>" class="preview" link="data/frontImages/property/property_image/<?php echo $get_related_info['property_primary_image']; ?>"  title="<?php echo $this->escape($get_related_info['property_name']); ?>" width="300"><img src="data/frontImages/property/property_image/<?php echo $get_related_info['property_primary_image']; ?>"  width="70" height="50" border="0" alt="<?php echo strip_tags($this->escape($get_related_info['property_name'])); ?>" /></a>
+                                </div>
+                                
+                                <div class="products-desc">
+                                <?php
+                                    $related_feature_amenities_arr = explode(',', $get_related_info['feature_amenities']);
+                                    foreach($related_feature_amenities_arr as $facilities_key => $facilities_value)
+                                    {
+                                        echo $this->escape($facilities_value).'<br />';
+                                        if($facilities_key >= 4){ break; }
+                                    }
+                                ?>
+                                </div>
+                        </div>
+                        <?php
+                                }	
+                            }
+                        ?>                    
+					</div>
+					</div>
+				</div>
+				<!-- Realestate Match End -->
+		</div>
+		<!-- Realestate Details Middle Tab End -->
+		  
+		<!-- Realestate Bottom Tab Start -->
+		<div id="tabs">
+				<div>
+					<?php
+						$property_image_val_arr = explode(',',$this->view_datas['property_image']);
+						$property_image_no = (empty($property_image_val_arr[0])) ? '0' : count($property_image_val_arr);
+						
+						$property_floor_image_val_arr = explode(',',$this->view_datas['feature_floor_plan_image']);
+						$property_floor_image_no = (empty($property_floor_image_val_arr[0])) ? '0' : count($property_floor_image_val_arr);
+					?>
+				</div>
+				<ul>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('property_front_page_property_details'); ?></a></li>                    
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('property_front_page_property_gallery'); ?> <span class="photo-no"><?php echo $property_image_no; ?></span></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('property_front_page_property_floor'); ?> <span class="photo-no"><?php echo $property_floor_image_no; ?></span></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('property_front_page_property_map'); ?></a></li>
+					<?php  if(!empty($property_type_arr[0]) && in_array($this->view_datas['property_type'], $property_type_arr)){ ?>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-5"><?php echo $this->translator->translator('property_front_page_property_available'); ?></a></li>
+					<?php } ?>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-6"><?php echo $this->translator->translator('property_front_page_property_brochure'); ?></a></li>
+					<li><a href="<?php echo $tab_base_link; ?>#tabs-7"><?php echo $this->translator->translator('property_front_page_Title_payment_process'); ?></a></li>
+					<?php
+						if(!empty($this->group_datas['review_id']))
+						{
+							echo '<li><a href="'.$tab_base_link.'#tabs-8">'.$this->translator->translator('property_front_page_property_reviews').'</a></li>';
+						}
+						
+						if(!empty($this->group_datas['dynamic_form']))
+						{									
+							$staticGroupsObj = $this->propertyForm->getDisplayGroups();												
+							if($staticGroupsObj)
+							{													
+								$tabs = (!empty($this->group_datas['review_id'])) ? 9 : 8;
+								foreach($staticGroupsObj as $staticGroup)
+								{
+									echo '<li><a href="'.$tab_base_link.'#tabs-'.$tabs.'">'.$this->translator->translator($staticGroup->getAttrib('title')).'</a></li>';
+									$tabs++;
+								}
+							}
+						}
+						else
+						{
+							$staticGroupsObj = null;
+						}
+					?>
+				</ul>
+				
+				<div id="tabs-1">
+					<!-- Realestate Left Feature Start -->
+					<div class="products-feature">
+						<div class="products-details">
+						   <div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_detail'); ?></h4></div>
+						   <div class="content feature-content">
+								<?php
+								if($this->view_datas['category_id'])
+								{
+									$category_info = $cat_Info->getCategoryInfo($this->view_datas['category_id']);
+								?>
+								<div class="label"><?php echo $this->ProductForm->category_id->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($category_info['category_name']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['property_price'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_price'); ?></div>
+								<div class="right-value"><?php echo $this->price($this->escape($this->view_datas['property_price'])).'&nbsp;'.$currency->getSymbol(); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['feature_room_no'])
+								{
+								?>        
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_room'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_room_no']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['city'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_area'); ?></div>
+								<div class="value"><?php echo $this->escape($area_info['city']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['feature_parking'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_parking'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_parking']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['feature_glazing'])
+								{
+								?>
+								
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_glazing'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_glazing']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['feature_floor'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_floor'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_floor']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['house_no'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_house'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['house_no']); ?></div>
+								<?php
+								}
+								if($this->view_datas['house_name'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_house_name'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['house_name']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['city'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_county'); ?></div>
+								<div class="value"><?php echo $this->escape($area_info['city']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['post_code'])
+								{
+								?>
+								<div class="label"><?php echo $this->translator->translator('property_front_page_label_postcode'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['post_code']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['property_code'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->property_code->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['property_code']); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['property_lot'])
+								{
+								?>	
+								<div class="label"><?php echo $this->ProductForm->property_lot->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['property_lot']).'&nbsp;'.$this->ProductForm->property_lot->getAttrib('right_label'); ?></div>
+								
+								<?php
+								}
+								if($this->view_datas['property_estate_surface'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->property_estate_surface->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['property_estate_surface']).'&nbsp;'.$this->ProductForm->property_estate_surface->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								if($this->view_datas['property_land_surface'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->property_land_surface->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['property_land_surface']).'&nbsp;'.$this->ProductForm->property_land_surface->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								if($this->view_datas['property_tipology'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->property_tipology->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['property_tipology']); ?></div>
+								<?php
+								}
+								if($this->view_datas['house_location'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->house_location->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['house_location']); ?></div>
+								<?php
+								}
+								if($this->view_datas['feature_courtyard'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->feature_courtyard->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_courtyard']); ?></div>
+								<?php
+								}
+								if($this->view_datas['feature_furnishing'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->feature_furnishing->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['feature_furnishing']); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_nearby_school'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_nearby_school->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_nearby_school']); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_neighborhood'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_neighborhood->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_neighborhood']); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_landmark'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_landmark->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_landmark']); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_distance_hospital'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_distance_hospital->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_distance_hospital']).'&nbsp;'.$this->ProductForm->other_distance_hospital->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_distance_airport'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_distance_airport->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_distance_airport']).'&nbsp;'.$this->ProductForm->other_distance_airport->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_distance_railway'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_distance_railway->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_distance_railway']).'&nbsp;'.$this->ProductForm->other_distance_railway->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								if($this->view_datas['other_distance_school'])
+								{
+								?>
+								<div class="label"><?php echo $this->ProductForm->other_distance_school->getAttrib('font_end_label'); ?></div>
+								<div class="value"><?php echo $this->escape($this->view_datas['other_distance_school']).'&nbsp;'.$this->ProductForm->other_distance_school->getAttrib('right_label'); ?></div>
+								<?php
+								}
+								?>
+						   </div>
+						</div>
+					</div>
+					<!-- Realestate Left Feature End -->
+					
+					<!-- Realestate Summary Start -->
+					<div class="products-chart summary-chart">
+						<div class="products-details">
+							<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_summary'); ?></h4></div>
+                           	<div class="content">
+								<div class="chart-desc">
+									<div class="label"><?php if($this->view_datas['property_size']){  echo $this->ProductForm->property_size->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['property_size']){  echo $this->escape($this->view_datas['property_size']).'&nbsp;'.$this->ProductForm->property_size->getAttrib('right_label'); }?></div>
+									
+									<div class="label"><?php if($this->view_datas['house_location']){  echo $this->ProductForm->house_location->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['house_location']){  echo $this->escape($this->view_datas['house_location']); } ?></div>
+									
+									<div class="label"><?php if($this->view_datas['feature_bedroom']){ echo $this->ProductForm->feature_bedroom->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['feature_bedroom']){ echo $this->escape($this->view_datas['feature_bedroom']).$this->ProductForm->getAttrib('right_label'); } ?></div>
+									 
+									<div class="label"><?php if($this->view_datas['feature_bathroom']){ echo $this->ProductForm->feature_bathroom->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['feature_bathroom']){ echo $this->escape($this->view_datas['feature_bathroom']); } ?></div>
+									
+									<div class="label"><?php if($this->view_datas['available_added_on']){ echo $this->ProductForm->available_added_on->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['available_added_on']){ echo $this->escape($this->view_datas['available_added_on']).$this->ProductForm->getAttrib('right_label'); } ?></div>
+									
+									<div class="label"><?php if($this->view_datas['property_build_year']){ echo $this->ProductForm->property_build_year->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['property_build_year']){ echo $this->escape($this->view_datas['property_build_year']); } ?></div>
+									 
+									<div class="label"><?php echo $this->translator->translator('property_front_page_label_type'); ?></div>
+									<div class="value"><?php
+										if($this->escape($this->view_datas['category_id']))
+										{
+											$cat_db =  new Property_Model_DbTable_Category();
+											$cat_info = $cat_db->getCategoryInfo($this->escape($this->view_datas['category_id']));
+											echo $this->escape($cat_info['category_name']);
+										}
+									  ?>
+									</div>
+									
+									<div class="label"><?php if($this->view_datas['feature_balcony']){ echo $this->ProductForm->feature_balcony->getAttrib('font_end_label'); } ?></div>
+									<div class="value"><?php if($this->view_datas['feature_balcony']){ echo $this->escape($this->view_datas['feature_balcony']); } ?></div>
+									
+									<div class="label"><?php echo $this->translator->translator('property_front_page_label_kitchen'); ?></div>
+									<div class="value"><?php echo $this->escape($this->view_datas['feature_kitchen']); ?></div>
+									
+									<div class="label"><?php echo $this->translator->translator('property_front_page_label_dining'); ?></div>
+									<div class="value"><?php echo $this->escape($this->view_datas['feature_dinning_space']); ?></div>
+									
+									<div class="label"><?php echo $this->translator->translator('property_front_page_label_garage'); ?></div>
+									<div class="value"><?php echo $this->escape($this->view_datas['feature_garage']); ?></div>
+									
+									<div class="label"><?php echo $this->translator->translator('property_front_page_label_garden'); ?></div>
+									<div class="value"><?php echo $this->escape($this->view_datas['feature_garden']); ?></div>
+								</div>
+                          	</div>
+						</div>                    
+					</div>
+					<!-- Realestate Summary End -->
+					
+					<!-- Realestate Agent Start-->
+					<?php
+						//Checking Membership Package Option
+						$packages = new Members_Controller_Helper_Packages();
+						$general_db = new Members_Model_DbTable_General();
+						$forms_db = new Members_Model_DbTable_Forms();
+						$mem_info = (isnot_int($this->view_datas['property_owner'])) ? $mem_db->getMemberInfo($this->view_datas['entry_by']) : $mem_db->getMemberInfo($this->view_datas['property_owner']);	
+						$module = $this->module;
+						$controller = $this->controller;
+						$action = $this->action;
+											
+						if($packages->checkFormAvailable('Default Info'))
+						{
+							$default_form_id  = $forms_db->getFormId('Default Info');
+							$default_form_info['form_id'] = 	$default_form_id[0]['id'];
+							$default_general_info = $general_db->getAllValues($default_form_id[0]['id']);												
+							$dynamic_valu_db = new Members_Model_DbTable_FieldsValue();	
+							if($default_general_info)
+							{								
+								$default_general_info = (!empty($default_general_info[0]) && !empty($default_general_info[0]['id'])) ? $default_general_info :  $default_general_info->toArray();
+								$default_form_info	=	$dynamic_valu_db->getFieldsValueInfo($default_form_info,$default_general_info[0]['id']);									
+							}
+							else
+							{
+								$default_form_info = null;
+							}
+						}
+						else
+						{
+							$default_form_info = null;
+						}
+						if($packages->isPackageFrontend($mem_info['user_id'],$mem_info['role_id']))
+						{								
+							if($packages->isPackageFrontendField($module,$controller,$action,$mem_info['user_id'],$mem_info['role_id']))
+							{
+								$package_no = $packages->getPackageFrontendFieldValue($module,$controller,$action,$mem_info['user_id'],$mem_info['role_id']);				
+							}
+							else
+							{
+								$package_no = 'Off';
+							}
+						}
+						else
+						{
+							$package_no = 'On';
+						}
+						
+					if($package_no == 'On')
+					{		
+					?>
+					<div class="products-agent">
+						<div class="products-details">
+							<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_realtor'); ?></h4></div>
+                            <div class="content">
+								<?php
+                                    if($this->escape($this->view_datas['property_owner']))
+                                    {
+                                        $mem_db = new Members_Model_DbTable_MemberList();
+                                        $owner_info = (isnot_int($this->view_datas['property_owner'])) ? $this->escape($this->view_datas['property_owner']) : $mem_db->getMemberInfo($this->escape($this->view_datas['property_owner']));
+                                        $owner_name = (is_array($owner_info)) ? $owner_info['title'].' '.$owner_info['firstName'].' '.$owner_info['lastName'] : $owner_info;						
+                                        $mem_user_id = (is_array($owner_info)) ? $owner_info['user_id'] : $mem_info['user_id'];
+                                        $mem_role_id = (is_array($owner_info)) ? $owner_info['role_id'] : $mem_info['role_id'];
+                                        if(is_array($owner_info))
+                                        {
+                                            $role_db = new Members_Model_DbTable_Role();
+                                            $role_info = $role_db->getRoleInfo($owner_info['role_id']);
+                                            $owner_info['form_id'] = 	$role_info['form_id'];
+                                            $dynamic_valu_db = new Members_Model_DbTable_FieldsValue();	
+                                            $owner_info	=	$dynamic_valu_db->getFieldsValueInfo($owner_info,$owner_info['user_id']);
+                                            foreach($owner_info as $key=>$value)
+                                            {
+                                                $field_name_arr = explode('_',$key);
+                                                if(in_array('package',$field_name_arr))
+                                                {
+                                                    $package_info = $packages->getFormAllDatas($value);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $mem_user_id = $mem_info['user_id'];
+                                            $mem_role_id = $mem_info['role_id'];
+                                            $role_db = new Members_Model_DbTable_Role();
+                                            $role_info = $role_db->getRoleInfo($mem_role_id);
+                                            $mem_info['form_id'] = 	$role_info['form_id'];
+                                            $dynamic_valu_db = new Members_Model_DbTable_FieldsValue();	
+                                            $mem_info	=	$dynamic_valu_db->getFieldsValueInfo($mem_info,$mem_user_id);
+                                            foreach($mem_info as $key=>$value)
+                                            {
+                                                $field_name_arr = explode('_',$key);
+                                                if(in_array('package',$field_name_arr))
+                                                {
+                                                    $package_info = $packages->getFormAllDatas($value);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        $mem_user_id = $mem_info['user_id'];
+                                        $mem_role_id = $mem_info['role_id'];
+                                        $role_db = new Members_Model_DbTable_Role();
+                                        $role_info = $role_db->getRoleInfo($mem_role_id);
+                                        $mem_info['form_id'] = 	$role_info['form_id'];
+                                        $dynamic_valu_db = new Members_Model_DbTable_FieldsValue();	
+                                        $mem_info	=	$dynamic_valu_db->getFieldsValueInfo($mem_info,$mem_user_id);
+                                        foreach($mem_info as $key=>$value)
+                                        {
+                                            $field_name_arr = explode('_',$key);
+                                            if(in_array('package',$field_name_arr))
+                                            {
+                                                $package_info = $packages->getFormAllDatas($value);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if(is_array($owner_info))
+                                    {
+                                        if(!empty($owner_info['member_photo']))
+                                        {
+                                            $owner_forms_info = $forms_db->getFormsInfo($role_info['form_id']);
+                                            $member_photo_path = $owner_forms_info['attach_file_path'];
+                                            $member_photo = $member_photo_path.'/'.$owner_info['member_photo'];
+                                            $member_photo_width = 'width="'.$default_form_info['member_photo_width_default'].'"';
+                                            $member_photo_height = 'height="'.$default_form_info['member_photo_height_default'].'"';
+                                        }
+                                        else
+                                        {												
+                                                if(!empty($default_form_info))
+                                                {
+                                                        $member_photo = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['member_photo_default'];
+                                                        $member_photo_width = 'width="'.$default_form_info['member_photo_width_default'].'"';
+                                                        $member_photo_height = 'height="'.$default_form_info['member_photo_height_default'].'"';
+                                                }
+                                                else
+                                                {
+                                                        $member_photo = 'data/frontImages/property/design_images/no_user_image.gif';
+                                                        $member_photo_width = 'width="75"';
+                                                        $member_photo_height = 'height="87"';
+                                                }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(!empty($default_form_info))
+                                        {
+                                                $member_photo = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['member_photo_default'];
+                                                $member_photo_width = 'width="'.$default_form_info['member_photo_width_default'].'"';
+                                                $member_photo_height = 'height="'.$default_form_info['member_photo_height_default'].'"';
+                                        }
+                                        else
+                                        {
+                                                $member_photo = 'data/frontImages/property/design_images/no_user_image.gif';
+                                                $member_photo_width = 'width="75"';
+                                                $member_photo_height = 'height="87"';
+                                        }
+                                    }
+                                                                            
+                                ?>
+                                <img src="<?php echo $member_photo; ?>" <?php echo $member_photo_width.' '.$member_photo_height; ?> class="avatar" />
+   
+                                <div>
+                                    <span class="label"><?php echo $this->translator->translator('property_front_page_label_presented'); ?></span>
+                                    
+                                    <span class="value">
+                                    <?php
+                                    if($this->escape($this->view_datas['property_owner']))
+                                    {
+                                        echo $this->escape($owner_name);											
+                                    }
+                                    ?>
+                                    </span>
+                                </div>
+                                
+                                <div>
+                                    <div class="pkg-img">
+                                        <?php												
+                                            if($packages->isPackageFrontendField($module,$controller,$action.'_pic',$mem_user_id,$mem_role_id))
+                                            {		
+                                                $package_pic_info = $packages->getPackageFrontendFieldDetailsValue($module,$controller,$action.'_pic',$mem_user_id,$mem_role_id);				
+                                                if(!empty($package_pic_info))
+                                                {
+                                                    $forms_info = $forms_db->getFormsInfo($package_pic_info['form_id']);
+                                                    if(!empty($package_pic_info['field_value']))
+                                                    {
+                                                        $package_pic = $this->serverUrl().$this->baseUrl().'/'. $forms_info['attach_file_path'].'/'.$package_pic_info['field_value'];
+                                                        $package_pic_width = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_pic_width',$mem_user_id,$mem_role_id);
+                                                        $package_pic_height = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_pic_height',$mem_user_id,$mem_role_id);
+                                                        $package_pic_width_field = ($package_pic_width) ? 'width="'.$package_pic_width.'"' : '';
+                                                        $package_pic_height_field = ($package_pic_width) ? 'height="'.$package_pic_height.'"' : '';
+                                                    }
+                                                    else
+                                                    {
+                                                        $package_pic = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['property_frontend_details_pic_default'];
+                                                        $package_pic_width_field = (!empty($default_form_info['property_frontend_details_pic_width_default'])) ? 'width="'.$default_form_info['property_frontend_details_pic_width_default'].'"' : '';
+                                                        $package_pic_height_field = (!empty($default_form_info['property_frontend_details_pic_height_default'])) ? 'height="'.$default_form_info['property_frontend_details_pic_height_default'].'"' : '';
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $package_pic = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['property_frontend_details_pic_default'];
+                                                    $package_pic_width_field = (!empty($default_form_info['property_frontend_details_pic_width_default'])) ? 'width="'.$default_form_info['property_frontend_details_pic_width_default'].'"' : '';
+                                                    $package_pic_height_field = (!empty($default_form_info['property_frontend_details_pic_height_default'])) ? 'height="'.$default_form_info['property_frontend_details_pic_height_default'].'"' : '';
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $package_pic = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['property_frontend_details_pic_default'];
+                                                $package_pic_width_field = (!empty($default_form_info['property_frontend_details_pic_width_default'])) ? 'width="'.$default_form_info['property_frontend_details_pic_width_default'].'"' : '';
+                                                $package_pic_height_field = (!empty($default_form_info['property_frontend_details_pic_height_default'])) ? 'height="'.$default_form_info['property_frontend_details_pic_height_default'].'"' : '';
+                                            }
+                                            if($package_pic)
+                                            {
+                                        ?>
+                                        <img src="<?php echo $package_pic; ?>" <?php echo $package_pic_width_field.' '.$package_pic_height_field; ?> />
+                                        <?php
+                                            }
+                                        ?>	
+                                    </div>   
+                                    <span class="label"><?php if(($package_info[0]['field_value'])){ echo $this->translator->translator('common_package_name_title'); } ?></span><br />
+                                    <div class="pkg-title"><?php echo $this->escape($package_info[0]['field_value']); ?></div>
+                                </div>
+                                
+                                <hr />
+                                
+                                <?php
+                                    if($packages->isPackageFrontendField($module,$controller,$action.'_contact_directly',$mem_user_id,$mem_role_id))
+                                    {
+                                        $contact_directly = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_contact_directly',$mem_user_id,$mem_role_id);				
+                                    }
+                                    else
+                                    {
+                                        $contact_directly = 'No';
+                                    }
+                                    if($contact_directly == 'Yes')
+                                    {
+                                 ?>                                   
+                                    <?php
+                                        if($packages->isPackageFrontendField($module,$controller,$action.'_certified',$mem_user_id,$mem_role_id))
+                                        {
+                                            $allow_certified = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_certified',$mem_user_id,$mem_role_id);				
+                                        }
+                                        else
+                                        {
+                                            $allow_certified = 'No';
+                                        }
+                                        if($packages->isPackageFrontendField($module,$controller,$action.'_allow_logo',$mem_user_id,$mem_role_id))
+                                        {
+                                            $allow_logo = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_allow_logo',$mem_user_id,$mem_role_id);				
+                                        }
+                                        else
+                                        {
+                                            $allow_logo = 'No';
+                                        }
+                                    ?>
+                                    <?php													
+                                        if($allow_logo == 'Yes')
+                                        {									
+                                            if(is_array($owner_info))
+                                            {
+                                                if($owner_info['company_logo'])
+                                                {
+                                                    $company_logo_path = $owner_forms_info['attach_file_path'];
+                                                    $company_logo = $member_photo_path.'/'.$owner_info['company_logo'];
+                                                    $company_logo_width = ($default_form_info['company_logo_width_default']) ? 'width="'.$default_form_info['company_logo_width_default'].'"' : '';
+                                                    $company_logo_height = ($default_form_info['company_logo_height_default']) ? 'height="'.$default_form_info['company_logo_height_default'].'"' : '';
+                                                }
+                                                else
+                                                {
+                                                    if(!empty($default_form_info))
+                                                    {
+                                                        $company_logo = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['company_logo_default'];
+                                                        $company_logo_width = ($default_form_info['company_logo_width_default']) ? 'width="'.$default_form_info['company_logo_width_default'].'"' : '';
+                                                        $company_logo_height = ($default_form_info['company_logo_height_default']) ? 'height="'.$default_form_info['company_logo_height_default'].'"' : '';
+                                                    }
+                                                    else
+                                                    {
+                                                        $company_logo = 'data/frontImages/property/design_images/no_company_logo.gif';
+                                                        $company_logo_width = 'width="80"';
+                                                        $company_logo_height = 'height="60"';
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if(!empty($default_form_info))
+                                                {
+                                                    $company_logo = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['company_logo_default'];
+                                                    $company_logo_width = ($default_form_info['company_logo_width_default']) ? 'width="'.$default_form_info['company_logo_width_default'].'"' : '';
+                                                    $company_logo_height = ($default_form_info['company_logo_height_default']) ? 'height="'.$default_form_info['company_logo_height_default'].'"' : '';
+                                                }
+                                                else
+                                                {
+                                                    $company_logo = 'data/frontImages/property/design_images/no_company_logo.gif';
+                                                    $company_logo_width = 'width="80"';
+                                                    $company_logo_height = 'height="60"';
+                                                }
+                                            }
+                                        ?>
+                                            
+                                       	<img src="<?php echo $company_logo; ?>" <?php echo $company_logo_width.' '.$company_logo_height; ?> class="company-logo" />
+                                            
+                                        <?php
+                                         }
+                                    ?>
+                                
+                                <div class="company-info">
+                                    <!-- Company Name -->
+                                    <div>
+                                        <span class="label"><?php echo $this->translator->translator('property_front_page_label_company'); ?></span>
+                                        <?php if(is_array($owner_info)){ echo $this->escape($owner_info['companyName']); } ?>
+                                    </div>
+                                    <!-- Company Name -->
+                                    
+                                    <!-- Address -->
+                                    <div>
+                                        <span class="label"><?php echo $this->translator->translator('property_front_page_label_contact'); ?></span><br />
+                                        <?php //echo $this->translator->translator('property_front_page_label_house_no'); ?> <?php //echo $this->escape($this->view_datas['house_no']); ?><!--<br />-->
+                                        
+                                        <?php echo $this->translator->translator('property_front_page_label_city'); 												
+                                            if(is_array($owner_info) && $owner_info['city'])
+                                            {												
+                                                echo " ".$this->escape($owner_info['city']);
+                                            }
+                                        ?><br />
+                                        
+                                        <?php echo $this->translator->translator('property_front_page_label_state'); 
+                                            if(is_array($owner_info) && $owner_info['state'])
+                                            {
+                                                echo " ".$this->escape($owner_info['state']);
+                                            }
+                                        ?><br />
+                                        
+                                        <?php echo $this->translator->translator('property_front_page_label_country'); 
+                                            if(is_array($owner_info) && $owner_info['country'])
+                                            {
+                                                $owner_country_info = $country_db->getCountryName($owner_info['country']);
+                                                echo " ".$this->escape($owner_country_info['value']);
+                                            }
+                                        ?><br />
+                                        
+                                        <?php echo $this->translator->translator('property_front_page_label_postcode'); 
+                                            echo " ".$this->escape($owner_info['postalCode']);	
+                                        ?>
+                                    </div>                                        
+                                    <!-- Address -->
+                                    <?php
+                                    if(is_array($owner_info) && $owner_info['phone'])
+                                    {
+                                    ?>
+                                    <!-- Tel -->									
+                                    <div>
+                                        <span class="label"><?php echo $this->translator->translator('property_front_page_label_phone'); ?></span>
+                                        <?php echo $this->escape($owner_info['phone']); ?>
+                                    </div>                                                                      
+                                    <!-- Tel --> 
+                                    <?php
+                                    }
+                                    if(is_array($owner_info) && $owner_info['fax'])
+                                    {
+                                    ?>
+                                    <!-- Fax -->                                  
+                                    <div>
+                                        <span class="label"><?php echo $this->translator->translator('property_front_page_label_fax'); ?></span>
+                                        <?php echo $this->escape($owner_info['fax']); ?>
+                                    </div>										
+                                    <!-- Fax -->
+                                    <?php
+                                    }
+                                    ?>
+                                    <!-- Email -->
+                                    <div>
+                                        <a href="<?php if(is_array($owner_info)){ echo 'mailto:'.$this->escape($owner_info['username']); }else{ echo 'mailto:'.$this->escape($this->view_datas['house_email']) ;} ?>" class="agent-email"><?php echo $this->translator->translator('property_front_page_label_email_lang'); ?></a>
+                                    </div>
+                                    <!-- Email -->
+                                    
+                                    <!-- Web -->                                     
+                                    <div>
+                                        <span class="label"><?php echo $this->translator->translator('property_front_page_label_web'); ?></span>                                        	
+                                        <a href="<?php if(is_array($owner_info)){ echo 'http://'.$this->escape($owner_info['website']); } ?>" target="_blank" class="agent-web"><?php if(is_array($owner_info)){ echo $this->escape($owner_info['website']); } ?></a>
+                                    </div>
+                                    <!-- Web -->                                        
+                                </div>
+                                <hr />
+                                <?php
+                                 }
+                                ?>
+                                
+                                <!-- Certificate -->
+                                <div class="certificate">
+                                     <?php														
+                                            if($allow_certified == 'Yes')
+                                            {
+                                                if($packages->isPackageFrontendField($module,$controller,$action.'_pic_certi',$mem_user_id,$mem_role_id))
+                                                {
+                                                    $package_pic_certi_info = $packages->getPackageFrontendFieldDetailsValue($module,$controller,$action.'_pic_certi',$mem_user_id,$mem_role_id);				
+                                                    if(!empty($package_pic_certi_info))
+                                                    {
+                                                        $forms_info = $forms_db->getFormsInfo($package_pic_certi_info['form_id']);
+                                                        if(!empty($package_pic_certi_info['field_value']))
+                                                        {
+                                                            $package_pic_certi = $this->serverUrl().$this->baseUrl().'/'. $forms_info['attach_file_path'].'/'.$package_pic_certi_info['field_value'];
+                                                            $package_pic_certi_width = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_pic_certi_width',$mem_user_id,$mem_role_id);
+                                                            $package_pic_certi_height = $packages->getPackageFrontendFieldValue($module,$controller,$action.'_pic_certi_height',$mem_user_id,$mem_role_id);
+                                                            $package_pic_certi_width_field = ($package_pic_certi_width) ? 'width="'.$package_pic_certi_width.'"' : '';
+                                                            $package_pic_certi_height_field = ($package_pic_certi_height) ? 'height="'.$package_pic_certi_height.'"' : '';
+                                                        }
+                                                        else
+                                                        {
+                                                            $package_pic_certi = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['property_frontend_details_pic_certi_default'];
+                                                            $package_pic_certi_width_field = ($default_form_info['property_frontend_details_pic_certi_width_default']) ? 'width="'.$default_form_info['property_frontend_details_pic_certi_width_default'].'"' : '';
+                                                            $package_pic_certi_height_field = ($default_form_info['property_frontend_details_pic_certi_height_default']) ? 'height="'.$default_form_info['property_frontend_details_pic_certi_height_default'].'"' : '';
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        $package_pic_certi = $this->serverUrl().$this->baseUrl().'/'. $default_form_id[0]['attach_file_path'].'/'.$default_form_info['property_frontend_details_pic_certi_default'];
+                                                        $package_pic_certi_width_field = ($default_form_info['property_frontend_details_pic_certi_width_default']) ? 'width="'.$default_form_info['property_frontend_details_pic_certi_width_default'].'"' : '';
+                                                        $package_pic_certi_height_field = ($default_form_info['property_frontend_details_pic_certi_height_default']) ? 'height="'.$default_form_info['property_frontend_details_pic_certi_height_default'].'"' : '';
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $package_pic_certi = null;
+                                                }
+                                                if($package_pic_certi)
+                                                {
+                                        ?>
+                                        <img src="<?php echo $package_pic_certi; ?>" <?php echo $package_pic_certi_width_field.' '.$package_pic_certi_height_field; ?> />
+                                        
+                                        <?php
+                                                }
+                                            }
+                                        ?>
+                                    <p><?php if($allow_certified == 'Yes'){ echo $this->translator->translator('property_front_page_label_verified'); } ?></p>
+                                </div>
+                                <!-- Certificate -->
+                            </div>
+						</div>
+					</div>
+					<?php
+					}
+					?>
+					<!-- Realestate Agent End-->
+                    
+					<div class="products-details">
+					   	<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_property_details'); ?></h4></div>
+					   	<div class="content">
+					   		<div class="details-info"><?php echo stripslashes($this->view_datas['property_desc']); ?></div>
+                     	</div>
+					</div>
+				</div>
+				
+				<div id="tabs-2">
+					<h2><?php echo $this->translator->translator('property_front_page_Title_images'); ?></h2>
+					<?php
+						if($this->group_datas['file_thumb_width'] && ($this->group_datas['file_thumb_resize_func'] != 'resizeToHeight' || $this->group_datas['file_thumb_resize_func'] != 'resize' ))
+						{ 
+							$width_img = 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; 
+						}
+						else
+						{
+							$width_img = '';
+						} 
+						if($this->group_datas['file_thumb_height'] && ( $this->group_datas['file_thumb_resize_func'] != 'resizeToWidth' || $this->group_datas['file_thumb_resize_func'] != 'resize' ))
+						{ 
+							$height_img = 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; 
+						} 
+						else
+						{
+							$height_img = '';
+						}
+						$img_arr = explode(',',$this->view_datas['property_image']);
+						$i = 1;
+						foreach($img_arr as $key => $value)
+						{
+					?>
+					<div>
+						<a href="javascript:void(0);" class="change_img preview" link="data/frontImages/property/property_image/<?php echo $value; ?>" <?php echo $width; ?> <?php echo $height; ?> title="<?php echo $this->escape($this->propertyForm->property_name->getValue()); ?>"><img src="data/frontImages/property/property_image/<?php echo $value; ?>" <?php echo $width_img.' '.$height_img; ?> border="0" class="thumb additional-thumb"/></a>
+					</div>
+					<?php                                   
+						 $i++;
+					  }
+					?>              
+				</div>
+				
+				<div id="tabs-3">
+					<h2><?php echo $this->translator->translator('property_front_page_Title_floorplan'); ?></h2>
+					<?php
+						if($this->group_datas['file_thumb_width'] && ($this->group_datas['file_thumb_resize_func'] != 'resizeToHeight' || $this->group_datas['file_thumb_resize_func'] != 'resize' ))
+						{ 
+							$width_img = 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; 
+						}
+						else
+						{
+							$width_img = '';
+						} 
+						if($this->group_datas['file_thumb_height'] && ( $this->group_datas['file_thumb_resize_func'] != 'resizeToWidth' || $this->group_datas['file_thumb_resize_func'] != 'resize' ))
+						{ 
+							$height_img = 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; 
+						} 
+						else
+						{
+							$height_img = '';
+						}
+						if($this->view_datas['feature_floor_plan_image'])
+						{
+							$img_froor_arr = explode(',',$this->view_datas['feature_floor_plan_image']);
+							$i = 1;
+							foreach($img_froor_arr as $key => $value)
+							{
+						?>
+					
+						<div>
+							<a href="javascript:void(0);" class="change_img preview" link="data/frontImages/property/floor_plan_image/<?php echo $value; ?>" <?php echo $width; ?> <?php echo $height; ?> title="<?php echo $this->escape($this->propertyForm->property_name->getValue()); ?>"><img src="data/frontImages/property/floor_plan_image/<?php echo $value; ?>" <?php echo $width_img.' '.$height_img; ?> border="0" class="thumb additional-thumb"/></a>
+						</div>
+						<?php                                   
+						 $i++;
+					  }
+						 }
+					?>
+				</div>
+				
+				<div id="tabs-4">
+					<h2><?php echo $this->translator->translator('property_front_page_Title_map'); ?></h2>
+					<div class="products-map"><?php echo stripslashes($this->view_datas['feature_google_map']); ?></div>
+				</div>
+				
+				<?php  if(!empty($property_type_arr[0]) && in_array($this->view_datas['property_type'], $property_type_arr)){ ?>
+				<div id="tabs-5">
+					<h2><?php echo $this->translator->translator('property_front_page_property_available'); ?></h2>
+					
+					<div class="products-chart products-availability">
+						<div class="products-details">
+							<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_available'); ?></h4></div>
+                            <div class="content">
+                                <div class="chart-desc">
+                                    <div class="label"><?php echo $this->translator->translator('property_front_page_label_available_from'); ?></div>
+                                    <div class="value"><?php echo $this->escape($this->view_datas['availabe_from']); ?></div>
+                                    
+                                    <div class="label"><?php echo $this->translator->translator('property_front_page_label_available_to'); ?></div>
+                                    <div class="value"><?php echo $this->escape($this->view_datas['available_to']); ?></div>
+                                    
+                                    <?php if($this->view_datas['available_expire_date'] != '0000-00-00' && !empty($this->view_datas['available_expire_date'])){ ?>
+                                            
+                                    <div class="label"><?php echo $this->translator->translator('property_front_page_label_expire'); ?></div>
+                                    <div class="value"><?php echo $this->escape($this->view_datas['available_expire_date']); ?></div>
+                                    <?php 
+                                    } 
+                                    ?>
+                                    
+                                    <?php if($this->view_datas['available_activation_date'] != '0000-00-00' && !empty($this->view_datas['available_activation_date'])){ ?>
+                                    <div class="label"><?php echo $this->translator->translator('property_front_page_label_activation'); ?></div>
+                                    <div class="value"><?php echo $this->escape($this->view_datas['available_activation_date']); ?></div>
+                                    <?php 
+                                    } 
+                                    ?>
+                                </div>
+                          	</div>
+						</div>
+					</div>
+					
+					<div class="products-legend">      
+						<div class="legend-icon">
+							<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/available.gif" />
+						</div>
+						<div class="legend-icon">
+							<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/booked.gif"/>
+						</div>
+						<div class="legend-icon">
+							<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/not-available.gif"/>
+						</div>
+						<div class="legend-icon">
+							<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/blank.gif"/>
+						</div>
+					</div>
+					<div id="dialog_calendar" class="realestate_dialog_calendar"></div>
+				</div>
+				<?php } ?>
+				
+				<div id="tabs-6">
+					<h2><?php echo $this->translator->translator('property_front_page_Title_brochure_feature'); ?></h2>
+					
+					<div class="products-details">
+					   <div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_brochure'); ?></h4></div>
+					   <div class="content">
+						<h2><?php //echo $this->escape($this->view_datas['brochure_title']); ?></h2>
+                        <div class="details-info">
+						<?php echo stripslashes($this->view_datas['brochure_desc']); ?>
+                       	</div>
+					   </div>
+					</div>
+					
+					<div class="products-details">
+						<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_features'); ?></h4></div>
+					   	<div class="content">
+                       		<div class="details-info">
+							<?php
+								$feature_amenities_arr = explode(',',$this->view_datas['feature_amenities']);
+								if(!empty($feature_amenities_arr[0]))
+								{
+							?>
+							
+							<h2><?php echo $this->ProductForm->feature_amenities->getAttrib('font_end_label'); ?></h2>
+                            
+							<?php 
+								foreach($feature_amenities_arr as $key=>$value)
+								{
+									echo '<div class="products-features"> &bull; '.$this->escape($value).'</div>';
+								}
+							?>
+							<hr/>
+							
+							<?php
+								}
+							
+								$feature_other_amenities_arr = explode(',',$this->view_datas['feature_other_amenities']);
+								if(!empty($feature_other_amenities_arr[0]))
+								{
+							?>
+							
+							<h2><?php echo $this->ProductForm->feature_other_amenities->getAttrib('font_end_label'); ?></h2>
+							
+							<?php 
+								foreach($feature_other_amenities_arr as $key=>$value)
+								{
+									echo '<div class="products-features"> &bull; '.$this->escape($value).'</div>';
+								}
+							?>
+							<hr/>
+							
+							<?php
+								}
+								if($this->view_datas['feature_additional'])
+								{
+							 ?>
+							 
+							<h2><?php echo $this->ProductForm->feature_additional->getAttrib('font_end_label'); ?></h2>
+							
+							<?php echo $this->escape($this->view_datas['feature_additional']); ?>
+							
+							<?php
+							}
+							?>
+					   		</div>
+                     	</div>
+					</div>
+				</div>
+				
+				<div id="tabs-7">
+						<div class="products-details">
+							<div class="products-details-header"><h4 class="icon"><?php echo $this->translator->translator('property_front_page_Title_payment'); ?></h4></div>
+                            <div class="content">
+                                <div class="products-chart">
+                                    <div class="chart-desc">
+                                        <?php
+                                            if($this->view_datas['payment_quote_id'])
+                                            {
+                                        ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_quote_id->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_quote_id']); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['property_est_payment'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->property_est_payment->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['property_est_payment']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_cycle'])
+                                            {
+                                         ?>
+                                                
+                                        <div class="label"><?php echo $this->ProductForm->payment_cycle->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_cycle']); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_loan'])
+                                            {
+                                         ?>
+                                       
+                                        <div class="label"><?php echo $this->ProductForm->payment_loan->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_loan']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_down'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_down->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_down']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_loan_product'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_loan_product->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_loan_product']); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_interest_rate'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_interest_rate->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_interest_rate']).'%'; ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_rate_lock'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_rate_lock->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_rate_lock']); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_due_in'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_due_in->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_due_in']); ?></div>
+                                        
+                                         <?php
+                                            }
+                                            if($this->view_datas['payment_apr'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_apr->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_apr']).'%'; ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_loan_discount'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_loan_discount->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_loan_discount']).'%'; ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_appraisal_fee'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_appraisal_fee->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_appraisal_fee']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_processing_fee'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_processing_fee->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_processing_fee']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_underwriting_fee'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_underwriting_fee->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_underwriting_fee']).$currency->getSymbol(); ?></div>
+                                        
+                                        <?php
+                                            }
+                                            if($this->view_datas['payment_payment_penalty'])
+                                            {
+                                         ?>
+                                        <div class="label"><?php echo $this->ProductForm->payment_payment_penalty->getAttrib('font_end_label'); ?></div>
+                                        <div class="value"><?php echo $this->escape($this->view_datas['payment_payment_penalty']); ?></div>
+                                         
+                                        <?php 
+                                        }
+                                        ?>
+                                </div>
+                                </div>
+                            </div>
+						</div>
+						
+						<?php
+							if($this->view_datas['payment_desc'])
+							{
+						?>
+						<div class="products-details">
+						   	<div class="products-details-header"><h4 class="icon"><?php echo $this->ProductForm->payment_desc->getAttrib('font_end_label'); ?></h4></div>
+						   	<div class="content">
+						   		<div class="details-info"><?php echo stripslashes($this->view_datas['payment_desc']); ?></div>
+                        	</div>
+						</div>
+						<?php 
+						}
+						?>
+				</div>
+				
+				<?php
+					if(!empty($this->group_datas['review_id']))
+					{
+				?>
+				<div id="tabs-8">            	
+					<?php 
+						if(!empty($this->review_datas['review_info']))
+						{							
+							foreach($this->review_datas['review_info'] as $key => $infos)
+							{		
+								$div_class = ($key % 2 == 0) ? 'review-box' : 'review-box2';						
+					?> 
+						
+					<div class="<?php echo $div_class; ?>">
+						<div class="review-box-img">
+							<?php										
+								$primary_image_field = (!empty($this->review_datas['review_settings_info']['primary_image_field'])) ? $this->review_datas['review_settings_info']['primary_image_field'] : '';
+								$primary_images = (!empty($primary_image_field) && !empty($infos[$primary_image_field])) ? $infos[$primary_image_field] : '' ;
+								if(empty($primary_images))
+								{
+									$img_path = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_property_img/avatar.png';
+								}
+								else
+								{
+									$files_arr = explode(',',$primary_images);
+									$img_path = $this->escape($this->review_datas['form_info']['attach_file_path']).'/'.$this->escape($files_arr[0]);
+								}
+							?>
+							<img src= "<?php echo $img_path ?>" width="80" />
+						</div>
+							
+						<div>
+							<div class="review-box-title">
+										<span>
+										<?php 
+											if(!empty($this->review_datas['review_settings_info']['name_title_field']))
+											{ 
+												$name_title_field  = $this->review_datas['review_settings_info']['name_title_field'];
+												if(!empty($infos[$name_title_field]))
+												{
+													echo $this->escape($infos[$name_title_field]); 
+												}
+											} 
+										?>
+										</span>
+										
+										<div>
+										
+											<?php 
+												if(!empty($this->review_datas['review_settings_info']['rating_fields']))
+												{ 												
+													$rating_fields_arr  = explode(',',$this->review_datas['review_settings_info']['rating_fields']);
+													if(!empty($infos[$rating_fields_arr[0]]))
+													{	
+														$cnt = $this->escape($infos[$rating_fields_arr[0]]) - 1;                                                    											
+														
+											?>                                         
+											<div class="review-box-rate"><?php echo str_replace("'",'',$hint_arr[$cnt]); ?></div>
+											<div class="review-box-star">
+													<div id="<?php echo $this->escape($rating_fields_arr[0]).$infos['id']; ?>_star"  class="review-box-rate-star"></div>
+													<script type="text/javascript">
+														$(function() {
+															raty ('<?php echo $this->escape($rating_fields_arr[0]).$infos["id"]; ?>','<?php echo $this->escape($infos[$rating_fields_arr[0]]); ?>');
+														});
+													</script>
+											</div>
+										   
+											<?php 
+													}
+												} 
+											?>
+										</div>
+										
+									</div>
+									<div class="review-box-desc">
+										<?php 
+												if(!empty($this->review_datas['review_settings_info']['short_desc_field']))
+												{ 
+													$short_desc_field  = $this->review_datas['review_settings_info']['short_desc_field'];
+													if(!empty($infos[$short_desc_field]))
+													{
+														echo $this->escape($infos[$short_desc_field]); 
+													}
+												} 
+											?>
+										
+											<div class="review-box-date">
+												<?php 											
+													if(!empty($infos['g_date']))
+													{
+														echo $this->escape($infos['g_date']); 
+													}											
+												?>
+											</div>
+									</div>
+							</div>
+					</div>
+					<?php 								
+						}							
+					}
+					?>
+				</div>
+				<?php
+				}
+				if(!empty($staticGroupsObj))
+				{
+					$tab = (!empty($this->group_datas['review_id'])) ? 9 : 8;
+					foreach($staticGroupsObj as $staticGroup)
+					{
+						$elementsObj = $staticGroup->getElements();
+				?>
+				
+				<div id="tabs-<?php echo $tab; ?>">
+					<?php																
+						foreach($elementsObj as $element)
+						{
+							if($element->getAttrib('frontend') == '1')
+							{	
+								if($element->getType() != 'Zend_Form_Element_File')
+								{	
+									if($element->getValue())
+									{														
+					?>
+					<div class="tab-element">
+						<?php echo $element->getLabel();  ?>
+					</div>
+					
+					<div class="tab-value">
+						<?php 										
+							$id_f = $element->getAttrib('id');
+							$id_arr = explode('_',$id_f);	
+							if(($element->getType() == 'Zend_Form_Element_MultiCheckbox') || ($element->getType() == 'Zend_Form_Element_Multiselect'))
+							{	
+								$val_arr = $element->getValue();														
+								echo implode(', ',$val_arr);
+							}
+							else
+							{													
+								echo stripslashes($element->getValue());	
+							}														
+						?>
+					</div>
+					<?php
+                                    }
+                                }
+                            }
+                        }
+                    ?>
+						
+					</div>
+					<?php
+						$tab++;
+					 }
+				 }
+				?>
+		</div>
+		<!-- Realestate Bottom Tab End -->
+		
+		<!-- Bottom Bar Start -->
+		<div class="nav-bar bottom">
+			<div class="nav-row">
+              	<div class="nav-col first"> 
+				<?php
+                    if(!empty($prevProperty))
+                    {
+                ?>
+                <span class="prev"><a href="<?php echo 'Property-details/'.$this->escape($prevProperty['property_title']); ?>"><?php echo $this->translator->translator('property_front_page_prev_property'); ?></a></span>
+                <?php
+                    }
+                    else
+                    {
+                ?>
+                <span class="no-link"><?php echo $this->translator->translator('property_front_page_prev_property'); ?></span>
+                <?php
+                }
+                ?>
+               	</div>
+				<div class="nav-col"><span class="search"><a href="#" class="slick-slidetoggle"><?php echo $this->translator->translator('property_front_page_new_search'); ?></a></span> </div>
+              	<div class="nav-col">
+              	<?php
+                	if ($hasIdentity)
+                	{
+              	?>
+                <span class="save"><a  href="javascript:void(0);" class="save_property_btn" rel="<?php echo $this->escape($this->view_datas['id']); ?>"><?php echo $this->translator->translator('property_front_page_save_property'); ?></a></span>
+                <?php
+                }
+              	?>
+              	</div>
+              	<div class="nav-col last">
+				<?php
+                    if(!empty($nextProperty))
+                    {
+              	?>
+                <span class="next"><a href="<?php echo 'Property-details/'.$this->escape($nextProperty['property_title']); ?>"><?php echo $this->translator->translator('property_front_page_next_property'); ?></a></span>
+                <?php
+                    }
+                    else
+                    {
+                ?>
+                <span class="no-link"><?php echo $this->translator->translator('property_front_page_next_property'); ?></span>
+                <?php
+                    }
+                ?>
+              	</div>
+			</div>
+       	</div>
+		<!-- Bottom Bar End -->
+	</div>
+	<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg','Message'); ?>"></div>
+	<?php else : ?>
+		<h2><?php echo $this->translator->translator('common_not_approved'); ?></h2>
+	<?php endif; ?>	
+<?php endif; ?>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>	
+	<resource name="backend" for="backend" description="Invoice Backend" langKey="permisson_invoice_backend">
+		<privilege for="dashboard" name="list" description="Invoice List" langKey="permisson_invoice_list" />
+		<privilege name="delete" description="Delete Invoice" langKey="permisson_invoice_delete" />
+		<privilege name="paid" description="Paid/Unpaid/Cancel Invoice" langKey="permisson_invoice_paid" />
+		<privilege name="view" description="View Invoice" langKey="permisson_invoice_view" />
+		<privilege name="details" description="View Invoice and Client details" langKey="permisson_invoice_client_details" />
+		<privilege name="edit" description="Edit Invoice" langKey="permisson_invoice_edit" />
+		<privilege for="dashboard" name="quotelist" description="Quote List" langKey="permisson_quote_list" />
+		<privilege name="quoteadd" description="Create New Quote" langKey="permisson_quote_add" />
+		<privilege name="quoteedit" description="Quote edit" langKey="permisson_quote_edit" />
+		<privilege name="deletequote" description="Quote Delete" langKey="permisson_quote_delete" />
+		<privilege name="convert" description="Convert quote to invoice" langKey="permisson_quote_convert_invoice" />
+	</resource>	
+	<resource name="setting" for="backend" description="Invoice Template Settings" langKey="permisson_invoice_setting">
+		<privilege for="dashboard" name="list" description="Invoice Settings List" langKey="permisson_invoice_setting_list" />
+		<privilege name="delete" description="Delete Invoice Settings" langKey="permisson_invoice_setting_delete" />
+		<privilege for="dashboard" name="add" description="Add New Settings" langKey="permisson_invoice_setting_add" />
+		<privilege name="edit" description="Edit Invoice Settings" langKey="permisson_invoice_setting_edit" />		
+	</resource>	
+</permissions>

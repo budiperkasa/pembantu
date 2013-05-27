@@ -1,0 +1,204 @@
+<?php
+$GroupsObj = $this->generalForm->getDisplayGroups(); 
+$short_details_arr 	= 	array();
+$more_details_arr	=	array();
+$short_page_fields_arr = explode(',', $this->settingInfo['short_page_fields']);
+$details_page_fields_arr = explode(',', $this->settingInfo['details_page_fields']);
+$front_template = Zend_Registry::get('front_template');
+
+foreach($GroupsObj as $groups)
+{	
+	$elementsObj = $groups->getElements();
+	foreach($elementsObj as $element)
+	{
+		if(in_array($element->getName(), $short_page_fields_arr))
+		{
+			if(($element->getType() == 'Zend_Form_Element_MultiCheckbox') || ($element->getType() == 'Zend_Form_Element_Multiselect'))
+			{	
+				$val_arr = $element->getValue();														
+				$short_details_arr[$element->getName()] = array('label' => $element->getLabel(), 'value' => implode(', ',$val_arr));
+			}
+			else
+			{
+				$short_details_arr[$element->getName()] = array('label' => $element->getLabel(), 'value' => $element->getValue());
+			}
+		}
+		if(in_array($element->getName(), $details_page_fields_arr))
+		{
+			if(($element->getType() == 'Zend_Form_Element_MultiCheckbox') || ($element->getType() == 'Zend_Form_Element_Multiselect'))
+			{	
+				$val_arr = $element->getValue();														
+				$more_details_arr[$element->getName()] = array('label' => $element->getLabel(), 'value' => implode(', ',$val_arr));
+			}
+			else
+			{
+				$more_details_arr[$element->getName()] = array('label' => $element->getLabel(), 'value' => $element->getValue());
+			}
+		}		
+	}
+}
+
+$name_title_field = $this->data_info[$this->settingInfo['name_title_field']];
+$primary_image_field = $this->data_info[$this->settingInfo['primary_image_field']];
+$secondary_image_field =$this->data_info[$this->settingInfo['secondary_image_field']];
+$short_desc_field =$this->data_info[$this->settingInfo['short_desc_field']];
+$broad_desc_field = $this->data_info[$this->settingInfo['broad_desc_field']];
+	
+
+if(!empty($name_title_field)) { $this->headTitle()->headTitle($this->escape($name_title_field),'SET'); }
+if(!empty($name_title_field)) { $this->headMeta()->setName('keywords',$this->escape($name_title_field));}
+if(!empty($name_title_field)) { $this->headMeta()->setName('description',$this->escape($name_title_field)); }
+?>
+<style type="text/css">
+
+.see_large a{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-weight: normal;
+	color: #666666;
+	text-decoration: none;
+}
+
+.see_large a:hover{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	font-weight: normal;
+	color: #FF6600;
+	text-decoration: none;
+}
+
+.r_title{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: normal;
+	color: #7D7D7D;
+	text-decoration: none;
+	text-transform: none;
+}
+
+.label_text{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	font-weight: normal;
+	color: #666666;
+	text-decoration: none;
+	text-transform: none;
+}
+
+.label_title{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #666666;
+	text-decoration: none;
+	text-transform: none;
+}
+
+.short_details{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+	color: #FF6600;
+	text-decoration: none;
+	text-transform: uppercase;
+	padding-top: 10px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	padding-left: 5px;
+}
+
+.general_form input,.general_form select
+{
+	background-color: #F5F5F5;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: normal;
+	width:300px;
+	padding:3px;
+	color: #333333;
+	border:1px solid #D6D6D1;	
+	-moz-border-radius: 4px; 
+	-webkit-border-radius: 4px;
+	border-radius: 4px;	
+}
+</style>
+
+<div class="mod mod-review">
+    <h1><?php echo $this->escape($name_title_field); ?></h1>
+    <hr />
+    <div class="clear">&nbsp;</div>
+    <?php
+        if(empty($primary_image_field))
+        {
+            $img_path = 'application/layouts/scripts/'.$front_template['theme_folder'].'/images/mod_img/avatar.png';
+        }
+        else
+        {
+            $files_arr = explode(',',$primary_image_field);
+            $img_path = $this->escape($this->form_info['attach_file_path']).'/'.$this->escape($files_arr[0]);
+        }
+    ?>
+    <img src= "<?php echo $img_path ?>" width="150" border="0" class="thumb"/>
+    
+    <div class="review-details">
+    	<div class="review-header">
+       		<h4 class="icon"><?php echo $this->translator->translator('review_frontend_details_short'); ?></h4>
+      	</div>
+        
+		<div class="content">
+            <?php
+                foreach($short_details_arr as $entry)
+                {
+            ?>
+            <div class="element"><?php echo $entry['label']; ?></div>
+            <div class="value"><?php echo stripslashes($entry['value']); ?></div>
+            <?php
+                }
+            ?>
+       </div>
+    </div>
+    
+    <div class="clear">&nbsp;</div>
+    
+	<div class="review-details">
+		<div class="review-header">
+       		<h4 class="icon"><?php echo $this->translator->translator('review_frontend_details_more'); ?></h4>
+       	</div>
+       	<div class="content">
+            <?php
+                foreach($more_details_arr as $entry)
+                {
+            ?>
+            <div class="element"><?php echo $entry['label']; ?></div>
+            <div class="value"><?php echo $entry['value']; ?></div>
+            <?php
+                }
+            ?>
+       </div>
+	</div>
+    
+	<?php
+        if(!empty($secondary_image_field))
+        {
+            $secondary_image_arr = explode(',',$secondary_image_field);
+    ?>
+	<div class="clear">&nbsp;</div>
+    
+    <div class="review-details">
+        <div class="review-header">
+           <h4 class="icon">Additional Images [ Need to Setup In Language File ]</h4>
+        </div>
+        <div class="content">
+            <?php
+                foreach($secondary_image_arr as $key => $value)
+                {
+                    $secondary_img_path = $this->escape($this->form_info['attach_file_path']).'/'.$value;
+            ?>
+            <img src="<?php echo $secondary_img_path; ?>" width="142" border="0" class="review-img"/>
+            <?php } ?>
+        </div>
+	</div>
+    <?php
+        }
+    ?>
+</div>

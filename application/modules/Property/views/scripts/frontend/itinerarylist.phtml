@@ -1,0 +1,88 @@
+<?php
+$this->headMeta()->setName('keywords',$this->translator->translator('property_itinerarylist_page_meta_keywords'));
+$this->headMeta()->setName('description',$this->translator->translator('property_itinerarylist_page_meta_desc'));
+$this->headTitle()->headTitle($this->translator->translator('property_itinerarylist_page_meta_title'),'SET');
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/preview/preview.js');
+
+?>
+    
+<div class="mod">
+	<div class="itinerary-icon">
+        <h1><?php echo $this->translator->translator('property_itinerarylist_page_meta_title'); ?></h1>
+    </div>
+        
+    <div class="clear"></div>
+        <?php
+            $mem_db = new Members_Model_DbTable_MemberList();
+            $property_db = new Property_Model_DbTable_Properties();
+            
+            function getNights($sStartDate, $sEndDate)
+            {		
+                $sStartDate =strtotime($sStartDate);
+                $sEndDate = strtotime($sEndDate);
+                
+                $datediff = $sEndDate - $sStartDate;
+                $aDays	= floor($datediff/(60*60*24));
+                
+                return $aDays;
+            }
+            foreach($this->itinerary_info as $itinerary_info_key => $itinerary_info)
+            {			
+                switch($itinerary_info['invoice_status'])
+                {
+                    case '1':
+                        $active_msg = $this->translator->translator('common_confirmed_language');			
+                        break;
+                    case '2':
+                        $active_msg = $this->translator->translator('common_unpaid_language');	
+                        break;
+                    case '0':
+                        $active_msg = $this->translator->translator('common_cancelled_language');	
+                        break;
+                }
+                    
+        ?>
+   
+        <div class="itinerary_main_body_block">
+            <div class="itinerary_main_body_block_clild_header">
+                <div class="itinerary-header">
+                <?php
+                    $mem_info = $mem_db->getMemberInfo($itinerary_info['user_id']);
+                ?>
+                <?php echo ($itinerary_info_key + 1).'.'; ?>&nbsp;<?php echo $this->escape($mem_info['title']) . ' ' . $this->escape($mem_info['firstName']) . ' ' . $this->escape($mem_info['lastName']); ?>
+                </div>
+            </div>
+            <?php
+            foreach($itinerary_info['invoice_items'] as $itinerary_item_info)
+            {			
+            ?>
+                <div class="itinerary_main_body_block_clild_body">
+                    <?php
+                        $property_info = $property_db->getPropertiesInfo($itinerary_item_info['property_id']);	
+                        $total_price =  getNights($itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_IN], $itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_OUT]) * $this->price($property_info['property_price']);							
+                    ?>
+                    <div class="itinerary_main_body_block_clild_body_box1">
+                            <?php echo $active_msg.' '.$this->escape($property_info['property_name']); ?>
+                    </div>
+                    <div class="itinerary_main_body_block_clild_body_box2">
+                        <div class="itinerary_main_body_block_clild_body_box2_child1">
+                           	<?php echo '<span class="mod-label">'.$this->translator->translator('property_list_page_search_check_in').'</span> '.$itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_IN]; ?><br />
+                           	<?php echo '<span class="mod-label">'.$this->translator->translator('property_list_page_search_check_out').'</span> '.$itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_OUT]; ?>
+                        </div>
+                        <div class="itinerary_main_body_block_clild_body_box2_child1">
+                        <?php echo '<span class="mod-label">'.$this->translator->translator('property_invoice_total_night').' :</span> '.getNights($itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_IN], $itinerary_item_info[Eicra_File_Constants::VACATION_CHECK_OUT]); ?>
+                        </div>
+                    </div>
+                    <div class="itinerary_main_body_block_clild_body_box3">
+                    	<h4 class="itinerary-price"><?php echo $this->translator->translator('property_invoice_total_title').' : '.$this->currency->getShortName().'&nbsp;'.$total_price.$this->currency->getSymbol(); ?></h4>
+                    </div>
+                </div>
+            <?php
+            }
+            ?>
+        </div>
+        <?php
+            }
+        ?>
+</div>

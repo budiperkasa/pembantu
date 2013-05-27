@@ -1,0 +1,147 @@
+<?php
+class recent_videoplayer
+{
+	protected	$_group = 2;
+	protected	$_limit = 4;
+	protected	$_width = 250;
+	protected	$_height = 170; 
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator  = Zend_Registry::get('translator');
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function using_ie()
+	{
+	    $u_agent = $_SERVER['HTTP_USER_AGENT'];
+	    $ub = False;
+	    if(preg_match('/MSIE/i',$u_agent))
+	    {
+	        $ub = True;
+	    }
+	   
+	    return $ub;
+	} 
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+		$front_template = Zend_Registry::get('front_template'); 
+		$selectGroup = $this->_DBconn->select()
+					->from(array('gi' => Zend_Registry::get('dbPrefix').'gallery_group'), array('*'))
+					->where('gi.id = ?', $this->_group)->limit($this->_limit);
+		$galleryGroupInfo = $selectGroup->query()->fetchAll(); 
+		
+		$selectGP = $this->_DBconn->select()
+						->from(array('ga' => Zend_Registry::get('dbPrefix').'gallery_product'), array('*'))
+						->where('ga.group_id = ?', $this->_group)
+						->order($galleryGroupInfo[0]['latest_file_sort']." ".$galleryGroupInfo[0]['latest_file_order'])
+						->limit($galleryGroupInfo[0]['latest_file_num_per_page']);
+		$gCatInfo =  $selectGP->query()->fetchAll();	
+		
+		//GET MENU TITLE FOR LINK
+		$selectMenu = $this->_DBconn->select()
+								->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+								->where('ma.module_name = ?', 'Gallery')
+								->where('ma.controller_name = ?', 'frontend')
+								->where('ma.action_name = ?', 'view')
+								->where('ma.page_id = ?', $this->_group)
+								->limit(1);
+		$assign_menu =  $selectMenu->query()->fetchAll();
+		
+		$selectMenuTitle = $this->_DBconn->select()
+								->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+								->where('m.menu_id = ?', $assign_menu[0]['menu_id'])								
+								->limit(1);
+		$menuTitle =  $selectMenuTitle->query()->fetchAll();
+		
+		echo $this->_view->headScript()->setFile($this->_view->baseUrl().'/js/jquery/media/jquery.media.js');
+		if($this->using_ie())
+		{
+			echo $this->_view->headScript()->setFile($this->_view->baseUrl().'/js/jquery/uploadify/swfobject.js');
+		}
+?>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('a.media_box').media({
+			width:		'<?php echo $this->_width;?>',
+			height:		'<?php echo $this->_height;?>',
+			flvPlayer:     'js/jquery/media/mediaplayer.swf', 
+			mp3Player:     'js/jquery/media/mediaplayer.swf'
+		});
+	});
+</script>
+        
+<div class="block block-video">
+	<h2 class="video"><?php echo $translator->translator('block_video_title','','', $front_template['theme_folder']); ?></h2>
+	<?php	
+    $c=1;
+	if($gCatInfo)
+	{		
+		foreach($gCatInfo as $partial_entry)
+		{									
+			$product_file_primary = $partial_entry['product_file_primary'];	
+			$file_ext = Eicra_File_Utility::getExtension($this->_view->escape($partial_entry['product_file_primary']));	
+			$light_box_image = $this->_view->baseUrl().'/data/frontImages/gallery/video_file/'.$this->_view->escape($partial_entry['product_file_primary']); 
+			switch($file_ext)
+			{
+				case 'swf':
+				case 'flv':
+				case 'mp3':
+					$href = 'js/jquery/media/mediaplayer.swf?file='.$light_box_image;
+					break;
+				case 'wmv':
+				case 'avi':
+				case 'mpg':
+				case '3g2':
+				case 'ram':										
+					$href = $light_box_image;
+					break;
+				default:
+					$href = $light_box_image;
+					break;
+			}
+		?>
+		  
+		<div class="block-content">
+			<a class="media_box" href="<?php echo $href; ?>"></a>
+			<p><?php echo $this->_view->escape($partial_entry['product_name']); ?></p>                        
+		</div>
+		
+		<?php
+		$c++;
+			}
+	}
+    ?>                  
+</div>
+
+<?php
+	}
+}
+try
+{
+	$recent_videoplayer_class = new recent_videoplayer($this);
+	$recent_videoplayer_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

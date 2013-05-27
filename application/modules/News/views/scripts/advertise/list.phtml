@@ -1,0 +1,77 @@
+<?php
+$version = Zend_Registry::get('version'); 
+echo $this->headLink()->setStylesheet($this->baseUrl().'/css/advertise.css');
+
+if($this->groupInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->groupInfo['meta_keywords']); }	
+if($this->groupInfo['meta_desc']){ $this->headMeta()->setName('description',$this->groupInfo['meta_desc']); }
+if($this->groupInfo['news_name']){ $this->headTitle()->headTitle($this->groupInfo['news_name'],'SET')->setSeparator(' - ')->headTitle($this->groupInfo['meta_title']); }
+ 
+$allow_obj = new News_View_Helper_Allow();
+if (!$allow_obj->allowRule('list',null,null,$this->group_datas['role_id'])) : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : 
+
+?>
+<script type="text/javascript">
+$(document).ready(function(){
+		var links = "<?php echo $this->baseUrl().'/Ad+Cal/'.$this->escape($this->menu_id); ?>/";
+		$( "#datepicker" ).datepicker({	
+			dateFormat:'yy-MM-dd',
+			defaultDate:'+<?php echo $this->escape($this->yearAdd); ?>y +<?php echo $this->escape($this->monthAdd); ?>m +<?php echo $this->escape($this->dayAdd); ?>d',	
+			onSelect: function( dateText, inst ) {;
+				var date_arr = dateText.split('-');
+				document.location.href= links+date_arr[0]+"/"+date_arr[1]+"/"+date_arr[2];
+			}
+		});
+	});
+</script>
+
+<div class="ad-heading">
+	<h1><?php echo $this->escape($this->menu_id); ?></h1>
+</div>
+<div class="clear">&nbsp;</div>
+
+<div class="mod news">
+	<div class="news-content">
+    	<!-- News Left Info Start -->
+        <div class="news-desc">
+            <?php
+				$filters = new Zend_Filter_StripTags();
+				
+				foreach($this->event_list as $entry)
+				{
+			?>	
+            <div class="mod-content">
+            	<img src="data/frontImages/news/page_thumb/<?php echo $this->escape($entry['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> alt="<?php echo $this->escape($entry['page_title']); ?>" class="img" border="0" />
+                <h6><?php echo $this->escape($entry['page_name']); ?></h6>
+                <?php echo strip_tags($entry['page_desc']); ?>
+			</div>
+            <?php
+				}			
+			?>
+        </div>
+		<!-- News Left Info End -->
+        
+        <!-- News Right Category Start -->
+        <?php
+			if($this->groupInfo['calendar_on_off'] == '1')
+			{			
+		?>
+        
+        <div class="news-cat">
+        	<div id="datepicker"></div>
+        </div>
+        
+        <?php
+			}
+		?>
+        <!-- News Right Category End -->
+    </div>
+</div>
+
+<div class="clear">
+	<?php echo $this->paginationControl($this->event_list, 'Sliding', 'advertise/pagination-flickr.phtml'); ?>
+</div>
+<?php endif; ?>

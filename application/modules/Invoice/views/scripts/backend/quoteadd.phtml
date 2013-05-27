@@ -1,0 +1,439 @@
+<?php
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/uploadify/jquery.uploadify.v2.1.4.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/uploadify/swfobject.js');
+if($this->quoteForm)
+{
+	$this->quoteForm->setEditor($this->serverUrl().$this->baseUrl()); 
+	$this->quoteForm->getEditor(); 
+}
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);		
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError()	
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();	
+		$('span.empty_class').each(function(){
+			$(this).html('');
+		});	
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('#QuoteForm').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');									
+		});				
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		var filename = '';
+		var filevalue = '';
+		$.each($('#QuoteForm').serializeArray(), function(i, field) {	
+			if(field.name.match(/\[\]$/))
+			{
+				var filearr = field.name.split('[]');
+				filename = filearr[0];
+				filevalue = $('#'+filename).val();
+				if($('input[name="'+filename+'[]"]').is(':checkbox'))
+				{
+					var val_arr = [];
+					$('input[name="'+filename+'[]"]:checkbox:checked').each(function(i){
+					 val_arr[i] = $(this).val();
+					});
+					filevalue = (val_arr[0] != null) ? val_arr.join(',') : null;					
+				}
+			}
+			else
+			{
+				filename 	= 	field.name;
+				filevalue 	= 	field.value;
+			}			
+			fieldObj[filename] =  (tinyMCE.get(filename)) ? tinyMCE.get(filename).getContent() : filevalue;				
+		});
+		return fieldObj;
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	$('a.add_quote_btn').click(function() {				
+			var formData = getFormData();					
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'     => 'quoteadd' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){
+					openLoaderDialog();
+					removeError();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");
+					refreshCaptcha(json_arr, 'div');					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));
+						resetFields();													
+					}
+					else if(json_arr.status == 'errV')
+					{						
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							focusFirst(json_arr.msg[i].key, json_arr.msg[i].value, i);
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else if(json_arr.status == 'errP')
+					{						
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+						addError('confirmPassword',json_arr.msg);
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;				
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+	
+});
+
+function calender(id)
+{	
+	$("#"+id).datepicker({
+		showOn: 'button',
+		buttonImage: 'application/modules/Administrator/layouts/scripts/images/common/calendar.png',
+		buttonImageOnly: true,
+		monthNamesShort:<?php echo $this->translator->translator("common_calender_monthNamesShort"); ?>,
+		monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+		dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+		showAnim: 'slide',
+		buttonText: 'Calender',
+		dateFormat:'yy-mm-dd',
+		autoSize:false,
+		showButtonPanel:false,
+		changeMonth: true,
+		changeYear: true
+	});
+	
+	$("img[class='ui-datepicker-trigger']").each(function()
+	 { 
+	  	$(this).attr('style', '');
+	 });
+}
+
+function dynamicUpload(field_name,file_format,script_link,size_limit,upload_path)
+{	
+	$('#'+field_name).uploadify({
+    'uploader'  : '<?php echo $this->baseUrl(); ?>/js/jquery/uploadify/uploadify.swf',
+    'script'    : script_link,
+    'cancelImg' : '<?php echo $this->baseUrl(); ?>/js/jquery/uploadify/cancel.png',
+    'folder'    : upload_path,
+	'fileExt'   : file_format,
+	'fileDesc'    : 'File Formats ('+file_format+')',
+	'sizeLimit' : parseInt(size_limit),
+	'removeCompleted' : false,
+	'fileDataName' : field_name,
+	'wmode'       : 'transparent',
+	'hideButton'  : false,
+	'method'    : 'post',
+    'auto'      : true,
+	'multi'       : true,
+	'onError'     : function (event,ID,fileObj,errorObj) {
+      openMsgDialog(errorObj.type + ' Error: ' + errorObj.info);
+    },
+	'onComplete'  : function(event, ID, fileObj, response, data) {	
+		var json_arr = eval("("+response+")");	
+		if(json_arr.status == 'ok')
+		{
+			var texts = '<span>&nbsp;'+$('#'+field_name+ID).find('.fileName').text()+'</span>';
+			var img_code = (is_image(json_arr.newName)) ? '<div><img src="'+upload_path+'/'+json_arr.newName+'" width="35" height="30" class="bdr" /></div>' : '';
+			 $('#'+field_name+ID).find('.fileName').html(img_code+texts);
+			 if(!$('input.'+field_name+'_class').val())
+			 {	
+				var file_code = '<div class="upload-img">'+img_code+'<div><a href="'+upload_path+'/'+json_arr.newName+'">'+json_arr.newName+'</a><input type="hidden" name="'+field_name+'" id="'+field_name+'" class="'+field_name+'_class" value="'+json_arr.newName+'" /></div></div>';
+				 $('#'+field_name+'_selected_file').html(file_code);
+			 }	
+			 else
+			 {
+				var file_val = ($('input.'+field_name+'_class').val() == '') ? json_arr.newName :  $('input.'+field_name+'_class').val()+','+json_arr.newName;	
+				$('input.'+field_name+'_class').val(file_val);	
+				var file_code = '<div class="upload-img">'+img_code+'<a href="'+upload_path+'/'+json_arr.newName+'">'+json_arr.newName+'</a></div>';
+				 $('#'+field_name+'_selected_file').append(file_code);
+			 } 
+		}
+		else
+		{
+			var texts = '&nbsp;'+$('#'+field_name+ID).find('.fileName').text();
+			$('#'+field_name+ID).find('.fileName').html(json_arr.msg+texts);
+			$("#" + field_name + ID).addClass('uploadifyError');
+		}	  
+    },
+	'onAllComplete' : function(event,data) {
+      //openMsgDialog(data.filesUploaded+ ' files uploaded successfully!');
+    }
+  });
+}
+function is_image(filename)
+{
+	var ext = getFileExtension(filename);
+	if(ext == 'jpg' || ext == 'JPG' || ext == 'png' || ext == 'PNG' || ext == 'bmp' || ext == 'BMP' || ext == 'gif' || ext == 'GIF')
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="forms-add"><h1><?php echo $this->translator->translator('invoice_add_qoute_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'     => 'quotelist' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_quote_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">	    
+    
+    	<form name="QuoteForm" id="QuoteForm">
+        		<?php 
+					
+					$file_format = '*.jpg;*.png;*.gif';	
+					$staticGroupsObj = $this->quoteForm->getDisplayGroups(); 
+						
+					if($staticGroupsObj)
+					{
+						$i=1;								
+						foreach($staticGroupsObj as $staticGroup)
+						{
+							$elementsObj = $staticGroup->getElements();
+					?>
+					
+					<div id="actionMessage"></div>
+					<div id="button_top_bar"></div>
+					<fieldset class="fieldset">
+						<legend class="legend"><?php echo $this->translator->translator($staticGroup->getLegend()); ?></legend>
+							<?php
+								$c = 1;
+								foreach($elementsObj as $element)
+								{								
+							?>
+							<div class="form">
+								<div class="form-row">
+									<div class="label">
+										<?php echo $this->escape($this->translator->translator($element->getLabel())); if($element->isRequired() ){ ?><span class="required">*</span><?php } ?>
+									</div>
+									
+									<div class="field">
+										<?php
+										//$e_name_arr = explode('_',$element->getName());																				
+										$sumbol = ($element->getName() == 'total') ? $currency->getSymbol() : '';	
+										$currencyShort = ($element->getName() == 'total') ? $currency->getShortName() : '';																		
+										if($element->getType() == 'Zend_Form_Element_File')
+										{	
+											$ext = Eicra_File_Utility::GetExtension($this->escape($this->data_info[$element->getName()]));
+											if($ext == 'jpg' || $ext == 'JPG' || $ext == 'png' || $ext == 'PNG' || $ext == 'bmp' || $ext == 'BMP' || $ext == 'gif' || $ext == 'GIF')
+											{
+												$img = '<img src="'.$this->escape($this->data_info[$element->getName()]).'" width="35" height="30" />';
+											}
+											else
+											{
+												$img = '';
+											}																			
+										?>
+										<script type="text/javascript">
+											$(function(){
+												/**************************FILE UPLOAD START******************************/																					
+												dynamicUpload('<?php echo $element->getName(); ?>',"<?php echo $file_format; ?>","<?php echo $this->url( array('module' => 'Members','controller' => 'forms', 'action'     => 'uploadfile', 'form_id' => '', 'field_name' => $element->getName() ), 'adminrout',    true); ?>","<?php echo ''; ?>","<?php echo ''; ?>");
+												/**************************FILE UPLOAD END*********************************/
+											});
+										</script>																				
+										
+										<?php
+											}
+										$id_f = $element->getAttrib('id');
+										$id_arr = explode('_',$id_f);
+										if(in_array('date',$id_arr))
+											{
+										?> 
+									   
+										<script type="text/javascript">
+											$(function() {
+												calender('<?php echo $id_f; ?>');
+											});
+										</script>
+										<?php
+										}
+										if($element->getType() == 'Zend_Form_Element_MultiCheckbox' || $element->getType() == 'Zend_Form_Element_Radio')
+										{
+										?>
+											<div class="autos-features property-features vacationrental-features tours-features"><?php echo $sumbol.$element.$currencyShort; ?></div>
+										<?php
+										}
+										else
+										{
+										?>
+										
+										
+											<div class="upload"><div class="editor"><?php echo $sumbol.$element.$currencyShort; ?></div></div>
+											
+											<?php	
+										}
+											$editor_fields_array = array('invoice_desc');
+											if(in_array($element->getName(),$editor_fields_array))
+											{ 
+											?>
+												
+												<span id="<?php echo 'loaderLink'.$c; ?>"><a href="javascript:void(0);" onClick="loadTinyMCE('<?php echo $element->getName(); ?>','<?php echo $c; ?>');"><img src="application/modules/Administrator/layouts/scripts/images/common/editors.gif" border="0" title="<?php $this->translator->translator('common_editor_open'); ?>" alt="<?php $this->translator->translator('common_editor_open'); ?>" class="spacer" /></a></span>
+												
+											<?php
+												} 
+											?>
+											<?php
+											if($element->getType() == 'Zend_Form_Element_File')
+											{
+											?>
+												<input type="hidden" name="<?php echo $element->getName(); ?>_prev" id="<?php echo $element->getName(); ?>_prev" value="<?php echo $this->escape($this->data_info[$element->getName()]); ?>"  />
+											<?php
+											}
+											?>
+											
+											<?php if($element->getAttrib('info')){ ?><div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($element->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div><?php } ?>
+										   
+											<div class="input-errors" id="<?php echo $element->getName().'_err'; ?>"></div>
+										  
+											<span id="<?php echo $element->getName(); ?>_selected_file" class="empty_class"><?php if($element->getType() == 'Zend_Form_Element_File'){ echo $img.'&nbsp;<a href="'.$this->escape($this->data_info[$element->getName()]).'">'.$this->escape($this->data_info[$element->getName()]).'</a>'; } ?></span>
+									</div>
+								</div>
+							</div>                      
+							<?php								
+									$c++;
+								}
+							?>
+					</fieldset>                
+					<?php					
+							$i++;
+						}
+					}
+				?>
+		</form>
+    
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'  => 'quotelist', 'form_id' => '' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_quote_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div  id="floatingbar">
+	<h1><?php echo $this->translator->translator('invoice_add_qoute_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'Invoice','controller' => 'backend', 'action'     => 'quotelist', 'form_id' => '' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_quote_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('invoice_add_qoute_page_name')); ?>"></div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<?php endif; ?>
+</div>

@@ -1,0 +1,250 @@
+<?php
+$version = Zend_Registry::get('version');
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {	
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'explode',
+			width : 'auto',
+			resizable: true,				
+			buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 12000);
+				  }
+		});
+	}
+	
+	$("#upload-form").dialog({
+		autoOpen: false,
+		width: 950,
+		height: 650,
+		show: 'fade',			
+		modal: true
+	});	
+
+	$('a.upload_btn').click(function() {
+		var src = $("#i-upload-form").attr("src");		
+			$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'   => 'file' ), 'adminrout',    false) ?>");			
+			$('#upload-form').dialog('open');		
+	});	
+	
+	$('a.set_privillege_btn').click(function() {
+		var user_info = $(this).attr('rel');	
+		var src = $("#i-upload-form").attr("src");		
+			$("#i-upload-form").attr("src", "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'   => 'file', 'user_info' => '' ), 'adminrout',    false) ?>"+user_info);			
+			$('#upload-form').dialog('open');		
+	});
+	
+	$('a.select_file_btn').click(function() {		 
+		
+			var currentIFrame = $('#i-upload-form');
+			var v = currentIFrame.contents().find("#file_name").val();
+			if(v == '' || v == null)
+			{
+				var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';				
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var file_arr =  v.split(',');							
+				var img_code = '<span class="thumb"><img src="'+file_arr[0]+'/'+file_arr[1]+'" width="45" height="35" class="bdr"/></span>';
+				$('#selected_file').html(img_code);
+				$('#category_thumb').val(file_arr[1]);
+				$("#upload-form").dialog('option','hide','explode').dialog('close');
+				imageThumbnil();
+			}
+		});
+	
+	$('a.close_dialog_btn').click(function() {		
+		$("#i-upload-form").attr("src", ''); 
+		$("#upload-form").dialog('option','hide','explode').dialog('close');			
+	});
+		
+	$('a.reset_btn').click(function() {			
+		 resetFields();		
+	});
+	
+		
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();		
+		$('#selected_file').html('');				
+		$('#categoryTree').html('');
+		$('#category_parent').val('0');
+		$('#category_thumb').val('');
+		$('#dataId').html('Root (0)');		
+		if(tinyMCE.get('category_desc'))
+		{
+			tinyMCE.get('category_desc').setContent('');
+		}
+	}
+	
+	function removeError()
+	{
+		$('#category_name_err').html('');
+		$('#category_name').removeClass('ui-state-error');
+		$('#category_title_err').html('');
+		$('#category_title').removeClass('ui-state-error');
+		$('#group_id_err').html('');
+		$('#group_id').removeClass('ui-state-error');
+		$('#category_desc_err').html('');
+		$('#category_desc').removeClass('ui-state-error');
+		$('#category_thumb_err').html('');
+		$('#category_thumb').removeClass('ui-state-error');
+		
+		$('#actionMessage').attr('class','none');
+		$('#actionMessage').html('&nbsp;');
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	/************************************************IMAGE THUMBNIL************************************************/
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-110px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-110px',
+				top: '50%',
+				left: '50%',
+				width: '174px', /* Set new width */
+				height: '174px', /* Set new height */
+				padding: '20px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '-4px', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+	
+});	
+
+$(function() {
+		$("button, input:submit, a", ".demo").button();
+		
+		$("a", ".demo").click(function() { return true; });
+});
+
+
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+
+</script>
+<div id="container">
+<?php if (!$this->allow('filepreview')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="file-upload"><h1><?php echo $this->translator->translator('projects_filepreview_list_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('index/member_menu.phtml');  ?>
+    </div>
+    
+    <div id="content-inner">
+    	<div class="file-management">
+    	<div class="data-table">
+        	<table width="100%" class="ui-widget ui-widget-content" cellpadding="0" cellspacing="0" align="center">
+					<thead>
+						<tr class="ui-widget-header">
+							<th width="12%"><?php echo $this->translator->translator('projects_filepreview_list_page_file'); ?></th>
+							<th width="68%" height=""><?php echo $this->translator->translator('projects_filepreview_list_page_name'); ?></th>
+							<th width="20%" class="center"><?php echo $this->translator->translator('common_download'); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+																				
+							foreach($this->file_arr as $file)
+							{
+								$src = $this->baseUrl().$file['thumb_path'];
+								$path = $this->serverUrl().$this->baseUrl().'/'.$file['path'].'/'.$this->escape($file['name']);	
+								$path_encoded = base64_encode($path);							
+						?>
+						<tr>
+							<td width="12%" class="center"><span class="thumb"><img src="<?php echo $src; ?>" width="80" height="60" border="0" class="bdr"/></span></td>
+							<td><?php echo $this->escape($file['name']); ?></td>
+							<td align="center" class="demo"><a href="<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'download','path' => $path_encoded, 'file_name' =>  $this->escape($file['name'])), 'adminrout',    true) ?>"  ><?php echo $this->translator->translator('common_download'); ?></a></td>
+						</tr>
+						<?php
+							}
+						?>
+					</tbody>
+					</table>
+		</div>
+        </div>
+    </div>
+    
+</div>
+
+<?php endif; ?>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg','Message'); ?>"></div> 
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+<div id="upload-form" title="<?php echo $this->translator->translator('projects_file_manager_dialog'); ?>">
+	<div>
+    	<iframe id="i-upload-form" src="" class="iframe-article" style="height:520px"></iframe>       
+    </div>
+    <div class="button-container">
+        	<span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon insert"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+    	</div>
+</div>
+</div>

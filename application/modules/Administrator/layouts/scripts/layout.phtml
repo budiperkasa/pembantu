@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<?php 
+//$this->doctype('XHTML1_TRANSITIONAL'); echo $this->doctype();
+$locale = Eicra_Global_Variable::getSession()->sess_lang;
+$locale_arr = explode('_', $locale);
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$style_direction = ($locale_direction == 'rtl') ? '_'.$locale_direction : '';
+?>
+<html dir="<?php echo $locale_direction; ?>" lang="<?php echo $locale_arr[0]; ?>"> 
+<head>  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base href="<?php echo $this->serverUrl().$this->baseUrl(); ?>/"  />
+<link rel="shortcut icon" href="<?php $global_conf = Zend_Registry::get('global_conf'); echo $global_conf['admin_favicon']; ?>" />
+<?php echo $this->headMeta(); ?>
+<?php  $this->headTitle()->set($this->translator->translator('administrator_control_title'));
+  $front = Zend_Controller_Front::getInstance(); 
+  $auth = Zend_Auth::getInstance ();
+   if ($auth->hasIdentity ())
+	{
+		$globalIdentity = $auth->getIdentity ();
+		$role_id = $globalIdentity->role_id;
+		$role_info = new Members_Model_DbTable_Role();
+		$roleName =  $role_info->getRoleInfo($role_id);						
+		$role = $roleName['role_name'];
+		$this->headTitle()->headTitle($this->translator->translator('administrator_controls_title',$role), 'SET');			
+	}
+  
+echo html_entity_decode( $this->headTitle(), ENT_QUOTES, "UTF-8"); 
+ 
+$version = Zend_Registry::get('version');  
+
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jquery/jquery-'.str_replace('.', '-', $version->getJQueryVersion()).'/jquery.js');
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/common.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/slicker.js');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.css');
+
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/ddslick.js');
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/qtip2/jquery.qtip.css');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/stylesheet.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/pagination.css'); 
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/floatingbar.css'); 
+
+/*********************************************************Kendo Start*********************************************/
+$kendo_theme = 'Silver';
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/kendo/src/js/kendo.all.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Portfolio/js/uploader.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.common.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.'.strtolower($kendo_theme).'.css');
+/*********************************************************Kendo End*********************************************/
+
+if($locale_direction == 'rtl')
+{
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/stylesheet'.$style_direction.'.css');	
+}
+?>
+
+<!--[if lt IE 7]>
+    <style type="text/css">
+        #wrapper { height:100%; }
+    </style>
+<![endif]-->
+
+<script>		
+  function qToolTipFunctions()
+  {
+	  $( document ).tooltip({
+	  	  //items: "img, td, [title]",
+		  //show: { effect: "slide" },
+		  tooltipClass: "jui-tooltip",
+		  track: true
+	  });				
+  }
+  $(document).ready(function(){
+	  qToolTipFunctions();
+  });		
+</script>
+<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->         
+</head>
+<body>
+<div id="wrapper">
+	<?php if($this->popup != 'popup'){echo $this->layout()->render('header'); }  ?>			
+    <div id="main-container">
+		<?php
+         if ($auth->hasIdentity () && $front->getRequest()->getModuleName() == 'Administrator' && $front->getRequest()->getActionName() == 'index')
+        {
+            if($this->popup != 'popup')
+            {
+        ?>
+            <div id="sidebar"><?php echo $this->partial('partial/vertical_menu_tree.phtml'); ?></div>
+        <?php
+            }
+        }
+        ?>
+                      
+        <div class="<?php if($this->popup != 'popup' && $front->getRequest()->getModuleName() == 'Administrator' && $front->getRequest()->getActionName() == 'index'){ ?>use-sidebar sidebar-at-right<?php } ?>" id="main_layout">
+        	<?php echo $this->layout()->content; ?>
+        </div>
+  	</div>
+	<div><?php if($this->popup != 'popup'){ echo $this->layout()->render('footer'); } ?></div>
+</div>
+</body>
+</html>

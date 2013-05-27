@@ -1,0 +1,322 @@
+/**
+Pulse Pro Voting Script
+http://s.technabled.com/PulsePro
+**/
+
+.inline input, .horizontal input, .triangle input, .plus_minus input, .like input {
+	border:none;
+	outline:none;
+}
+
+/**
+Triangular Style For Buttons
+**/
+.triangle {
+    background: transparent;
+    /*float: left;*/
+    margin-left: 7px;
+    margin-right: 4px;
+    overflow: hidden;
+	width:40px;
+	height:65px;
+}
+
+.triangle .p_button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    cursor: pointer;
+    display: block;
+    height: 17px;
+    margin: 2px auto 0;
+    width: 33px;
+}
+.triangle .p_button.up {
+    background-image: url("../images/sprite.png");
+    background-position: -1px -71px;
+}
+.triangle .p_button.down {
+    background-image: url("../images/sprite.png");
+    background-position: -1px -108px;
+}
+.triangle .p_button.up.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -42px -71px;
+}
+.triangle .p_button.down.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -42px -108px;
+}
+
+.triangle .result {
+	display:block;
+	color:#454545;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	text-align:center;
+	line-height:20px;
+}
+
+.triangle .loader {
+	background:url("../images/ajaxloader.gif") no-repeat center center;
+	width:16px;
+	line-height:20px;
+	display:inline-block;
+}
+
+/**
+Plus Minus Style For Buttons
+**/
+.plus_minus {
+    /* background:url("../images/sprite.png") no-repeat -55px 0px; */
+    /*float: left;*/
+    margin-left: 7px;
+    margin-right: 4px;
+    overflow: hidden;
+	width:72px;
+	height:76px;
+	text-align:center;
+	position:relative;
+}
+
+.plus_minus input.p_button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    cursor: pointer;
+    display: inline;
+    height: 26px;
+    width: 36px;
+	padding:0;
+	position:absolute;
+}
+.plus_minus input.p_button.up {
+    background-image: url("../images/sprite.png");
+    background-position: -1px -233px;
+	bottom:0px;
+	left:0px;
+}
+.plus_minus input.p_button.down {
+    background-image: url("../images/sprite.png");
+    background-position: -37px -233px;
+	bottom:0px;
+	right:0px;
+}
+
+.plus_minus input.p_button.up.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -1px -260px;
+}
+.plus_minus input.p_button.down.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -37px -260px;
+}
+.plus_minus .result {
+	background: url("../images/sprite.png") no-repeat scroll -55px 0 transparent;
+	display:block;
+	color:#ffffff;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:28px;
+	line-height:61px;
+	/* font-weight:bold; */
+	text-align:center;
+}
+
+.plus_minus .loader {
+	background:url("../images/ajaxloader.gif") no-repeat center center;
+	width:16px;
+	line-height:61px;
+	display:inline-block;
+}
+
+/**
+Horizontal Style For Buttons
+**/
+.horizontal {
+    background: transparent;
+    /*float: left;*/
+    margin-left: 7px;
+    margin-right: 4px;
+    overflow: hidden;
+	width:128px;
+	height:34px;
+	text-align:center;
+	position:relative;
+}
+
+.horizontal input.p_button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    cursor: pointer;
+    display: block;
+    width: 42px;
+	height:34px;
+	position:absolute;
+}
+.horizontal input.p_button.up.voted {
+    background-image: url("../images/sprite.png");
+    background-position: 0px -321px;
+}
+.horizontal input.p_button.down.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -42px -321px;
+}
+.horizontal input.p_button.up {
+    background-image: url("../images/sprite.png");
+    background-position: 0px -287px;
+	left:0px;
+	top:0px;
+}
+.horizontal input.p_button.down {
+    background-image: url("../images/sprite.png");
+    background-position: -42px -287px;
+	right:0px;
+	top:0px;
+}
+
+.horizontal .result {
+	background:#3b8686;
+	display:block;
+	color:#ffffff;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	text-align:center;
+	line-height:34px;
+	width:44px;
+	position:absolute;
+	left:42px;
+}
+
+.horizontal .loader {
+	background:url("../images/ajaxloader.gif") no-repeat center center;
+	line-height:34px;
+	display:block;
+}
+
+/**
+Like-unlike Style For Buttons
+**/
+.like {
+	background:url("../images/sprite.png") no-repeat 0px -134px;
+    /*float: left;*/
+    margin-left: 7px;
+    margin-right: 4px;
+    overflow: hidden;
+	width:109px;
+	height:41px;
+	text-align:center;
+	position:relative;
+}
+
+.like input.p_button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    cursor: pointer;
+    display: block;
+    height: 30px;
+    margin: 2px auto 0;
+    width: 56px;
+	height:41px;
+	position:absolute;
+	top:-2px;
+	right:0px;
+}
+.like input.p_button.up {
+    background-image: url("../images/sprite.png");
+    background-position: -53px -134px;
+}
+.like input.p_button.down {
+    background-image: url("../images/sprite.png");
+    background-position: 0px -162px;
+}
+
+.like input.p_button.up.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -53px -175px;
+}
+.like input.p_button.down.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -33px -162px;
+}
+.like .result {
+	background:transparent;
+	line-height:41px;
+	padding-left:28px;
+	display:block;
+	color:#000000;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	font-weight:bold;
+	text-align:left;
+}
+
+.like .loader {
+	background:url("../images/ajaxloader.gif") no-repeat center center;
+	width:16px;
+	line-height:41px;
+	display:inline-block;
+}
+
+/**
+Inline Style For Buttons
+**/
+.inline {
+	text-align:center;
+	display:inline;
+	/* position:relative; */
+	width:auto;
+}
+
+.inline input.p_button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color:transparent;
+    cursor: pointer;
+    display: inline;
+	margin-top:2px;
+    height: 21px;
+    width: 21px;
+ 	/* position:absolute; */
+	top:0px;
+}
+.inline input.p_button.up {
+    background-image: url("../images/sprite.png");
+    background-position: 0px -356px;
+ 	left:0px;
+}
+.inline input.p_button.down {
+    background-image: url("../images/sprite.png");
+    background-position: -21px -356px;
+	margin-left:-3px;
+ 	left:25px;
+}
+
+.inline input.p_button.up.voted {
+    background-image: url("../images/sprite.png");
+    background-position: 0px -377px;
+}
+.inline input.p_button.down.voted {
+    background-image: url("../images/sprite.png");
+    background-position: -21px -377px;
+}
+.inline span.result {
+	display:inline;
+	color:#000000;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:15px;
+	font-weight:bold;
+	line-height:26px;
+ 	position:absolute;
+	margin-left:4px;
+}
+
+.inline .loader {
+	background:url("../images/ajaxloader.gif") no-repeat center center;
+	width:16px;
+	line-height:26px;
+	display:inline-block;
+}

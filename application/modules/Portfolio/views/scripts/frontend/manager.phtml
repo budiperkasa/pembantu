@@ -1,0 +1,608 @@
+<?php
+$version = Zend_Registry::get('version');  
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$kendo_theme = 'Silver';
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jquery/jquery-'.str_replace('.', '-', $version->getJQueryVersion()).'/jquery.js');
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.js');
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/kendo/src/js/kendo.all.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/common.js');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.common.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.'.strtolower($kendo_theme).'.css');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/stylesheet.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/kendo-uploader.css');
+
+if($locale_direction == 'rtl')
+{
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/styles/kendo.rtl.min.css');
+}
+
+
+//print_r($this->settings_json_info);
+$file_ext = $this->settings_info[$this->requested_data['file_extension_field']];
+$file_size = $this->settings_info[$this->requested_data['file_max_size_field']];
+?>
+
+<script type="text/javascript">
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_msg').html(msg).dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'explode',
+			width : 'auto',
+			resizable: true,				
+			buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+			open: function(event, ui)
+				 {
+					setTimeout(function() 
+					{									
+						if($('#' + event.target.id).dialog('isOpen'))
+						{
+							$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+						}
+					}, 16000);
+				  }
+		});
+	}
+	
+	/************************************************Kendo Uploader Start***************************************************/
+			
+	function onSelect(e) {
+		//kendoConsole.log("Select :: " + getFileInfo(e));
+		 
+		// Array with information about the uploaded files
+		var files = e.files;
+		var permitted_ext = '<?php echo $file_ext; ?>';		
+		var permitted_ext_arr = permitted_ext.split(',');
+		var permitted_size = '<?php echo $file_size; ?>';
+		var permitted_size = parseInt(permitted_size);
+		
+		
+		// Check the extension and size of each file and abort the upload if it is not selected extension or size
+		$.each(files, function() {
+			var ext = this.extension ;
+			var ext_arr	=	ext.split('.');
+			var file_size = parseFloat(this.size)/1024;
+			if (($.inArray(ext_arr[1].toLowerCase(), permitted_ext_arr) == -1) && ($.inArray(ext_arr[1].toUpperCase(), permitted_ext_arr) == -1)) {
+				openMsgDialog("<?php echo $this->translator->translator('portfolio_file_extension_dy_not_supportable_ext1'); ?> ' "+ext_arr[1]+" ' <?php echo $this->translator->translator('portfolio_file_extension_dy_not_supportable_ext2'). ' ' .$this->translator->translator('portfolio_file_extension_support', str_replace(',', ' | ', $file_ext)); ?>");
+				e.preventDefault();
+			}
+			else if((file_size > permitted_size) && (permitted_size > 0))
+			{
+				openMsgDialog("<?php echo $this->translator->translator('portfolio_file_size_support', $file_size); ?>");
+				e.preventDefault();
+			}
+		});
+	}
+
+	function onUpload(e) {
+		//kendoConsole.log("Upload :: " + getFileInfo(e));	
+		e.data = <?php echo $this->settings_json_info; ?>;				
+	}
+
+	function onSuccess(e) {
+	   // kendoConsole.log("Success (" + e.operation + ") :: " + getFileInfo(e));
+	   var files = e.files;
+	   var data = e.response;
+	   if (e.operation == "upload") 
+	   {
+		   if(data.status == 'ok')
+		   {
+			   e.files[0]['old_name']	= e.files[0]['name'];
+			   e.files[0]['name'] = data.newName;
+			   var progress_html  ='<span class="k-progress"><span class="k-state-selected k-progress-status" style="width: 100%;"></span></span>';			  		   
+			   $("span.k-filename[title='" + e.files[0].old_name + "']").html(e.files[0].name + progress_html);
+			   $("span.k-filename[title='" + e.files[0].old_name + "']").attr('title', e.files[0].name);
+			  // alert(e.files.toSource());
+			  // alert(e.files[0]['name']);
+			  var ext = e.files[0]['extension'];
+			  ext	=	ext.replace('.', '');
+			 	var img_path = '';
+				switch(ext.toLowerCase())
+				{
+					case 'flv':
+					case 'swf':
+					case 'FLV':
+					case 'SWF':
+						img_path = 'application/modules/Administrator/layouts/scripts/images/common/flash.png';
+						break;
+					case 'mp3':
+					case 'MP3':
+						img_path = 'application/modules/Administrator/layouts/scripts/images/common/mp3.png';
+						break;
+					case 'avi':
+					case 'wmv':
+					case 'wma':
+					case 'WMA':
+					case 'AVI':
+					case 'WMV':
+						img_path = 'application/modules/Administrator/layouts/scripts/images/common/avi_thumb.png';
+						break;
+					case 'pdf':
+					case 'doc':
+					case 'docx':
+					case 'xls':
+					case 'xlsx':
+					case 'ppt':
+					case 'pptx':
+					case 'PDF':
+					case 'DOC':
+					case 'DOCX':
+					case 'XLS':
+					case 'XLSX':
+					case 'PPT':
+					case 'PPTX':
+						img_path = 'application/modules/Administrator/layouts/scripts/images/common/extImages/'+ext+'.png';
+						break;
+					default:
+						if(isImage(e.files[0]))
+						{				
+							img_path = data.file_path+'/'+e.files[0]['name']; 
+						}
+						else
+						{	
+							img_path = "application/modules/Administrator/layouts/scripts/images/common/all_file_thumb.png";
+						}	
+						break;
+				}
+			  
+			  
+			  var grid = $("#grid").data("kendoGrid");
+			  grid.dataSource.insert(0, { image_field: img_path, image_file_name: e.files[0]['name'], image_file_size: e.files[0]['size'], image_date : data.image_date });
+			  grid.select(grid.element.find('tbody tr').eq(0)); 
+		   }
+		   else
+		   {
+			   	openMsgDialog(data.msg);
+				var file_name =	e.files[0]['name'];	
+			   	var parent_ul = $("li.k-file:has(span[title='" + file_name + "'])").parent();				   										
+				$("li.k-file:has(span[title='" + file_name + "'])").remove();				
+				if(parent_ul.has("li").length < 1)
+				{										
+					parent_ul.remove();
+				}
+		   }
+		}
+		else if(e.operation == "remove")
+		{			
+			if(data.status == 'ok')
+		   	{				
+				var selected_files = $('#selected_files').val();
+				var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();				
+				var final_selected_files_arr = new Array();	
+				var j = 0;
+				$.each(selected_files_arr, function(i, value) {													
+					if(value != e.files[0]['name'])
+					{
+						final_selected_files_arr[j] = value;
+						j++;
+					}
+				});
+				selected_files = final_selected_files_arr.join(",");
+				$('#selected_files').val(selected_files);
+											
+				var grid = $("#grid").data("kendoGrid");
+				// clear the selection of items in the grid
+				grid.destroy();	
+				// refreshes the grid
+				$("#grid").html('');
+				kendoGrid();
+		   	}
+			else
+			{
+				openMsgDialog(data.msg);
+			}
+		}
+	}
+
+	function onError(e, index) {
+		//kendoConsole.log("Error (" + e.operation + ") :: " + getFileInfo(e));
+		switch(e.operation )
+		{
+			case 'upload':
+					var files = e.files;
+					$.each(files, function() {
+						openMsgDialog("<?php echo $this->translator->translator('portfolio_file_upload_err'); ?>" + this.name );
+					});
+				break;
+			case 'remove':
+				var button = $(".k-file:has([title='" + e.files[0].name + "']) .k-upload-action")
+    			button.html("<span class='k-icon k-delete'></span><?php echo $this->translator->translator('portfolio_upload_text_remove'); ?>");
+				break;
+		}
+	}
+
+	function onComplete(e) {
+		
+		//openMsgDialog(e.toSource());
+				
+	}
+
+	function onCancel(e) {
+	   // kendoConsole.log("Cancel :: " + getFileInfo(e));
+	}
+
+	function onRemove(e) {
+	   var button = $("li.k-file:has(span[title='" + e.files[0].name + "']) .k-upload-action");  
+	   button.html('<span class="k-loading">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>');
+	   e.data = <?php echo $this->settings_json_info; ?>;		  
+	}
+
+	function onProgress(e) {
+		//kendoConsole.log("Upload progress :: " + e.percentComplete + "% :: " + getFileInfo(e));						
+	}
+
+	function getFileInfo(e) {
+		return $.map(e.files, function(file) {
+			var info = file.name;
+
+			// File size is not available in all browsers
+			if (file.size > 0) {
+				info  += " (" + Math.ceil(file.size / 1024) + " KB)";
+			}
+			return info;
+		}).join(", ");
+	}
+	
+	function isImage(fileObj)
+	{
+		var ext = fileObj.extension;
+		ext = ext.toLowerCase();
+		if(ext == '.jpg' || ext == '.JPG' || ext == '.png' || ext == '.PNG' || ext == '.bmp' || ext == '.BMP' || ext == '.gif' || ext == '.GIF')
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	
+
+	$(document).ready(function() {
+				
+		kendoGrid();
+		
+		$("#upload_file").kendoUpload({
+			multiple: true,
+			showFileList: true,
+			localization:{  
+							select:  				"<?php echo $this->translator->translator("portfolio_upload_text_select"); ?>",
+							cancel:	 				"<?php echo $this->translator->translator("portfolio_upload_text_cancel"); ?>",
+							dropFilesHere:	 		"<?php echo $this->translator->translator("portfolio_upload_text_dropFilesHere"); ?>",
+							remove:	 				"<?php echo $this->translator->translator("portfolio_upload_text_remove"); ?>",
+							retry:	 				"<?php echo $this->translator->translator("portfolio_upload_text_retry"); ?>",
+							statusFailed:	 		"<?php echo $this->translator->translator("portfolio_upload_text_statusFailed"); ?>",
+							statusUploaded:	 		"<?php echo $this->translator->translator("portfolio_upload_text_statusUploaded"); ?>",
+							statusUploading:	 	"<?php echo $this->translator->translator("portfolio_upload_text_statusUploading"); ?>",
+							uploadSelectedFiles:	"<?php echo $this->translator->translator("portfolio_upload_text_uploadSelectedFiles"); ?>"
+						},
+			async: {
+				saveUrl: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>",
+				removeUrl: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>",                            
+				autoUpload: true
+			},
+			cancel: onCancel,
+			complete: onComplete,
+			error: onError,
+			progress: onProgress,
+			remove: onRemove,
+			select: onSelect,
+			success: onSuccess,
+			upload: onUpload
+		});
+		
+		$('div.k-upload-button').children('input:first').after("<div class='round' style='background-position: 50% 50%; transition: background-position 0.4s ease 0s;'></div>");
+		
+	});	
+		
+	
+	function kendoGrid()
+	{		
+		var grid =  $("#grid").kendoGrid({						
+                        dataSource: {							
+                            type: "json",
+                            serverPaging: true,
+							serverFiltering: false,
+                            serverSorting: true,
+							batch: true,
+                            pageSize: 30,
+							sort: { field: "image_date", dir: "desc" },
+							schema: {
+								data:'data',
+								total: 'total',							
+                                model: {
+									id: "image_file_name",
+                                    fields: {
+                                        image_field: { type: "string"/*, editable: false*/ },
+                                        image_file_name: { type: "string" },
+										image_file_size: { type: "number" },
+                                        image_date: { type: "string" }
+                                    }
+                                }
+                            },
+							error: function (e) {
+								 //var json = jQuery.parseJSON(e.responseText);
+								 openMsgDialog( e.xhr.responseText);
+							},
+                            transport: {								
+                                read: {
+									type: "POST",
+									dataType: "json",								
+								 	url: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'grid'), 'adminrout',    true) ?>",
+									data : <?php echo $this->settings_json_info; ?>,
+									complete: function(e) {	
+																		
+									}
+								},
+                                destroy: {/*
+									type: "POST",
+									dataType: "json",
+									cache: false,
+                                    url: "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'delete'), 'adminrout',    true) ?>",
+                                   	complete: function(e) {																																									
+										var json = jQuery.parseJSON(e.responseText);
+										//alert(json.postValues.toSource());										
+										if(json.status == 'ok')
+										{
+											var selected_files = $('#selected_files').val();
+											
+											var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+											
+											var final_selected_files_arr = new Array();	
+											var j = 0;
+											$.each(selected_files_arr, function(i, value) {													
+												if(value != json.postValues.image_file_name)
+												{
+													final_selected_files_arr[j] = value;
+													j++;
+												}
+											});
+											
+											selected_files = final_selected_files_arr.join(",");
+											$('#selected_files').val(selected_files);																						
+										}
+										else
+										{
+											openMsgDialog(json.msg);											
+										}
+									}
+                                */}
+                            }
+                        },						
+						selectable: "multiple",
+						navigatable: false,
+                        height: 250,
+						filterable: true,
+						pageable: {
+                            refresh: true,
+                            pageSizes: true,
+							buttonCount: 3,
+							pageSizes: [1,5,10,30, 100, 500, 1000],
+							messages: {
+								display			: 	'<?php echo $this->translator->translator("portfolio_pagination_messages_display"); ?>',
+								empty			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_empty"); ?>',
+								page			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_page"); ?>',
+								of				:	'<?php echo $this->translator->translator("portfolio_pagination_messages_of"); ?>',
+								itemsPerPage	:	'<?php echo $this->translator->translator("portfolio_pagination_messages_items_per_page"); ?>',
+								first			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_first"); ?>',
+								previous		:	'<?php echo $this->translator->translator("portfolio_pagination_messages_previous"); ?>',
+								next			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_next"); ?>',
+								last			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_last"); ?>',
+								refresh			:	'<?php echo $this->translator->translator("portfolio_pagination_messages_refresh"); ?>'
+							}
+                        },
+                        scrollable:  {
+                            virtual: true
+                        },
+                        sortable: true,
+						reorderable: true,
+						resizable: true,
+                        columns: [
+							/*{  headerTemplate: '<input type="checkbox" id="checkAll" />' , width: 100 },*/
+                            { field: "image_field", title: "<?php echo $this->translator->translator("portfolio_grid_header_image"); ?>", width: 45, template: '<img src="<?php echo $this->serverUrl().$this->baseUrl();  ?>/${ image_field }" height="30" />' },
+                            { field: "image_file_name", title: "<?php echo $this->translator->translator("portfolio_grid_header_name"); ?>", width: 160},
+							{ field: "image_file_size", title: "<?php echo $this->translator->translator("portfolio_grid_header_size"); ?>", width: 50},
+                            { field: "image_date", title:"<?php echo $this->translator->translator("portfolio_grid_header_date"); ?>", width: 115}/*,
+                            { command: [{ 
+									name: "destroy",
+									text: "Delete"
+							  }],
+							  title: "&nbsp;", 
+							  width: 65 
+							}*/
+                        ],
+						toolbar: [{ 
+									name: "delete",
+									imageClass: "k-icon k-delete",
+									className: "k-grid-list-delete",
+									text: "<?php echo $this->translator->translator('common_delete_selected'); ?>"
+							  }], 
+						editable: { 
+								 mode: 'inline',
+								 update: true, //disables the update functionality
+								 destroy: true 
+							  } 
+                    });
+			
+			$('.k-grid-list-delete').click(function() {
+				var self = this;
+				var grid = $("#grid").data("kendoGrid");
+				var rows = grid.select();
+				if(rows.length > 0)
+				{
+					$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('file_delete_confirm')); ?>").dialog({
+							resizable: true,
+							modal: true,
+							show: 'explode',
+							hide: 'explode',
+							buttons: [{
+										text: '<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+										$(this).dialog('close');
+										deleteAll(self, grid);									
+										}
+									},{
+										text:'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>', click: function() {
+										$(this).dialog('close');
+										}
+									}]
+						});		
+				}
+				else
+				{
+					var msg = "<?php echo $this->translator->translator('common_selected_err'); ?>";
+					openMsgDialog(msg);
+				}
+			});
+			
+				
+			$('#grid').data().kendoGrid.bind("change", function(e) {
+				
+				var self = this;
+				//if grid single row selection is enabled
+				var model = self.dataSource.data();
+				
+			 	var selected_files = $('#selected_files').val();
+				var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+				var array_length = selected_files_arr.length;				
+				//get the value of the foo field
+				
+				var rows = self.select();
+							
+				var selected_data = new Array();
+				rows.each(
+					function(i, obj) {						
+						var record = self.dataItem(obj);
+						//alert(record.toSource());
+						selected_data[i] = record.image_file_name;
+						if($.inArray(record.image_file_name, selected_files_arr) == -1)
+						{													
+							 selected_files_arr[array_length] = record.image_file_name;
+							 array_length++;
+						}
+					}
+				)
+				
+				var not_selected_files_arr = new Array();
+				$.each(model, function(i, obj) {
+						
+						if($.inArray(obj.image_file_name, selected_data) == -1)
+						{
+							//alert(obj.image_file_name);	
+							not_selected_files_arr[i] = obj.image_file_name;
+						}
+					});	
+				
+				var final_selected_files_arr = new Array();	
+				var j = 0;
+				$.each(selected_files_arr, function(i, value) {		
+					//alert(value);
+					if($.inArray(value, not_selected_files_arr) == -1)
+					{
+						final_selected_files_arr[j] = value;
+						j++;
+					}
+				});
+				
+				selected_files = final_selected_files_arr.join(",");
+				$('#selected_files').val(selected_files);				
+			});
+					
+			
+			
+			$('#grid').data().kendoGrid.bind('dataBound',function(e)
+			{	
+					var selected_files = $('#selected_files').val();					
+					var selected_files_arr = 	selected_files.split(',');						
+					var self = this;
+					$.each(this.element.find('tbody tr'), function(i, obj) {
+						//alert(i+' - '+$(obj).children('td:nth-child(2)').text());
+						if($.inArray($(obj).children('td:nth-child(2)').text(), selected_files_arr) != -1)
+						{
+							self.select(self.element.find('tbody tr').eq(i))
+						}
+					});					
+			})
+
+
+	}
+	
+function deleteAll(self, grid)
+{	
+	var rows = grid.select();		
+	var dataObj = {}
+	var obj_arr = []
+	
+	rows.each(function(i, obj) {	
+			var record = grid.dataItem(obj);	
+			obj_arr[i] =  {image_field : record.image_field, image_file_name : record.image_file_name, image_file_size : record.image_file_size, image_date : record.image_date, uid : record.uid, dirty : record.dirty, id : record.id, file_path: $('input[name="file_path"]').val()};
+		});
+	dataObj = { models : obj_arr };	
+	
+	$.ajax({
+			url: "<?php echo $this->url( array('module'=> 'Portfolio', 'controller' => 'frontend', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: dataObj,
+			beforeSend: function(){
+				$(self).html('<img src="<?php echo $this->serverUrl().$this->baseUrl(); ?>/vendor/scripts/kendo/styles/<?php echo $kendo_theme; ?>/loading.gif" />');
+			 },
+			success: function(response) 
+			{
+				//alert(response);
+				var json_arr = jQuery.parseJSON(response);
+				if(json_arr.status == 'ok')
+				{
+					rows.each(function(i, obj) {	
+						  var record = grid.dataItem(obj);								
+						  
+						  var selected_files = $('#selected_files').val();											
+						  var selected_files_arr = (selected_files != '') ? selected_files.split(',') : new Array();	
+						  
+						  var final_selected_files_arr = new Array();	
+						  var j = 0;
+						  $.each(selected_files_arr, function(i, value) {													
+							  if(value != record.image_file_name)
+							  {
+								  final_selected_files_arr[j] = value;
+								  j++;
+							  }
+						  });
+						  
+						  selected_files = final_selected_files_arr.join(",");
+						  $('#selected_files').val(selected_files);								
+					  });
+					rows.each(function(i, obj) {	
+						grid.removeRow(obj);
+					});
+				}
+				else
+				{							
+					openMsgDialog(json_arr.msg);
+				}	
+				$(self).html('<span class="k-icon k-delete"></span><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>');
+			}
+	});		
+}
+</script>
+
+<div id="example">
+    <input type="hidden" name="file_path" id="file_path" value="<?php if(!empty($this->settings_info[$this->requested_data['file_path_field']])){ echo $this->settings_info[$this->requested_data['file_path_field']]; } ?>" />
+    <input type="hidden" name="selected_files" id="selected_files" value="<?php echo $this->posted_data['file_content']; ?>" />
+    <input type="hidden" name="primary_file_field" id="primary_file_field" value="<?php echo $this->posted_data['primary_file_field']; ?>" />
+    <div<?php if($locale_direction == 'rtl'){ ?> class="k-rtl" <?php } ?>>
+    <div id="grid"></div>   
+    <form method="post" action="submit" style="width:45%">
+        <div>                   
+            <?php echo $this->upload_form->upload_file; ?>                    
+        </div>
+    </form>    
+    </div>    
+</div>
+     <div class="console"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>	
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('portfolio_file_manager_page_name_dialog')); ?>"></div>

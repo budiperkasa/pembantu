@@ -1,0 +1,59 @@
+<?php
+
+function recursiveParent($child_id, $category_db, $child_info, $view, $menu_id)
+{		
+	$category_info = $category_db->getCategoryInfo($child_info['parent']);
+	if($category_info['parent'] != '0')
+	{
+		return recursiveParent($child_info['parent'], $category_db, $category_info, $view, $menu_id) .' &raquo; <a href="'.$view->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'categories','menu_id' => $view->escape($menu_id),'parent' => $view->escape($category_info['category_title']) ), 'Gallery-Category/:menu_id/:parent',    false).'">'.$view->escape($category_info['category_name']).'</a> ';
+	}
+	else
+	{
+		return ' &raquo; <a href="'.$view->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'categories','menu_id' => $view->escape($menu_id),'parent' => $view->escape($category_info['category_title']) ), 'Gallery-Category/:menu_id/:parent',    false).'">'.$view->escape($category_info['category_name']).'</a>';
+	}	
+}
+
+
+
+
+$frontController = Zend_Controller_Front::getInstance();
+$module = $frontController->getRequest()->getModuleName();
+$controller = $frontController->getRequest()->getControllerName();
+$action = $frontController->getRequest()->getActionName();
+$menu_id = $frontController->getRequest()->getParam('menu_id');
+$category_title = $frontController->getRequest()->getParam('parent');
+$product_title	= $frontController->getRequest()->getParam('product_title');
+$menu_db_class = new Menu_Model_DbTable_Menu(); 
+$menu_name = $menu_db_class->getMenuName($menu_id);
+
+if(!empty($category_title))
+{
+	$viewHelper = new Eicra_VHelper_ViewHelper($frontController->getRequest());
+	$category_db = new Gallery_Model_DbTable_Category();
+	$category_info = $viewHelper->_getCommonCategoryInfo($category_title,'gallery_category','category_title');
+	if($category_info)
+	{
+		$link = ($category_info['parent'] != '0') ? recursiveParent($category_info['id'], $category_db, $category_info, $this, $menu_id).' &raquo; '.$this->escape($category_info['category_name']) : ' &raquo; '.$this->escape($category_info['category_name']) ;
+	}
+}
+if(!empty($product_title))
+{
+	$viewHelper = new Eicra_VHelper_ViewHelper($frontController->getRequest());
+	$product_info = $viewHelper->_getCommonCategoryInfo($product_title,'gallery_product','product_title');
+	if($product_info)
+	{
+		$category_db = new Gallery_Model_DbTable_Category();
+		$category_info = $category_db->getCategoryInfo($product_info['category_id']);
+		if($category_info)
+		{
+			$link = ($category_info['parent'] != '0') ? recursiveParent($category_info['id'], $category_db, $category_info, $this, $menu_id).' &raquo; <a href="'.$this->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'viewproduct','menu_id' => $this->escape($menu_id),'parent' => $this->escape($category_info['category_title']), 'group_id' => $this->escape($product_info['group_id']) ), 'Gallery-Product/:menu_id/:parent/:group_id',    false).'">'.$this->escape($category_info['category_name']).'</a> &raquo; '.$this->escape($product_info['product_name'])  : ' &raquo; <a href="'.$this->url( array('module' => 'Gallery','controller' =>'frontend','action' => 'viewproduct','menu_id' => $this->escape($menu_id),'parent' => $this->escape($category_info['category_title']), 'group_id' => $this->escape($product_info['group_id']) ), 'Gallery-Product/:menu_id/:parent/:group_id',    false).'">'.$this->escape($category_info['category_name']).'</a> &raquo; '.$this->escape($product_info['product_name']) ;
+		}
+	}
+}
+?>
+<div class="topbar">
+		<div class="topbar-content">
+        	<div class="browse-link">
+           	<a href="<?php echo $menu_id; ?>"><?php echo $menu_name; ?></a><?php echo $link; ?> <!--&raquo; <a href="#">Fashion</a> &raquo; <a href="#">Images</a> &raquo; <a href="#">Women's Fashion</a> &raquo; <a href="#">Dress Sample</a> --></div>
+      	</div>
+    </div>

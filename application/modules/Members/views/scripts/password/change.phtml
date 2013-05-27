@@ -1,0 +1,165 @@
+<?php $version = Zend_Registry::get('version'); ?>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	
+	function resetFields()
+	{
+		$( "#changePass" )[ 0 ].reset();		
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+		
+		var filename = '';
+		var filevalue = '';		
+		$.each($('#changePass').serializeArray(), function(i, field) {	
+				if(field.name.match(/\[\]$/))
+				{
+					var filearr = field.name.split('[]');
+					filename = filearr[0];					
+				}
+				else
+				{
+					filename 	= 	field.name;
+				} 			
+				$('#'+filename).removeClass('ui-state-error');
+				$('#'+filename+'_err').html('');													
+		});	
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	$('a.change_pass_btn').click(function() {				
+		$.ajax({
+			  	url: "<?php echo $this->url( array('module' => 'Members','controller' => 'Password', 'action'     => 'change' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { oldpass: $('#oldpass').val(), confirmPassword: $('#confirmPassword').val(), password: $('#password').val(), user_id: "<?php echo $this->user_id; ?>" },
+			  	beforeSend: function(){
+					openLoaderDialog();
+					removeError();
+				 },
+				success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					closeLoaderDialog();
+					if(json_arr.status == 'ok')
+					{						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));						
+						resetFields();								
+					}
+					else if(json_arr.status == 'errV')
+					{					
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}						
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				}
+			
+		});
+	});
+});
+</script>
+<div id="container">
+<div class="title-container">
+	<div class="change-pass"><h1><?php echo $this->translator->translator('Member_pass_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="change_pass_btn"><span class="icon save"><?php echo $this->translator->translator('Member_pass_page_save'); ?></span></a></span>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('index/member_menu.phtml');  ?>
+    </div>
+    
+    <div id="content-inner">
+    	<form id="changePass">
+        	<div id="actionMessage"></div>
+            <fieldset class="fieldset">
+                	<legend class="legend"><?php echo $this->translator->translator('Member_pass_page_change_pass'); ?></legend>
+                    <div class="form">
+                    	<?php if($this->passForm->oldpass->isRequired() ){ ?>
+                    	<div class="form-row">
+                        	<div class="label">
+                            	<?php  echo $this->passForm->oldpass->getLabel();  ?><span class="required">*</span>					
+                            </div>
+                            
+                            <div class="field">
+								<?php echo $this->passForm->oldpass ; ?>
+                                <div class="input-errors" id="oldpass_err"></div>
+                            </div>
+                       	</div>
+						<?php } ?>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+								<?php echo $this->passForm->password->getLabel(); if($this->passForm->password->isRequired()){ ?><span class="required">*</span><?php } ?>	
+                            </div>
+                            
+                            <div class="field">
+                            	<?php echo $this->passForm->password ; ?>
+								<div class="input-errors" id="password_err"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                        	<div class="label">
+								<?php echo $this->passForm->password->getLabel(); if($this->passForm->password->isRequired()){ ?><span class="required">*</span><?php } ?>
+                            </div>
+                            
+                            <div class="field">
+                            	<?php echo $this->passForm->confirmPassword ; ?>
+								<div class="input-errors" id="confirmPassword_err"></div>
+                            </div>
+                        </div>   
+					</div>
+         	</fieldset>
+		</form>
+	</div>
+</div>
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar"></div>	
+</div>
+</div>

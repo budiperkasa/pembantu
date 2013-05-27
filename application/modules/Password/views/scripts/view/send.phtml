@@ -1,0 +1,146 @@
+<?php
+$version = Zend_Registry::get('version');
+$this->headTitle()->headTitle(strip_tags($this->translator->translator('password_page_name')),'SET');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	$('a.reset_forget_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	function resetFields()
+	{
+		$( "#formPassword" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{
+		$('#actionMessage').html('');
+					
+		$.each($('#formPassword').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_err').html('');									
+		});				
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100
+				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		$.each($('#formPassword').serializeArray(), function(i, field) {	
+			fieldObj[field.name] = field.value;						
+		});
+		return fieldObj;
+	}
+	
+	$('a.get_pass_btn').click(function() 
+	{				
+			var formData = getFormData();			  	
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Password','controller' => 'Backend', 'action'     => 'send' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){
+					openLoaderDialog();
+					removeError();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						resetFields();														
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+	
+	
+});
+
+
+</script>
+
+<div class="mod">
+
+  <div class="password-icon">
+        <h1><?php echo $this->translator->translator('password_page_name'); ?></h1>
+    </div>
+	
+  <div class="clear">&nbsp;</div>
+
+    <form name="formPassword" id="formPassword" method="post">
+        <fieldset>	
+            <legend><?php echo $this->translator->translator('password_page_info'); ?></legend>
+            <div id="actionMessage"></div>
+            
+            <div id="generalInfo" class="clear">
+                <div class="form-label-container">
+                    <span class="label_class"><?php echo $this->PasswordForm->username->getLabel(); if($this->PasswordForm->username->isRequired()){ ?><span class="star_class">*</span><?php } ?></span>
+                </div>
+                
+                <div class="form-field-container">
+                    <div class="clear"><?php echo $this->PasswordForm->username; ?><br /><span class="input-errors" id="username_err"></span></div>
+                </div>
+            </div>
+            <div class="clear">&nbsp;</div>
+            </fieldset>
+        
+            <div class="clear btn-container">
+                <span class="form-button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_forget_btn"><?php echo $this->translator->translator('common_reset'); ?></a></span>
+                <span class="form-button ui-widget-content-1"><a href="javascript: void(0);" class="get_pass_btn"><?php echo $this->translator->translator('common_send'); ?></a></span>
+            </div>
+    </form>
+</div>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_processing_language'); ?>"><div id="progressbar"></div></div>

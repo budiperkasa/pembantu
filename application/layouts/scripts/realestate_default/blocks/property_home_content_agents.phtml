@@ -1,0 +1,81 @@
+<?php
+class agents_property
+{
+	protected	$_group = 1;
+	protected	$_limit = 12;
+	protected	$_role_id = 107;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	protected	$translator;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+		
+		$this->translator = Zend_Registry::get('translator');
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');	
+		$select = $this->_DBconn->select()
+									->from(array('up' => Zend_Registry::get('dbPrefix').'user_profile'), array('up.user_id','title' => 'up.title', 'firstName' => 'up.firstName', 'lastName' => 'up.lastName', 'companyName' => 'up.companyName', 'address' => 'up.address', 'phone' => 'up.phone', 'mobile' => 'up.mobile', 'fax' => 'up.fax'))
+									->where('up.role_id = ?', $this->_role_id)
+									->where('up.status = ?', '1')
+									->group('up.user_id')
+									->limit($this->limit)
+									->joinLeft(array('pp' => Zend_Registry::get('dbPrefix').'property_page'), 'pp.property_owner = up.user_id', array('property_num' => 'COUNT(*)'));
+	
+		$view_datas =  $select->query()->fetchAll();
+	?>
+    
+    	<?php
+		if($view_datas)
+		{
+			foreach($view_datas as $entry)
+			{
+		?>
+        <div class="block">
+			<div class="list">        	
+				<ul>
+                    <li>
+                    	<a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'frontend', 'action' => 'agents','property_owner' => $this->_view->escape($entry['user_id']) ),'Agent-Property-List/:property_owner',true); ?>" class="preview" link="" title="<?php echo $this->translator->translator('property_front_page_agent_search_property_no', $entry['property_num'], 'Property'); ?>"><?php echo $this->_view->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']).' ('.$entry['property_num'].')'; ?></a><br />
+                    	<?php if($entry['companyName']){ echo $this->_view->escape($entry['companyName']).'<br />'; } ?>
+                    	<?php if($entry['phone'] || $entry['mobile'] || $entry['fax']){ echo $this->_view->escape($entry['phone']).', '.$this->_view->escape($entry['mobile']).', '.$this->_view->escape($entry['fax']).'<br />'; } ?>
+                    	<?php if($entry['address']){ echo $this->_view->escape($entry['address']).'<br />'; } ?>
+					</li>
+				</ul>
+         	</div>
+		</div>
+		<?php
+			}
+		}
+		?>
+
+	<?php
+	}
+}
+try
+{
+	$agents_property_class = new agents_property($this);
+	$agents_property_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

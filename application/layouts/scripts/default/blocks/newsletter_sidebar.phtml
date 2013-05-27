@@ -1,0 +1,106 @@
+<?php
+$front_template = Zend_Registry::get('front_template');
+$translator = Zend_Registry::get('translator');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+
+	function resetNewsLetterFields()
+	{
+		$( "#newsletter_form_box" )[ 0 ].reset();
+	}
+	
+	function removeNewsLetterError()
+	{		
+		$('#actionMessage_newsletter').html('');
+				
+		$.each($('#newsletter_form_box').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_newsletter_err').html('');									
+		});			
+	}
+	
+	function addNewsLetterError(key,errMsg)
+	{
+		var err_id = key+'_box_newsletter_err';
+		var field_name = key+'_box';
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function getFormDataNewsLetter()
+	{
+		var fieldObj = {};
+		$.each($('#newsletter_form_box').serializeArray(), function(i, field) {	
+				fieldname = field.name.split('_box');
+				fieldObj[fieldname[0]] = field.value;										
+		});
+		return fieldObj;
+	}
+
+$('input.newsletter_snd_btn').click(function() {
+				
+		var formData = getFormDataNewsLetter();
+		
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Newsletter','controller' => 'frontend', 'action'     => 'add' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				beforeSend: function(){						
+						removeNewsLetterError();
+						$('#newsletter_form_box').css('display','none');
+						$('#newsletter_loader_process').css('display','');			
+					 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");										
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage_newsletter').html(succMsgDesign(json_arr.msg));	
+						$('#newsletter_loader_process').css('display','none');	
+						$('#newsletter_form_box').css('display','');
+						resetNewsLetterFields();																						
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage_newsletter').html(errMsgDesign("<?php echo $translator->translator('common_err','', '', $front_template['theme_folder']); ?>"));
+						$('#newsletter_form_box').css('display','');	
+						$('#newsletter_loader_process').css('display','none');
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addNewsLetterError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#newsletter_form_box').css('display','');	
+						$('#newsletter_loader_process').css('display','none');
+						$('#actionMessage_newsletter').html(errMsgDesign(json_arr.msg));
+					}	
+				}
+		});
+	});	
+});
+</script>
+<div class="block block-subscribe">
+    <div class="block-content">
+        <h1><?php echo $translator->translator('block_newsletter_title','', '', $front_template['theme_folder'] ); ?></h1>
+        <div class="info"><?php echo $translator->translator('block_newsletter_note','', '', $front_template['theme_folder']); ?></div>
+        <div id="actionMessage_newsletter"></div>
+        <form name="newsletter_form_box" id="newsletter_form_box" method="post" action="">
+            <p><?php echo $translator->translator('block_newsletter_username','', '', $front_template['theme_folder']); ?></p>
+            <input name="name_box" type="text" id="name_box" size="10">
+           	<span id="name_box_newsletter_err" class="newsletter_arr"></span>
+            
+            <p><?php echo $translator->translator('block_newsletter_email','', '', $front_template['theme_folder']); ?></p>
+           	<input name="email_box" type="text" id="email_box" size="10">
+           	<span id="email_box_newsletter_err" class="newsletter_arr"></span>
+          
+          	<label>
+          		<input type="button" name="Submit2" value="<?php echo $translator->translator('block_newsletter_btn','', '', $front_template['theme_folder']); ?>" class="newsletter_snd_btn">
+          	</label>
+      	</form>
+      	<div id="newsletter_loader_process" style="display:none;"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/newsletter-loader.gif" border="0" width="30" height="" class="loader"/></div>  
+    </div>
+</div>

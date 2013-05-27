@@ -1,0 +1,898 @@
+<?php $version = Zend_Registry::get('version'); $tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri(); ?>
+
+<script type="text/javascript">
+$(function() {
+		$("#tabs").tabs().find(".ui-tabs-nav").sortable({axis:'xy'});
+	});
+
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();		
+	});
+	function resetFields()
+	{
+		$( "form" )[ 0 ].reset();			
+	}
+	
+	function removeError()
+	{
+		$('#news_name_err').html('');
+		$('#news_name').removeClass('ui-state-error');
+		$('#role_id_err').html('');
+		$('#role_id').removeClass('ui-state-error');
+		$('#news_type_err').html('');
+		$('#news_type').removeClass('ui-state-error');
+		$('#calendar_on_off_err').html('');
+		$('#calendar_on_off').removeClass('ui-state-error');
+		$('#category_on_off_err').html('');
+		$('#category_on_off').removeClass('ui-state-error');
+		$('#dynamic_form_err').html('');
+		$('#dynamic_form').removeClass('ui-state-error');
+		$('#cat_num_per_page_err').html('');
+		$('#cat_num_per_page').removeClass('ui-state-error');
+		$('#cat_col_num_err').html('');
+		$('#cat_col_num').removeClass('ui-state-error');
+		$('#cat_sort_err').html('');
+		$('#cat_sort').removeClass('ui-state-error');
+		$('#cat_order_err').html('');
+		$('#cat_order').removeClass('ui-state-error');
+		$('#latest_cat_on_err').html('');
+		$('#latest_cat_on').removeClass('ui-state-error');
+		$('#latest_cat_num_per_page_err').html('');
+		$('#latest_cat_num_per_page').removeClass('ui-state-error');
+		$('#latest_cat_sort_err').html('');
+		$('#latest_cat_sort').removeClass('ui-state-error');
+		$('#latest_cat_order_err').html('');
+		$('#latest_cat_order').removeClass('ui-state-error');
+		$('#fearured_cat_on_err').html('');
+		$('#fearured_cat_on').removeClass('ui-state-error');
+		$('#fearured_cat_num_per_page_err').html('');
+		$('#fearured_cat_num_per_page').removeClass('ui-state-error');
+		$('#fearured_cat_sort_err').html('');
+		$('#fearured_cat_sort').removeClass('ui-state-error');
+		$('#fearured_cat_order_err').html('');
+		$('#fearured_cat_order').removeClass('ui-state-error');
+		$('#news_num_per_page_err').html('');
+		$('#news_num_per_page').removeClass('ui-state-error');
+		$('#news_col_num_err').html('');
+		$('#news_col_num').removeClass('ui-state-error');
+		$('#news_sort_err').html('');
+		$('#news_sort').removeClass('ui-state-error');
+		$('#news_order_err').html('');
+		$('#news_order').removeClass('ui-state-error');
+		$('#latest_news_on_err').html('');
+		$('#latest_news_on').removeClass('ui-state-error');
+		$('#latest_news_num_per_page_err').html('');
+		$('#latest_news_num_per_page').removeClass('ui-state-error');
+		$('#latest_news_sort_err').html('');
+		$('#latest_news_sort').removeClass('ui-state-error');
+		$('#latest_news_order_err').html('');
+		$('#latest_news_order').removeClass('ui-state-error');
+		$('#featured_news_on_err').html('');
+		$('#featured_news_on').removeClass('ui-state-error');
+		$('#featured_news_num_per_page_err').html('');
+		$('#featured_news_num_per_page').removeClass('ui-state-error');
+		$('#featured_news_sort_err').html('');
+		$('#featured_news_sort').removeClass('ui-state-error');
+		$('#featured_news_order_err').html('');
+		$('#featured_news_order').removeClass('ui-state-error');
+		$('#img_type_err').html('');
+		$('#img_type').removeClass('ui-state-error');
+		$('#file_size_max_err').html('');
+		$('#file_size_max').removeClass('ui-state-error');
+		$('#news_cat_thumb_width_err').html('');
+		$('#news_cat_thumb_width').removeClass('ui-state-error');
+		$('#news_cat_thumb_height_err').html('');
+		$('#news_cat_thumb_height').removeClass('ui-state-error');
+		$('#news_cat_thumb_resize_func_err').html('');
+		$('#news_cat_thumb_resize_func').removeClass('ui-state-error');
+		$('#news_thumb_width_err').html('');
+		$('#news_thumb_width').removeClass('ui-state-error');
+		$('#news_thumb_height_err').html('');
+		$('#news_thumb_height').removeClass('ui-state-error');
+		$('#news_thumb_resize_func_err').html('');
+		$('#news_thumb_resize_func').removeClass('ui-state-error');		
+		$('#num_breaking_news_err').html('');
+		$('#num_breaking_news').removeClass('ui-state-error');
+		$('#num_category_box_string_err').html('');
+		$('#num_category_box_string').removeClass('ui-state-error');
+		$('#num_news_each_block_err').html('');
+		$('#num_news_each_block').removeClass('ui-state-error');
+		$('#category_panel_err').html('');
+		$('#category_panel').removeClass('ui-state-error');
+		$('#news_desc_truncate_err').html('');
+		$('#news_desc_truncate').removeClass('ui-state-error');
+		$('#meta_title_err').html('');
+		$('#meta_title').removeClass('ui-state-error');
+		$('#meta_keywords_err').html('');
+		$('#meta_keywords').removeClass('ui-state-error');
+		$('#meta_desc_err').html('');
+		$('#meta_desc').removeClass('ui-state-error');
+		
+		
+		$('#actionMessage').html('');
+	}
+	
+	function addError(key,errMsg)
+	{
+		var err_id = key+'_err';
+		var field_name = key;
+		$('#'+field_name).addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function openPerfectTab(key_arr)
+	{
+		var err_id = '';
+		var sel = null;
+		var getTab = false;
+		
+		for(var i = 1; i <= $('#tabs').children('ul:first').children('li').length ; i++)
+		{				
+			for(var j= 0; j < key_arr.length; j++)
+			{	
+				err_id = '#'+key_arr[j].key+'_err';	
+				if($('#tabs-'+i+':has('+err_id+')').html())
+				{
+					sel = (i - 1);				
+					$("#tabs").tabs({ active: sel }).find(".ui-tabs-nav").sortable({axis:'xy'});	
+					$('#'+key_arr[j].key).focus();
+					getTab = true;
+					break;							
+				}
+			}
+			if(getTab == true)
+			{
+				break;
+			}
+		}
+	}
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+					autoOpen: true,
+					modal: true,
+					show: 'fade',
+					resizable: 'false',				
+					open: function(event, ui)
+						 {
+						 	$("#progressbar").progressbar({
+								value:100				
+							});							
+						  }
+				});
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	$('a.add_news_group_btn').click(function() {			
+								
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'News','controller' => 'Backendgrp', 'action'     => 'addgrp' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+				beforeSend: function(){						
+						removeError();
+						openLoaderDialog();				
+					 },
+			  	data: 	{ 
+							news_name					: 	$('#news_name').val(), 
+							role_id						: 	$('#role_id').val(), 
+							meta_title					: 	$('#meta_title').val(),
+							meta_keywords				: 	$('#meta_keywords').val(),
+							meta_desc					: 	$('#meta_desc').val(), 
+							news_type					: 	$('#news_type').val(), 
+							calendar_on_off				: 	$("input[name='calendar_on_off']:checked").val(), 
+							category_on_off				: 	$("input[name='category_on_off']:checked").val(), 
+							cat_num_per_page			: 	$('#cat_num_per_page').val(), 
+							dynamic_form				:	$('#dynamic_form').val(),
+							cat_col_num					: 	$('#cat_col_num').val(), 
+							cat_sort					: 	$('#cat_sort').val(), 
+							cat_order					: 	$('#cat_order').val(), 
+							latest_cat_on				: 	$("input[name='latest_cat_on']:checked").val(), 
+							latest_cat_num_per_page		: 	$('#latest_cat_num_per_page').val(), 
+							latest_cat_sort				: 	$('#latest_cat_sort').val(), 
+							latest_cat_order			: 	$('#latest_cat_order').val(), 
+							fearured_cat_on				: 	$("input[name='fearured_cat_on']:checked").val(), 
+							fearured_cat_num_per_page	: 	$('#fearured_cat_num_per_page').val(), 
+							fearured_cat_sort			: 	$('#fearured_cat_sort').val(), 
+							fearured_cat_order			: 	$('#fearured_cat_order').val(), 
+							news_num_per_page			: 	$('#news_num_per_page').val(), 
+							news_col_num				: 	$('#news_col_num').val(), 
+							news_sort					: 	$('#news_sort').val(), 
+							news_order					: 	$('#news_order').val(),
+							latest_news_on				: 	$("input[name='latest_news_on']:checked").val(),
+							latest_news_num_per_page	: 	$('#latest_news_num_per_page').val(),
+							latest_news_sort			: 	$('#latest_news_sort').val(),
+							latest_news_order			: 	$('#latest_news_order').val(),
+							featured_news_on			: 	$("input[name='featured_news_on']:checked").val(),
+							featured_news_num_per_page	: 	$('#featured_news_num_per_page').val(),
+							featured_news_sort			: 	$('#featured_news_sort').val(),
+							featured_news_order			: 	$('#featured_news_order').val(),
+							img_type					: 	$('#img_type').val(),
+							file_size_max				: 	$('#file_size_max').val(),
+							news_cat_thumb_width		: 	$('#news_cat_thumb_width').val(),
+							news_cat_thumb_height		: 	$('#news_cat_thumb_height').val(),
+							news_cat_thumb_resize_func	: 	$('#news_cat_thumb_resize_func').val(),
+							news_thumb_width			: 	$('#news_thumb_width').val(),
+							news_thumb_height			: 	$('#news_thumb_height').val(),
+							news_thumb_resize_func		: 	$('#news_thumb_resize_func').val(),	
+							num_breaking_news			: 	$('#num_breaking_news').val(),
+							num_category_box_string		: 	$('#num_category_box_string').val(),
+							num_news_each_block			: 	$('#num_news_each_block').val(),
+							category_panel				: 	$("input[name='category_panel']:checked").val(),
+							news_desc_truncate			:	$('#news_desc_truncate').val()							 
+						},
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));											
+						resetFields();							
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+						openPerfectTab(json_arr.msg);
+					}
+					else
+					{
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});		
+	
+});
+</script>
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="group-add"><h1><?php echo $this->translator->translator('news_group_add_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'News','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_news_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="actionMessage"></div>
+    <form name="formNewsGroup" id="formNewsGroup" method="post">
+    	<div id="button_top_bar"></div>
+        <div id="generalInfo">
+        	<div id="tabs">
+            	<ul>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-1"><?php echo $this->translator->translator('news_group_page_tab1'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-2"><?php echo $this->translator->translator('news_group_page_tab2'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-3"><?php echo $this->translator->translator('news_group_page_tab3'); ?></a></li>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-4"><?php echo $this->translator->translator('news_group_page_tab4'); ?></a></li>
+                </ul>
+            	    
+            	<div id="tabs-1">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_general_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_name->getLabel(); if($this->newsGroupForm->news_name->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->news_name; ?>
+                                    <div class="input-errors" id="news_name_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->role_id->getLabel(); if($this->newsGroupForm->role_id->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->role_id; ?>
+                                    <div class="input-errors" id="role_id_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_type->getLabel(); if($this->newsGroupForm->news_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->news_type; ?>
+                                    <div class="input-errors" id="news_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->calendar_on_off->getLabel(); if($this->newsGroupForm->calendar_on_off->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->calendar_on_off; ?>
+                                    <div class="input-errors" id="calendar_on_off_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->category_on_off->getLabel(); if($this->newsGroupForm->category_on_off->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->category_on_off; ?>
+                                    <div class="input-errors" id="category_on_off_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->dynamic_form->getLabel(); if($this->newsGroupForm->dynamic_form->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->dynamic_form; ?>
+                                    <div class="input-errors" id="dynamic_form_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_meta'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->meta_title->getLabel(); if($this->newsGroupForm->meta_title->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->meta_title; ?>
+                                    <div class="input-errors" id="meta_title_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->meta_keywords->getLabel(); if($this->newsGroupForm->meta_keywords->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->meta_keywords; ?>
+                                    <div class="input-errors" id="meta_keywords_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->meta_desc->getLabel(); if($this->newsGroupForm->meta_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->meta_desc; ?>
+                                    <div class="input-errors" id="news_desc_truncate_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+					</fieldset>      
+                </div>
+                
+                <div id="tabs-2">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_cat_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->cat_num_per_page->getLabel(); if($this->newsGroupForm->cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->cat_num_per_page; ?>
+                                    <div class="input-errors" id="cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->cat_col_num->getLabel(); if($this->newsGroupForm->cat_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->cat_col_num; ?>
+                                    <div class="input-errors" id="cat_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->cat_sort->getLabel(); if($this->newsGroupForm->cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->cat_sort; ?>
+                                    <div class="input-errors" id="cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->cat_order->getLabel(); if($this->newsGroupForm->cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->cat_order; ?>
+                                    <div class="input-errors" id="cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_latest_cat_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_cat_on->getLabel(); if($this->newsGroupForm->latest_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->latest_cat_on; ?>
+                                    <div class="input-errors" id="latest_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_cat_num_per_page->getLabel(); if($this->newsGroupForm->latest_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->latest_cat_num_per_page; ?>
+                                    <div class="input-errors" id="latest_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->latest_cat_sort->getLabel(); if($this->newsGroupForm->latest_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_cat_sort; ?>
+                                    <div class="input-errors" id="latest_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->latest_cat_order->getLabel(); if($this->newsGroupForm->latest_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_cat_order; ?>
+                                    <div class="input-errors" id="latest_cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_featured_cat_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->fearured_cat_on->getLabel(); if($this->newsGroupForm->fearured_cat_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->fearured_cat_on; ?>
+                                    <div class="input-errors" id="fearured_cat_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->fearured_cat_num_per_page->getLabel(); if($this->newsGroupForm->fearured_cat_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->fearured_cat_num_per_page; ?>
+                                    <div class="input-errors" id="fearured_cat_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->fearured_cat_sort->getLabel(); if($this->newsGroupForm->fearured_cat_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->fearured_cat_sort; ?>
+                                    <div class="input-errors" id="fearured_cat_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->fearured_cat_order->getLabel(); if($this->newsGroupForm->fearured_cat_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                    <?php echo $this->newsGroupForm->fearured_cat_order; ?>
+                                    <div class="input-errors" id="fearured_cat_order_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                </div>
+                
+                <div id="tabs-3">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_page_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_num_per_page->getLabel(); if($this->newsGroupForm->news_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_num_per_page; ?>
+                                    <div class="input-errors" id="news_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_col_num->getLabel(); if($this->newsGroupForm->news_col_num->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_col_num; ?>
+                                    <div class="input-errors" id="news_col_num_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_sort->getLabel(); if($this->newsGroupForm->news_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_sort; ?>
+                                    <div class="input-errors" id="news_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_order->getLabel(); if($this->newsGroupForm->news_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_order; ?>
+                                    <div class="input-errors" id="news_order_err"></div>
+                                </div>
+                            </div> 
+                     	</div>
+               		</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_latest_page_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_news_on->getLabel(); if($this->newsGroupForm->latest_news_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_news_on; ?>
+                                    <div class="input-errors" id="latest_news_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_news_num_per_page->getLabel(); if($this->newsGroupForm->latest_news_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_news_num_per_page; ?>
+                                    <div class="input-errors" id="latest_news_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_news_sort->getLabel(); if($this->newsGroupForm->latest_news_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_news_sort; ?>
+                                    <div class="input-errors" id="latest_news_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_news_sort->getLabel(); if($this->newsGroupForm->latest_news_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_news_sort; ?>
+                                    <div class="input-errors" id="latest_news_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->latest_news_order->getLabel(); if($this->newsGroupForm->latest_news_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->latest_news_order; ?>
+                                    <div class="input-errors" id="latest_news_order_err"></div>
+                                </div>
+                            </div>   
+                      	</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_featured_page_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->featured_news_on->getLabel(); if($this->newsGroupForm->featured_news_on->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->featured_news_on; ?>
+                                    <div class="input-errors" id="featured_news_on_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->featured_news_num_per_page->getLabel(); if($this->newsGroupForm->featured_news_num_per_page->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->featured_news_num_per_page; ?>
+                                    <div class="input-errors" id="featured_news_num_per_page_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->featured_news_sort->getLabel(); if($this->newsGroupForm->featured_news_sort->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->featured_news_sort; ?>
+                                    <div class="input-errors" id="featured_news_sort_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->featured_news_order->getLabel(); if($this->newsGroupForm->featured_news_order->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->featured_news_order; ?>
+                                    <div class="input-errors" id="featured_news_order_err"></div>
+                                </div>
+                            </div>
+                       	</div>
+                  	</fieldset>
+                </div>
+                
+                <div id="tabs-4">
+                	<fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_file_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->img_type->getLabel(); if($this->newsGroupForm->img_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->img_type; ?>
+                                    <div class="input-errors" id="img_type_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->file_size_max->getLabel(); if($this->newsGroupForm->file_size_max->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->file_size_max; ?>&nbsp;<?php echo $this->translator->translator('zero_file_size'); ?>
+                                    <div class="input-errors" id="file_size_max_err"></div>
+                                </div>
+                            </div>
+						</div>
+					</fieldset>
+                    
+                    <fieldset class="fieldset">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_thumb_file_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_cat_thumb_width->getLabel(); if($this->newsGroupForm->news_cat_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_cat_thumb_width; ?>
+                                    <div class="input-errors" id="news_cat_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_cat_thumb_height->getLabel(); if($this->newsGroupForm->news_cat_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_cat_thumb_height; ?>
+                                    <div class="input-errors" id="news_cat_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_cat_thumb_resize_func->getLabel(); if($this->newsGroupForm->news_cat_thumb_resize_func->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_cat_thumb_resize_func; ?>
+                                    <div class="input-errors" id="news_cat_thumb_resize_func_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->news_thumb_width->getLabel(); if($this->newsGroupForm->news_thumb_width->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_thumb_width; ?>
+                                    <div class="input-errors" id="news_thumb_width_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->news_thumb_height->getLabel(); if($this->newsGroupForm->news_thumb_height->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_thumb_height; ?>
+                                    <div class="input-errors" id="news_thumb_height_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                	<?php echo $this->newsGroupForm->news_thumb_resize_func->getLabel(); if($this->newsGroupForm->news_thumb_resize_func->isRequired()){ ?><span class="required">*</span>	<?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_thumb_resize_func; ?>
+                                    <div class="input-errors" id="news_thumb_resize_func_err"></div>
+                                </div>
+                            </div>               
+                      	</div>
+               		</fieldset>
+                    
+                    <fieldset class="fieldset last">
+                		<legend class="legend"><?php echo $this->translator->translator('news_group_page_only_file_info'); ?></legend>
+                       	<div class="form">
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->num_breaking_news->getLabel(); if($this->newsGroupForm->num_breaking_news->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->num_breaking_news; ?>
+                                    <div class="input-errors" id="num_breaking_news_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->num_category_box_string->getLabel(); if($this->newsGroupForm->num_category_box_string->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->num_category_box_string; ?>
+                                    <div class="input-errors" id="num_category_box_string_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->num_news_each_block->getLabel(); if($this->newsGroupForm->num_news_each_block->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->num_news_each_block; ?>
+                                    <div class="input-errors" id="num_news_each_block_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->category_panel->getLabel(); if($this->newsGroupForm->category_panel->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->category_panel; ?>
+                                    <div class="input-errors" id="category_panel_err"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="label">
+                                    <?php echo $this->newsGroupForm->news_desc_truncate->getLabel(); if($this->newsGroupForm->news_desc_truncate->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                </div>
+                                
+                                <div class="field">
+                                   	<?php echo $this->newsGroupForm->news_desc_truncate; ?>
+                                    <div class="input-errors" id="news_desc_truncate_err"></div>
+                                </div>
+                            </div>
+                     	</div>
+                  	</fieldset>
+                </div>    
+            </div>
+		</div>
+	</form>
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'News','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_news_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('news_group_add_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <span class="button ui-widget-content-1"><a href="<?php echo $this->url( array('module' => 'News','controller' => 'Backendgrp', 'action'     => 'listgrp' ), 'adminrout',    true) ?>"><span class="icon back"><?php echo $this->translator->translator('common_back'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="add_news_group_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>        
+    </div>
+</div>
+<?php endif; ?>	
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('news_group_add_page_name')); ?>"></div> 
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+</div>

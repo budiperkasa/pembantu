@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="global" for="backend" description="Manage Global Settings" langKey="permisson_settings">
+		<privilege name="update" for="dashboard" description="Update Global Settings" langKey="permisson_settings_update" />
+		<privilege name="price" for="dashboard" description="Global Price Margine" langKey="permisson_settings_global_price_margine" />
+		<privilege name="add" description="Add Price Margine" langKey="permisson_settings_global_price_margine_add" />
+		<privilege name="edit" description="Edit Price Margine" langKey="permisson_settings_global_price_margine_edit" />
+		<privilege name="delete" description="Delete Price Margine" langKey="permisson_settings_global_price_margine_delete" />
+		<privilege name="report" description="Price Commision Report" langKey="permisson_settings_global_price_commision_report" />
+		<privilege name="cronsetup" description="Global Cron Setup" langKey="permisson_settings_global_cron_setup" />
+		<privilege name="ip" description="Banned or trusted IP list" langKey="permisson_settings_global_ip_list" />
+		<privilege name="deleteip" description="Delete IP from list" langKey="permisson_settings_global_ip_delete" />
+		<privilege name="addip" description="Add New IP" langKey="permisson_settings_global_ip_add" />
+		<privilege name="banip" description="Ban or Trust IP" langKey="permisson_settings_global_ip_ban" />
+	</resource>	
+	<resource name="search" for="backend" description="Manage Search Settings" langKey="permisson_search_settings">
+		<privilege name="update" description="Update Search Settings" langKey="permisson_search_settings_update" />
+	</resource>	
+</permissions>

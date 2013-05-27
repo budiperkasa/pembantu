@@ -1,0 +1,230 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step5_page_title'));
+$version = Zend_Registry::get('version');
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){		
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php/step4'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php'; ?>";
+		});	
+		$('#next').click(function(){
+				openLoaderDialog();
+			});		
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}	
+	
+	function openLoaderDialog()
+	{
+		$('#dialog_container').dialog({
+			autoOpen: true,
+			modal: true,
+			show: 'fade',
+			resizable: 'false',				
+			open: function(event, ui)
+				 {
+					$("#progressbar").progressbar({
+						value:100
+		
+					});							
+				  }
+		});
+		
+		setTimeout(function() 
+		{
+			$('#step5frm').submit();
+		}, 100);
+	}
+	
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	//-->
+	</script>
+	<form id="step5frm" name="step5frm" method="post" action="<?php echo $this->baseUrl().'/upgrade.php/step5'; ?>" enctype="multipart/form-data">
+		<fieldset>
+        <legend><?php echo $this->translator->translator('install_step_5_of_6'); ?></legend>
+      		<p>
+            <span class="title"><?php echo $this->translator->translator('upgrade_step5_login_as_admin'); ?></span>
+      		</p>
+            <br />
+            <?php if($this->error_msg){ ?>
+                <div id="errorBoxMessageDiv" class="errors">
+               		<?php echo $this->translator->translator('install_step5_error_message'); ?> &nbsp;<?php echo $this->error_msg; ?>
+                </div>
+          	<?php } ?>
+                <div>
+                    <?php
+                        $lic = true;
+                        if(!empty($this->license_error))
+                        {
+                            //echo $this->license_error;
+                            $lic = false;
+                        }
+                        else
+                        {
+                            if(empty($this->modules))
+                            {
+                                //echo $this->translator->translator('install_step5_module_not_found');
+                                $lic = false;
+                            }								
+                        }														
+                    ?>
+                </div>
+                        
+            
+            
+          	<fieldset>
+            	<legend><?php echo $this->translator->translator('upgrade_step5_user_login'); ?></legend>
+                <div class="chart">
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->loginForm->username->getLabel();	?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php  
+								echo $this->loginForm->username;						  
+								$errMsg = $this->loginForm->getMessages();
+								if(is_array($errMsg))
+								{
+								  if($errMsg['username'])
+								  {
+									  echo '<div class="warning">';
+									  foreach($errMsg['username'] as $value)
+									  {
+										 echo $value;
+									  }
+									  echo '</div>';
+								   }
+								}
+							?>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->loginForm->password->getLabel();	?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php  
+								echo $this->loginForm->password;						  
+								$errMsg = $this->loginForm->getMessages();
+								if(is_array($errMsg))
+								{
+								  if($errMsg['password'])
+								  {
+									  echo '<div class="warning">';
+									  foreach($errMsg['password'] as $value)
+									  {
+										 echo $value;
+									  }
+									  echo '</div>';
+								   }
+								}
+							?>
+                        </div>
+                    </div>
+                    <?php
+					if($this->loginForm->login_captcha)
+					{
+					?>
+                    <div class="row">
+                        <div class="label">
+                            <?php echo $this->loginForm->login_captcha->getLabel();	?><span class="required">*</span>
+                        </div>
+                        
+                        <div class="field">
+                            <?php								
+							  echo $this->loginForm->login_captcha; 
+							  if(is_array($errMsg))
+							  {
+								 if(!empty($errMsg['login_captcha']))
+								 {
+									  echo '<div class="warning">';
+									  foreach($errMsg['login_captcha'] as $value)
+									  {
+										  echo $value;
+									  }
+									  echo '</div>';	
+								 }
+							  }								
+							?>
+                        </div>
+                    </div>
+                   
+                    <div class="row">
+                        <div class="label">
+                            
+                        </div>
+                        
+                        <div class="field">
+                            <?php
+								echo $this->loginForm->token; 
+								if(is_array($errMsg))
+								{
+									if($errMsg['token'])
+									 {
+										echo '<div class="warning">';
+										foreach($errMsg['token'] as $value)
+										 {
+											echo $value;
+										 }
+										echo '</div>';	
+									}
+								}
+							?>
+                        </div>
+                    </div>
+                     <?php
+					}
+					?>
+                </div>
+            </fieldset>
+            
+            
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" /></div>
+                
+                <div class="icon">
+                    <input type="hidden" name="mode" value="<?php echo $this->mode; ?>" />											
+					<input type="button" name="next" id="next" value="<?php echo $this->translator->translator('upgrade_steps5_login_button'); ?>" class="button-next"/>
+                </div>
+                
+                <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+            </div>
+       	</fieldset>	
+  	</form>
+	<div id="dialog-confirm" title="Install Confirmation"></div>
+    <div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+        <div id="progressbar" ></div>	
+    </div>

@@ -1,0 +1,40 @@
+td.file_tree
+{
+	border:dashed 1px #CCCCCC;
+	vertical-align:top;
+	font-size:16px;
+}
+
+#file_global
+{
+	text-align:left;
+	font-weight:bold;
+}
+
+#file_module
+{
+	text-align:left;
+	font-weight:bold;
+}
+
+#file_layout
+{
+	text-align:left;
+	font-weight:bold;
+}
+
+#file_restore
+{
+	text-align:left;
+	font-weight:bold;
+}
+
+.demo_menu_tree a
+{
+	font-size:14px;
+}
+
+.loadData
+{
+ 	font-size:12px; 
+}

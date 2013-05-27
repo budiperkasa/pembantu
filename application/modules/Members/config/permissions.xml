@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="index" for="backend" description="Manage users" langKey="permisson_users">
+		<privilege for="dashboard" name="profile" description="View / edit User's profile" langKey="permisson_user_profile" />
+		<privilege for="dashboard" name="list" description="View the list of Users" langKey="permisson_users_list" />
+		<privilege name="add" description="Create new users" langKey="permisson_users_add" />
+		<privilege name="edit" description="Edit a users" langKey="permisson_users_edit" />
+		<privilege name="ajaxdeleteusers" description="Delete a users" langKey="permisson_users_delete" />
+		<privilege name="ajaxactivedeactiveusers" description="Active Deactive a users" langKey="permisson_users_activeDeactive" />
+		<privilege name="ajaxsearchusers" description="Search users" langKey="permisson_users_search" />
+	</resource>	
+	<resource name="form" for="backend" description="Dynamic Forms" langKey="permisson_form">		
+		<privilege for="dashboard" name="list" description="View the list of Form" langKey="permisson_form_list" />		
+		<privilege for="dashboard" name="add" description="Create new Form" langKey="permisson_form_add" />
+		<privilege name="updatepackages" description="Member list packages" langKey="permisson_update_membership" />
+		<privilege name="edit" description="Edit a Form" langKey="permisson_form_edit" />
+		<privilege name="delete" description="Delete a Form(s)" langKey="permisson_form_delete" />
+		<privilege name="publish" description="Active Deactive a Form" langKey="permisson_form_activeDeactive" />
+		<privilege name="values" description="View the list of Form Values" langKey="permisson_form_value_list" />
+		<privilege name="addvalue" description="Add Form Values" langKey="permisson_form_value_add" />
+		<privilege name="editvalue" description="Edit Form Values" langKey="permisson_form_value_edit" />
+		<privilege name="deletevalue" description="Delete Form Values" langKey="permisson_form_value_delete" />
+		<privilege name="publishvalue" description="Publish Form Values" langKey="permisson_form_value_publish" />		
+	</resource>	
+	<resource name="password" for="backend" description="Change Password Manager" langKey="permisson_passwordChange">
+		<privilege for="dashboard" name="change" description="Change Password" langKey="permisson_passwordChange_access" />		
+	</resource>		
+	<resource name="frontend" for="frontend" description="Frontend Register" langKey="permisson_frontend_registers">
+		<privilege name="register" description="View Frontend Register" langKey="permisson_member_register_view" img="permisson_member_register_view.jpg" />
+		<privilege name="login" description="View Frontend Login Page" langKey="permisson_member_login_view" img="permisson_member_login_view.jpg" />
+		<privilege name="type" description="View Registration Type" langKey="permisson_reg_type_view" img="permisson_reg_type_view.jpg" />
+	</resource>
+	<resource name="packages" for="frontend" description="Frontend Packages Info" langKey="permisson_frontend_package_info">
+		<privilege name="list" description="View Packages Info" langKey="permisson_package_info_view" img="permisson_package_info_view.jpg" />
+	</resource>
+	<resource name="forms" for="frontend" description="Frontend Forms" langKey="permisson_frontend_forms">
+		<privilege name="general" description="View General Form" langKey="permisson_general_form_view" img="permisson_general_form_view.jpg" />
+	</resource>
+	<dbtable name="roles" for="register">
+		<tablefield name="role_id" />
+		<tablefield name="role_id" />
+		<tablefield name="role_name" />
+	</dbtable>
+	<dbtable name="forms" for="general">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="form_name" />
+	</dbtable>
+	<dbtable name="forms" for="list">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="form_name" />
+	</dbtable>
+</permissions>

@@ -1,0 +1,68 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step2_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){
+		init();
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/install.php'; ?>";
+		});
+	});
+	<!--
+	function setButtonState(button, state) 
+	{		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}
+	
+	function init() 
+	{
+		setFocus('next')
+		setButtonState('next', false);
+	}
+	//-->
+	</script>
+    
+    <form method="post" action="<?php echo $this->baseUrl().'/install.php/step2'; ?>">
+        <fieldset>
+        <legend><?php echo $this->translator->translator('install_step_2_of_6'); ?> </legend>
+            <p class="title">
+                <?php echo $this->translator->translator('install_step2_page_language'); ?>
+            </p>
+            <br />
+            <input type="radio" name="setup_type" id="setup_type1" value="install"  checked="checked" /> &nbsp;
+            <span class="title"><?php echo $this->translator->translator('install_step2_select_language1'); ?></span><br />
+
+	 		<hr />           
+            <input type="radio" name="setup_type" id="setup_type2" value="upgrade" /> &nbsp;
+            <span class="title"><?php echo $this->translator->translator('install_step2_select_language2'); ?></span>
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" /></div>
+                <div class="icon"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-next" /></div>
+                <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+            </div>
+        </fieldset>
+    </form>

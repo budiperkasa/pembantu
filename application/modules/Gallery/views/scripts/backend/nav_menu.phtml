@@ -1,0 +1,49 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('gallery_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('listgrp','backendgrp','Gallery')) : ?>
+        		<li <?php if($getAction == 'listgrp' && strtolower($getController) == 'backendgrp'){ ?> class="gallery-group-list selected"<?php }else{ ?>class="gallery-group-list"<?php } ?>> 
+                	<a href="<?php echo $this->url(array('module' => 'Gallery','controller'=>'backendgrp', 'action'=>'listgrp'),'adminrout',true);?>" ><?php echo $translator->translator('gallery_menu1'); ?></a>
+                </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('addgrp','backendgrp','Gallery')) : ?>
+            	<li <?php if($getAction == 'addgrp' && strtolower($getController) == 'backendgrp'){ ?> class="gallery-group-add selected"<?php }else{ ?>class="gallery-group-add"<?php } ?>>
+                	<a href="<?php echo $this->url(array('module' => 'Gallery','controller'=>'backendgrp', 'action'=>'addgrp'),'adminrout',true);?>" ><?php echo $translator->translator('gallery_menu1-1'); ?></a>
+                </li>	
+            <?php endif; ?>
+            
+            <?php if ($this->allow('list','backend','Gallery')) : ?>
+            	<li <?php if($getAction == 'list' && strtolower($getController) == 'backend'){ ?> class="gallery-cat-list selected"<?php }else{ ?>class="gallery-cat-list"<?php } ?>>
+                	<a href="<?php echo $this->url(array('module' => 'Gallery','controller'=>'backend', 'action'=>'list'),'adminrout',true);?>"><?php echo $translator->translator('gallery_menu2'); ?></a>
+                </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('add','backend','Gallery')) : ?>
+            	<li <?php if($getAction == 'add' && strtolower($getController) == 'backend'){ ?> class="cat-add selected"<?php }else{ ?>class="cat-add"<?php } ?>>
+                	<a href="<?php echo $this->url(array('module' => 'Gallery','controller'=>'backend', 'action'=>'add'),'adminrout',true);?>"><?php echo $translator->translator('gallery_menu2-2'); ?></a>
+                </li>
+          	<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendpro','Gallery')) : ?>
+            	<li <?php if($getAction == 'list' && strtolower($getController) == 'backendpro'){ ?> class="product-list selected"<?php }else{ ?>class="product-list"<?php } ?>>
+                	<a href="<?php echo $this->url( array('module'=> 'Gallery', 'controller' => 'backendpro', 'action'     => 'list' ),'adminrout',true) ?>"><?php echo $translator->translator('gallery_menu3'); ?></a>
+                </li>
+            <?php endif; ?>
+           
+			<?php if ($this->allow('add','backendpro','Gallery')) : ?> 
+            	<li <?php if($getAction == 'add' && strtolower($getController) == 'backendpro'){ ?> class="product-add selected last"<?php }else{ ?>class="product-add last"<?php } ?>>
+                	<a href="<?php echo $this->url( array('module'=> 'Gallery', 'controller' => 'backendpro', 'action'     => 'add' ),'adminrout',true) ?>"><?php echo $translator->translator('gallery_menu3-3'); ?></a>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </div>
+</div>

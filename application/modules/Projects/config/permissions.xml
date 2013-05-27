@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="index" for="backend" description="Project Manager" langKey="permisson_files">		
+		<privilege for="dashboard" name="index" description="View list of User Privilege" langKey="permisson_users_priv_list" />
+		<privilege name="privilege" description="Set Privilege" langKey="permisson_file_privilege" />	
+		<privilege name="file" description="Manage File System" langKey="permisson_file_manager" />		
+		<privilege name="createdir" description="Create Directory" langKey="permisson_create_directory" />
+		<privilege name="delete" description="Delete Directory/File" langKey="permisson_delete_directory" />
+		<privilege for="dashboard" name="filepreview" description="Show Uploaded Files" langKey="permisson_show_files" />
+	</resource>	
+	<resource name="frontend" for="frontend" description="Frontend Project Manager" langKey="permisson_frontend_files">		
+		<privilege name="filepreview" description="Show Uploaded Files" langKey="permisson_show_files" img="permisson_show_files.jpg" />
+	</resource>		
+</permissions>

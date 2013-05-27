@@ -1,0 +1,32 @@
+@charset "utf-8";
+
+/* Tabs */
+.verticalslider_tabs {float:right;}
+
+.verticalslider_tabs li{
+	border-radius:0 5px 5px 0;
+	border-left:0;
+	border-right:1px solid #C8C8C8;
+}
+
+.verticalslider_tabs a:link, .verticalslider_tabs a:visited{
+	padding: 5px 5px 10px 10px;
+	border-radius: 0 5px 5px 0;
+}
+	
+.verticalslider .arrow {background: url(../images/dashboard/arrow-rtl.png); margin-right: 165px;}
+
+/* Contents */
+.verticalslider_contents{float:right; position:absolute; right:166px;}
+.verticalslider_contents .activeContent{ border-left: 1px solid #FEAF16; border-right: 1px solid #FEAF16; border-radius: 5px 0 0 5px}
+
+.verticalslider_contents.fixer{
+	padding-right:0; margin-left:0; 
+}
+
+.verticalslider_contents li{ height:858px !important; padding: 0 15px 0 12px;}
+
+.v-nav{
+	background-position: right 2px;
+	padding:4px 30px 10px 0;
+}

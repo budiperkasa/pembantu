@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Template/CSS/JS Editors" langKey="permisson_editors">
+		<privilege for="dashboard"  name="template" description="Template Editors" langKey="permisson_editors_template"  />		
+		<privilege for="dashboard"  name="js" description="Javascript Editors" langKey="permisson_editors_javascript"  />
+		<privilege for="dashboard"  name="css" description="CSS Editors" langKey="permisson_editors_css"  />
+		<privilege for="dashboard"  name="language" description="Language Settings" langKey="permisson_editors_language"  />	
+		<privilege for="dashboard"  name="edit" description="Edit Settings" langKey="permisson_editors_edit"  />
+		<privilege for="dashboard"  name="delete" description="Delete Settings" langKey="permisson_editors_delete"  />
+		<privilege for="dashboard"  name="restore" description="Restore Settings" langKey="permisson_editors_restore"  />
+	</resource>		
+</permissions>

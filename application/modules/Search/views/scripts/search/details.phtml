@@ -1,0 +1,52 @@
+<?php	
+	if($this->menu_id) { $menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); $this->headTitle()->headTitle($menu_name,'SET'); }else{ $this->headTitle()->headTitle($this->translator->translator('search_page_title'),'SET'); }
+	if($this->translator->translator('search_meta_key')) { $this->headMeta()->setName('keywords',$this->translator->translator('search_meta_key')); }
+	if($this->translator->translator('search_meta_desc')) { $this->headMeta()->setName('description',$this->translator->translator('search_meta_desc'));	 }
+
+?>
+
+<div class="mod">
+    <div class="search-icon">
+        <h1><?php if($this->escape($this->menu_id)){ echo $this->escape($this->menu_id); }else{ echo $this->translator->translator('page_title'); }; ?></h1>
+    </div>
+    
+    <div class="clear">&nbsp;</div>
+
+    <div id="box_div_3" class="mod-container simple-container">
+    <form id="form1" name="form1" method="post" action="<?php echo $this->url(array('module' => 'Search','controller' => 'search','action' => 'list'),'Search',true); ?>">
+        <input type="text" name="search_field" id="search_field" class="search_field_cs big-field" value="<?php echo $this->escape($this->search_data); ?>" />
+        <input type="submit" name="Submit" value="<?php echo $this->translator->translator('partial_search_btn'); ?>" class=""/>
+    </form>
+    </div>
+
+	<?php
+    if($this->hits)
+    {
+        $hit = $this->hits;
+    ?> 		 
+			
+		<?php				
+            $this->headTitle()->headTitle(strip_tags($hit['doc_name']),'SET');
+        ?>				
+            
+            <div id="bodydoc">
+                <?php 
+                    if($hit['doc_image'])
+                    { 
+                    $mages_arr = explode(',',$hit['doc_image']);
+                    foreach($mages_arr as $image)
+                    {
+                ?>
+                <div class="mod-content">
+                	<img src="<?php echo $hit['doc_image_path'].'/'.$image; ?>" width="200" border="0" class="thumb"/>
+                    <?php } } echo strip_tags(nl2br(stripslashes($hit['html_content'])),'<br><b><strong>'); ?>
+                </div>
+            </div>
+    <?php			
+    }
+    else
+    {
+        echo $this->translator->translator('search_result_not_found');
+    }
+    ?>
+</div>

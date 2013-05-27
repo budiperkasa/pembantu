@@ -1,0 +1,690 @@
+<div id="container">
+<?php  if (!$this->allow('list')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : 
+$version = Zend_Registry::get('version');	
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+
+function state_truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+$edit_enable = $this->allow('edit','country','Geo');
+$delete_enable = $this->allow('delete','country','Geo'); 
+$add_enable = $this->allow('add','country','Geo');
+if($this->datas)
+{
+	foreach($this->datas as $data_obj)
+	{
+		$datas = $data_obj;
+		break;
+	}
+}
+?>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/****************************Sorting Table End*********************/
+		$('a.reset_btn').click(function() {			
+			 resetFields();	
+			 removeError();	
+		});
+		
+		function resetFields()
+		{
+			$( "#formCountry" )[ 0 ].reset();
+		}
+		
+		function removeError()
+		{
+			$('#actionMessage').html('');
+						
+			$.each($('form').serializeArray(), function(i, field) {				
+					$('#'+field.name).removeClass('ui-state-error');
+					$('input[name="'+field.name+'"]').removeClass('ui-state-error');
+					$('#'+field.name+'_err').html('');									
+			});				
+		}
+		
+		function addError(key,errMsg)
+		{
+			var err_id = key+'_err';
+			var field_name = key;
+			$('input[name="'+field_name+'"]').addClass('ui-state-error');
+			$('#'+err_id).append(errMsg);
+		}
+		
+		function openLoaderDialog()
+		{
+			$('#dialog_loader').dialog({
+						autoOpen: true,
+						modal: true,
+						show: 'fade',
+						resizable: 'false',				
+						open: function(event, ui)
+							 {
+								$("#progressbar").progressbar({
+									value:100
+					
+								});							
+							  }
+					});
+		}
+		
+		function closeLoaderDialog()
+		{
+			$('#dialog_loader').dialog('option','hide','explode').dialog('close');
+		}
+		
+		function getFormData()
+		{
+			var fieldObj = {};
+			$.each($('#formCountry').serializeArray(), function(i, field) {			
+								
+				fieldObj[field.name] = field.value;			
+										
+			});
+			return fieldObj;
+		}
+		
+		$("#add-country-form").dialog({
+			autoOpen: false,
+			width: 850,
+			height: 'auto',
+			show: 'fade',			
+			modal: true
+		});	
+		
+		$('a.add_new_dialog_btn').click(function() {
+				resetFields();
+			 	removeError();	
+				$('#add-country-form').dialog('open');				
+		});
+		
+		$('a.close_dialog_btn').click(function() {			
+			 resetFields();
+			 removeError();	
+			 $("#add-country-form").dialog('option','hide','explode').dialog('close');		
+		});		
+		
+		$('a.add_country_btn').click(function() 
+		{	
+			var formData = getFormData();		
+					
+			$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'country', 'action'     => 'add' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: formData,
+					beforeSend: function(){						
+						removeError();
+						openLoaderDialog();					
+					 },
+					success: function(response){
+						//alert(response);					
+						var json_arr = eval("("+response+")");					
+						closeLoaderDialog();					
+						if(json_arr.status == 'ok')
+						{
+							generateNewRow(json_arr.datas,oTable);	
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+							resetFields();												
+						}
+						else if(json_arr.status == 'errV')
+						{
+							$('#actionMessage').html(errMsgDesign("<?php echo $this->translator->translator('common_err'); ?>"));
+													
+							for(var i= 0; i < json_arr.msg.length; i++)
+							{
+								addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+							}
+						}
+						else
+						{
+							$('#actionMessage').html(errMsgDesign(json_arr.msg));
+						}
+					},
+					error: function(xhr, status, error){
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#actionMessage').html(errMsgDesign(msg));
+					}
+			});
+		});		
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('geo_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?> : function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('geo_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	allFunctions();
+});
+
+function generateNewRow(datas,oTable)
+{	
+	var row =	'<ul>'+
+					'<li>'+
+							<?php if ($edit_enable) : ?>
+							'<a href="javascript:void(0);" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator("common_edit_title"); ?>" alt="<?php echo $this->translator->translator("common_edit_title"); ?>" border="0" /></a>'+
+							'<a href="javascript:void(0);" class="save_btn"  style="display:none;" rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.gif" alt="<?php echo $this->translator->translator("common_save_title"); ?>" title="<?php echo $this->translator->translator("common_save_title"); ?>"  border="0"/></a><a href="javascript:void(0);" class="cancel_btn"  style="display:none;" rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/cancel.gif" alt="<?php echo $this->translator->translator("common_cancel_title"); ?>" title="<?php echo $this->translator->translator("common_cancel_title"); ?>" border="0"/></a>'+
+							<?php endif; ?>
+					'</li>'+													
+					'<li>'+
+							<?php if ($delete_enable) : ?>
+							'<a href="javascript:void(0);" class="delete_btn"  rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" alt="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" /></a>'+
+							<?php endif; ?>	
+					'</li>'+
+				'</ul>';
+		
+		var value	=  '<span><a href="<?php echo $this->url( array("module"=> "Geo", "controller" => "state", "action"     => "list" ),"adminrout",true); ?>/group_id/'+datas.id+'">'+datas.value+'</a></span><input type="text" name="value" id="value" value="'+datas.value+'" size="50" title="<?php echo $this->geoCountryForm->value->getAttrib("title"); ?>" style="display:none" /><span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span>';	
+		
+		oTable.fnAddData([
+					'<input type="checkbox" name="checkbtn" id="checkbtn" value="'+datas.id+'" class="check_btn" />',
+					datas.id,					
+					value,
+					row
+					 ]);
+		$('td', oTable.fnGetNodes()).hover( function() {		
+			$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+		}, function() {
+			$('td.highlighted').removeClass('highlighted');
+		} );
+		$("select#country_id"+datas.id+" option[value='"+datas.country_id+"']").attr("selected","selected");
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(1)').addClass('checkbox');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(2)').addClass('center');
+		$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr:last-child').children('td:nth-child(4)').addClass('tools-list');	
+		allFunctions();
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_container').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator("common_ok"), ENT_QUOTES, "UTF-8"); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+		 {
+			setTimeout(function() 
+			{									
+				if($('#' + event.target.id).dialog('isOpen'))
+				{
+					$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+				}
+			}, 10000);
+		  }
+	});
+}
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+function checkNonDeletedId(id,id_arr)
+{
+	var tmp = false;
+	for(var i = 0;i < id_arr.length;i++)
+	{
+		if(id_arr[i] == id)
+		{
+			tmp = true;
+			break;
+		}
+	}
+	return tmp;
+}
+
+function deleteThis(self)
+{
+	var arr = $(self).attr('rel').split('_');
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'country', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: { id: arr[0]},
+		 beforeSend: function(){
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+				var oTables = $('#sortTable').dataTable();
+				var anSelected = fnGetSelected( oTables );
+				oTables.fnDeleteRow( anSelected[0] );
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" />');
+			}
+		 },
+		error: function(xhr, status, error){
+			var msg = "Error! " + xhr.status + " " + error;
+			openMsgDialog(msg);
+		}
+	});
+}
+
+function deleteAll(self)
+{
+	var id_str = '';
+	for(var i=0;i < $('input.check_btn:checked').length;i++)
+	{
+		if(i == 0)
+		{
+			 id_str += $('input.check_btn:checked:eq('+i+')').val();
+		}
+		else
+		{
+			id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+		}
+	}
+	
+	$.ajax({
+			url: "<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'country', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: { id_st: id_str},
+			beforeSend: function(){
+				$(self).html('<span class="icon loader"></span>');
+			 },
+			success: function(response) 
+			{
+				//alert(response);
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					var hasNonDelete = false;
+					for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+					{	
+						if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+						{							
+							$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');							
+							var oTabled = $('#sortTable').dataTable();
+							var anSelected = fnGetSelected( oTabled );
+							oTabled.fnDeleteRow( anSelected[0] );								
+						}
+						else
+						{
+							hasNonDelete = true;
+						}
+					}
+					var oTabled = $('#sortTable').dataTable();
+					var anSelected = fnGetSelected( oTabled );
+					for(var k = 0; k < anSelected.length; k++)
+					{
+						oTabled.fnDeleteRow( anSelected[k] );
+					}
+					if(hasNonDelete)
+					{
+						openMsgDialog("<?php echo $this->translator->translator("geo_country_for_delete_all_err"); ?>");
+					}
+				}
+				else
+				{							
+					openMsgDialog(json_arr.msg);
+				}	
+				$(self).html('<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>');
+			},
+			error: function(xhr, status, error){
+				var msg = "Error! " + xhr.status + " " + error;
+				openMsgDialog(msg);
+			}
+	});	
+}
+		
+function allFunctions()
+{
+	$('a.edit_btn').unbind('click');
+	$('a.edit_btn').click(function() {
+		var self = this;
+		
+		if($(self).is(":visible"))
+		{				
+			$(self).hide();	
+			$(self).parents("li:first").children("a:nth-child(2)").show();
+			$(self).parents("li:first").children("a:nth-child(3)").show();						
+						
+			
+			var value = $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").val();
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").hide();
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").show();
+		}
+	});
+	
+	$('a.cancel_btn').unbind('click');
+	$('a.cancel_btn').click(function() {
+			var self = this;
+			if($(self).is(":visible"))
+			{
+				$(self).hide();	
+				$(self).parents("li:first").children("a:nth-child(2)").hide();
+				$(self).parents("li:first").children("a:nth-child(1)").show();				
+							
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").show();
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").hide();
+				
+			}
+		});
+	
+	$('a.save_btn').unbind('click');	
+	$('a.save_btn').click(function() {
+			var self = this;
+			var rel = $(self).attr('rel');
+			
+			if($(self).is(":visible"))
+			{
+				var value   = $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").val();
+				
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Geo', 'controller' => 'country', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { id: rel,  value: value},
+						beforeSend: function(){						
+							
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").show();
+							$(self).hide();	
+							$(self).parents("li:first").children("a:nth-child(3)").hide();
+							$(self).parents("li:first").children("a:nth-child(1)").show();					
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{								
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").children("a:nth-child(1)").html(value);
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").show();
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").hide();
+							}
+							else
+							{
+								$(self).show();	
+								$(self).parents("li:first").children("a:nth-child(3)").show();
+								$(self).parents("li:first").children("a:nth-child(1)").hide();								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").show();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").hide();
+								openMsgDialog(json_arr.msg);
+							}						
+						}
+					});
+			}
+		});
+			
+		
+	
+		$('a.delete_btn').unbind('click');	
+		$('a.delete_btn').click(function() {
+			var self = this;
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('geo_list_delete_confirm')); ?>").dialog({
+				resizable: false,
+				width:400,
+				height:170,
+				modal: true,
+				show: 'fade',
+				hide: 'explode',
+				buttons: {
+						'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+						deleteThis(self);
+						$(this).dialog('close');
+					},
+				<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>: function() {
+						$(this).dialog('close');
+					}
+				}
+			});
+			
+		});		
+}
+</script>
+
+<style type="text/css">
+.tmp_country_id{
+	display:none;
+}
+</style>
+
+<div class="title-container">
+	<div class="country-list"><h1><?php echo $this->translator->translator('geo_country_list_page_name');  ?></h1></div>
+    
+    <div class="button-container">
+        <?php if ($add_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0)" class="add_new_dialog_btn"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($delete_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<div id="button_top_bar"></div>
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('nav_menu.phtml');  ?>
+    </div>
+    
+    
+    
+    <div id="content-inner">
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->datas, 'Sliding', 'top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+			<div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                    <thead>
+                    	<tr>
+                     		<th width="7%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                     		<th width="13%"><?php echo $this->translator->translator('geo_country_list_page_id'); ?></th>
+                      		<th width="65%"><?php echo $this->translator->translator('geo_country_list_value'); ?> </th>
+                      		<th width="15%"><?php echo $this->translator->translator('common_action'); ?></th>
+                    	</tr>
+                 	</thead>
+                    <tbody>
+                    <?php 	
+                                                            
+                    $j = 1;
+                    foreach ($this->datas as $entry): 
+                        if($j % 2 == 0)
+                        {
+                            $onmouseout = "this.bgColor='#FFFFFF';";
+                            $background = '#FFFFFF';
+                        }
+                        else
+                        {
+                            $onmouseout = "this.bgColor='#F7F7F7';";
+                            $background = '#F7F7F7';
+                        }
+                        
+                    ?>
+                   		<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                     		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                      		<td class="center"><?php echo $this->numbers($this->escape($entry->id)); ?></td>                                           
+                      		<td><?php  echo '<span><a href="'.$this->url( array('module'=> 'Geo', 'controller' => 'state', 'action'     => 'list', 'group_id' =>  $this->escape($entry->id) ),'adminrout',true).'">'.$this->escape($entry->value).'</a></span>'; 
+								$this->geoCountryForm->value->setValue($this->escape($entry->value));
+								$this->geoCountryForm->value->setAttribs(array('style' => 'display:none'));
+								echo $this->geoCountryForm->value; ?>
+                                <span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span>
+							</td>
+                      		<td class="tools-list">
+                            	<ul>
+                                	<li>
+									<?php if ($edit_enable) : ?>
+                                    <a href="javascript:void(0);" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                    <a href="javascript:void(0);" class="save_btn"  style="display:none;" rel="<?php echo $this->escape($entry->id); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.gif" alt="<?php echo $this->translator->translator('common_save_title'); ?>" title="<?php echo $this->translator->translator('common_save_title'); ?>" border="0"/></a><a href="javascript:void(0);" class="cancel_btn"  style="display:none;" rel="<?php echo $this->escape($entry->id); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/cancel.gif" alt="<?php echo $this->translator->translator('common_cancel_title'); ?>" title="<?php echo $this->translator->translator('common_cancel_title'); ?>" border="0"/></a>
+                                    <?php endif; ?>
+                                    </li>
+                          			
+                                    <li>
+									<?php if ($delete_enable) : ?>
+                                    <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>" border="0" /></a>
+                                    <?php endif; ?>
+                                    </li>
+                              	</ul>
+                      		</td>
+                    	</tr>
+                    <?php 													
+                        $j++;
+                        endforeach;    
+                   	?>
+                  	</tbody>
+				</table>
+            </div>
+      	</div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->datas, 'Sliding', 'pagination.phtml'); ?>
+        </div>
+	</div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('geo_country_list_page_name');  ?></h1>
+    
+    <div class="button-container">
+        <?php if ($add_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0)" class="add_new_dialog_btn"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($delete_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg','Geo Message'); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation','Delete'); ?>"></div>	
+<div id="dialog_loader" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+
+	<?php  if ($add_enable) : ?>
+	<div id="add-country-form" title="<?php echo $this->translator->translator('geo_country_add_page_info'); ?>">
+    	<div class="dialog-container">
+            <div class="title-container">
+                <div class="country-list-add"><h1><?php echo $this->translator->translator('geo_country_add_page_info'); ?></h1></div>
+            
+                <div class="button-container">
+                    <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1" id="add_btn"><a href="javascript: void(0);" class="add_country_btn"><span class="icon save"><?php echo $this->translator->translator('common_save'); ?></span></a></span>
+                </div>
+            </div>
+        	<div class="clr"></div>
+            
+            <div class="content-container">
+                <div id="actionMessage"></div>
+                <div id="generalInfo">
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('geo_country_add_page_info'); ?></legend>
+                        <form id="formCountry" name="formCountry" method="post">
+                            <div class="form">
+                                <div class="form-row">
+                                    <div class="label">
+                                    	<?php echo $this->geoCountryForm->value->getLabel(); if($this->geoCountryForm->value->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                    </div>
+                                    
+                                    <div class="field">
+                                        <?php $this->geoCountryForm->value->setValue('');
+										$this->geoCountryForm->value->setAttribs(array('style' => 'display:inline;'));
+										echo $this->geoCountryForm->value; ?>
+                                        <div class="input-errors" id="value_err"></div>
+                                    </div>
+                             	</div>
+                          	</div>
+                     	</form>
+                 	</fieldset>
+             	</div>
+         	</div>          
+      	</div>
+	</div>	
+	<?php endif; ?>
+<?php endif; ?>
+</div>

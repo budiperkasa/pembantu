@@ -1,0 +1,596 @@
+<?php
+class property_sidebar_search
+{
+	protected	$_group = 1;
+	protected	$_active =	1;
+	protected	$_front_template;
+	protected	$_translator;
+	protected	$_view;
+	protected	$postValue;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;	
+		$this->_translator = Zend_Registry::get('translator');	
+		$frontController = Zend_Controller_Front::getInstance();
+		$this->postValue = $frontController->getRequest()->getPost();
+	}
+	
+	public function class_body()
+	{
+		$version = new Eicra_License_Version();  
+		
+		$property_Country_DB = new Property_Model_DbTable_Country();
+		$property_State_DB = new Property_Model_DbTable_State();
+		$property_Area_DB = new Property_Model_DbTable_Area();
+		$property_DB = new Property_Model_DbTable_Properties();
+		$businessType_BD = new Property_Model_DbTable_BusinessType();
+
+
+		$global_conf = Zend_Registry::get('global_conf');
+		$currency = new Zend_Currency($global_conf['default_locale']);
+		
+		
+		$price_info_min = $property_DB->getPrice('ASC');
+		$price_info_max = $property_DB->getPrice('DESC');
+		
+		$number_of_rooms_min = $property_DB->getRoomNumber('ASC');
+		$number_of_rooms_max = $property_DB->getRoomNumber('DESC');
+		
+		$property_type_ID = $property_DB->getPropertyType('ASC');
+		$stars = $property_DB->getStars();
+		$bedrooms = $property_DB->getNumberOfBedsRooms();
+		$bedrooms_max = $property_DB->getNumberOfBedsRooms('DESC');
+		$bathrooms = $property_DB->getNumberOfBathRooms();
+		$bathrooms_max = $property_DB->getNumberOfBathRooms('DESC');
+		$propertySize = $property_DB->getPropertySize();
+		$propertySize_max = $property_DB->getPropertySize('DESC');		
+		$propertyBuildYear = $property_DB->getPropertyBuildYear();
+		$propertyBuildYear_max = $property_DB->getPropertyBuildYear('DESC');	
+		$countries = $property_Country_DB->getCountryInfo ();
+		
+?>
+	<script type="text/javascript">
+	$(function() {
+		$( "#post_code_advance_box" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->_view->url( array('module'=> 'Property', 'controller' => 'frontend', 'action'     => 'searchname' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						post_code: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								var property_primary_image	= item.property_primary_image;
+								var property_image	= item.property_image;
+								var img_arr = (property_primary_image)? property_primary_image.split(',') : property_image.split(',');
+								var room = item.property_location.split('<br />');
+								return {
+									label: item.property_name,
+									value: item.post_code,
+									pic: '<img src="data/frontImages/property/property_image/'+img_arr[0]+'" width="25" height="20" />',
+									room:item.property_room,
+									owner:item.owner_name,
+									location: room[1]
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return 
+							}));
+						}
+					}
+				});
+			},
+			minLength: 1,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>" + item.pic+ " " + item.label  + item.owner + " <strong><?php echo $this->_translator->translator('property_post_code'); ?> :</strong> "+ item.value + item.room + " "+item.location+"</a>" )
+				.appendTo( ul );
+		};	
+		
+		
+		$('select.country_id').change(function() {	
+			if($('select.country_id option:selected').val() == 'any' || $('select.country_id option:selected').val() =='')
+			{
+				$('select.area_id').html('<option value="any"><?php echo $this->_translator->translator("property_select_area"); ?></option>');	
+				$('select.state_id').html('<option value="any"><?php echo $this->_translator->translator("property_select_state"); ?></option>');
+			}
+			else
+			{	
+				$.ajax({
+					  url: "<?php echo $this->_view->url( array('module' =>'Property','controller' => 'frontend', 'action'     => 'states' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('select.country_id option:selected').val() },
+					  beforeSend: function(){						
+								$('select.state_id').html('<option value="any"><?php echo $this->_translator->translator("common_loading_language"); ?></option>');
+								$('select.area_id').html('<option value="any"><?php echo $this->_translator->translator("property_select_area"); ?></option>');			
+								$('#state_id_err').html('<img src="application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							 },
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->_translator->translator("property_select_state"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.states.length;i++)
+							{
+								option += '<option value="'+json_arr.states[i].state_id+'" >'+stripslashes(json_arr.states[i].state_name)+'</option>';
+							}
+							$('select.state_id').html(option);
+						}
+						else
+						{
+							$('select.state_id').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#state_id_err').html('');
+					  }
+				});
+			}
+		});
+		
+		$('select.state_id').change(function() {		
+					
+			if($('select.state_id option:selected').val() == 'any' || $('select.state_id option:selected').val() == '')
+			{
+				$('select.area_id').html('<option value="any"><?php echo $this->_translator->translator("property_select_area"); ?></option>');
+			}
+			else
+			{
+				$.ajax({
+					  url: "<?php echo $this->_view->url( array('module' => 'Property', 'controller' => 'frontend', 'action'     => 'areas' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { id: $('select.state_id option:selected').val() },
+					  beforeSend: function(){						
+							$('select.area_id').html('<option value="any"><?php echo $this->_translator->translator("common_loading_language"); ?></option>');
+							$('#area_id_err').html('<img src=""application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							},
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->_translator->translator("property_select_area"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.cities.length;i++)
+							{
+								option += '<option value="'+json_arr.cities[i].city_id+'" >'+stripslashes(json_arr.cities[i].city)+'</option>';
+							}
+							$('select.area_id').html(option);
+						}
+						else
+						{
+							$('select.area_id').html('<option value="any">'+json_arr.msg+'</option>');
+						}
+						$('#area_id_err').html('');
+					  }
+				});
+			}
+		});	
+				
+	});
+	
+	function stripslashes(str) 
+	{
+		str=str.replace(/\\'/g,'\'');
+		str=str.replace(/\\"/g,'"');
+		str=str.replace(/\\0/g,'\0');
+		str=str.replace(/\\\\/g,'\\');
+		return str;
+	}
+	</script>
+	<form name="formBlockAdvanceSearch" id="formBlockAdvanceSearch" method="post" action="<?php echo $this->_view->url( array('module' => 'Property', 'controller' => 'search', 'action'     => 'items' ), 'Search-Items',    true); ?>">
+        <div class="block block-sidebar-search">
+            <div class="block-body">
+                <div class="block-heading"><h1><?php echo $this->_translator->translator('block_inner_search_title','','', $this->_front_template['theme_folder']); ?></h1></div>
+                <div class="block-content-1">
+                    	<?php echo $this->_translator->translator('block_search_postcode','','', $this->_front_template['theme_folder']); ?>
+                    
+                        <input type="text" name="post_code_=" id="post_code_advance_box" value="<?php  if(!empty($this->postValue['post_code_='])){ echo $this->postValue['post_code_=']; } ?>">
+                        
+                        <input type="hidden" name="active_=" id="active" value="<?php echo $this->_active; ?>" /><input type="hidden" name="group_id_=" id="group_id" value="<?php echo $this->_group; ?>" />
+                        
+                        <select name="property_type_=" id="property_type_=">
+                            <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_type','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+                            if($property_type_ID)
+		 					{
+                                foreach($property_type_ID as $key => $value)
+                                {											
+                                    
+                                    $property_type = $businessType_BD->getBusinessTypeInfo($value['property_type']);
+                                    $selected = ($this->postValue['property_type_='] == $value['property_type'] && strtolower($this->postValue['property_type_=']) != 'any') ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_type']; ?>" <?php echo $selected; ?>><?php echo $this->_view->escape($property_type['business_type']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="country_id_="  id="country_id_search_box" class="country_id">
+                            <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_country','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+                                $selected_country_id = (empty($this->postValue['country_id_=']) || strtolower($this->postValue['country_id_=']) == '') ? $global_conf['default_country'] : $this->postValue['country_id_='];
+                               	if($countries)
+		 						{
+									foreach($countries as $key=>$value)
+									{
+										$selected = ($selected_country_id == $key) ? ' selected="selected" ' : '';
+			
+								?>
+									<option value="<?php echo $key; ?>"<?php echo $selected; ?>><?php echo $value; ?></option>					
+								<?php
+                                }
+								}
+                            ?>
+                        </select>
+                        
+                        <select name="state_id_=" id="state_id_search_box" class="state_id">
+                            <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_state','','', $this->_front_template['theme_folder']); ?></option>	
+                            <?php
+                                $state_info = $property_State_DB->getAllStateInfo($selected_country_id); 
+                                if($state_info)
+		 						{
+									foreach($state_info as $key=>$value)
+									{
+										$selected = ($value['state_id'] == $this->postValue['state_id_=']) ? ' selected="selected" ' : '';
+										echo '<option value="'.$this->_view->escape($value['state_id']).'"'.$selected.'>'.$this->_view->escape($value['state_name']).'</option>';
+									}
+								}
+                             ?>																		
+                        </select>
+                        
+                        <select name="area_id_=" id="area_id_search_box" class="area_id">
+                        
+                        <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_area','','', $this->_front_template['theme_folder']); ?></option>	
+                        <?php
+                                $selected_state_id = (empty($this->postValue['state_id_=']) || strtolower($this->postValue['state_id_=']) == 'any') ? '' : $this->postValue['state_id_='];
+                                if(!empty($selected_state_id ))
+                                {
+                                    $area_info = $property_Area_DB->getAllAreaInfo($selected_state_id); 
+                                    if($area_info)
+		 							{
+										foreach($area_info as $key=>$value)
+										{
+											$selected = ($value['city_id'] == $this->postValue['area_id_=']) ? ' selected="selected" ' : '';
+											echo '<option value="'.$this->_view->escape($value['city_id']).'"'.$selected.'>'.$this->_view->escape($value['city']).'</option>';
+										}
+									}
+                                }
+                             ?>																		
+                        </select>
+                </div>
+                
+                <div class="block-content-2">
+                    <select name="property_price_>=" id="property_price_>=">
+                        <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_price_min','','', $this->_front_template['theme_folder']); ?></option>
+                        <?php
+							if($price_info_min)
+		 					{						
+								foreach($price_info_min as $key=>$value)
+								{
+									$selected = ($this->postValue['property_price_>='] == $value['property_price'] && strtolower($this->postValue['property_price_>=']) != '' && strtolower($this->postValue['property_price_>=']) != 'any' ) ? ' selected="selected" ' : '';
+							?>
+								<option value="<?php echo $value['property_price']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_price']).' '.$currency->getSymbol(); ?></option>
+							<?php
+								}
+							}
+                        ?>
+                    </select>
+                        
+                        <select name="property_price_<=" id="property_price_=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_sidebar_search_price_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($price_info_max)
+		 					{						
+                                foreach($price_info_max as $key=>$value)
+                                {
+                                    $selected = ($this->postValue['property_price_<='] == $value['property_price'] && strtolower($this->postValue['property_price_<=']) != '' && strtolower($this->postValue['property_price_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_price']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_price']).' '.$currency->getSymbol(); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="feature_room_no_>=" id="feature_room_no_>=">
+                            <option value="any" selected="selected"><?php echo $this->_translator->translator('block_search_room_min','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($number_of_rooms_min)
+		 					{						
+                                foreach($number_of_rooms_min as $key=>$value)
+                                {
+                                    
+                                    $selected = ( $this->postValue['feature_room_no_>='] == $value['feature_room_no'] && strtolower($this->postValue['feature_room_no_>=']) != '' && strtolower($this->postValue['feature_room_no_>=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_room_no']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_room_no']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="feature_room_no_<=" id="feature_room_no_<=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_search_room_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($number_of_rooms_max)
+		 					{						
+                                foreach($number_of_rooms_max as $key=>$value)
+                                {
+                                    $selected = ( $this->postValue['feature_room_no_<='] == $value['feature_room_no'] && strtolower($this->postValue['feature_room_no_<=']) != '' && strtolower($this->postValue['feature_room_no_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_room_no']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_room_no']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        
+                        <select name="feature_bedroom_>=" id="feature_bedroom_>=">
+                            <option value="any" selected="selected"><?php echo $this->_translator->translator('block_search_bedroom_min','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($bedrooms)
+		 					{						
+                                foreach($bedrooms as $key=>$value)
+                                {
+                                    
+                                    $selected = ( $this->postValue['feature_bedroom_>='] == $value['feature_bedroom'] && strtolower($this->postValue['feature_bedroom_>=']) != '' && strtolower($this->postValue['feature_bedroom_>=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_bedroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bedroom']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="feature_bedroom_<=" id="feature_bedroom_<=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_search_bedroom_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($bedrooms_max)
+		 					{						
+                                foreach($bedrooms_max as $key=>$value)
+                                {
+                                    $selected = ( $this->postValue['feature_bedroom_<='] == $value['feature_bedroom'] && strtolower($this->postValue['feature_bedroom_<=']) != '' && strtolower($this->postValue['feature_bedroom_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_bedroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bedroom']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="feature_bathroom_>=" id="feature_bathroom_>=">
+                            <option value="any" selected="selected"><?php echo $this->_translator->translator('block_search_bathroom_min','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($bathrooms)
+		 					{						
+                                foreach($bathrooms as $key=>$value)
+                                {
+                                    
+                                    $selected = ( $this->postValue['feature_bathroom_>='] == $value['feature_bathroom'] && strtolower($this->postValue['feature_bathroom_>=']) != '' && strtolower($this->postValue['feature_bathroom_>=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_bathroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bathroom']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="feature_bathroom_<=" id="feature_bathroom_<=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_search_bathroom_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($bathrooms_max)
+		 					{						
+                                foreach($bathrooms_max as $key=>$value)
+                                {
+                                    $selected = ( $this->postValue['feature_bathroom_<='] == $value['feature_bathroom'] && strtolower($this->postValue['feature_bathroom_<=']) != '' && strtolower($this->postValue['feature_bathroom_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['feature_bathroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bathroom']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        
+                        <select name="property_size_>=" id="property_size_>=">
+                            <option value="any" selected="selected"><?php echo $this->_translator->translator('block_search_size_min','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php	
+							if($propertySize)
+		 					{					
+                                foreach($propertySize as $key=>$value)
+                                {
+                                    
+                                    $selected = ( $this->postValue['property_size_>='] == $value['property_size'] && strtolower($this->postValue['property_size_>=']) != '' && strtolower($this->postValue['property_size_>=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_size']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_size']).$this->_translator->translator('property_block_advanced_search_label_property_size_unit','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="property_size_<=" id="property_size_<=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_search_size_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($propertySize_max)
+		 					{						
+                                foreach($propertySize_max as $key=>$value)
+                                {
+                                    $selected = ( $this->postValue['property_size_<='] == $value['property_size'] && strtolower($this->postValue['property_size_<=']) != '' && strtolower($this->postValue['property_size_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_size']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_size']).$this->_translator->translator('block_search_size_unit','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="property_build_year_>=" id="property_build_year_>=">
+                            <option value="any" selected="selected"><?php echo $this->_translator->translator('block_search_build_year_min','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($propertyBuildYear)
+		 					{						
+                                foreach($propertyBuildYear as $key=>$value)
+                                {
+                                    
+                                    $selected = ( $this->postValue['property_build_year_>='] == $value['property_build_year'] && strtolower($this->postValue['property_build_year_>=']) != '' && strtolower($this->postValue['property_build_year_>=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_build_year']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_build_year']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                        
+                        <select name="property_build_year_<=" id="property_build_year_<=" class="last">
+                            <option value="any"><?php echo $this->_translator->translator('block_search_build_year_max','','', $this->_front_template['theme_folder']); ?></option>
+                            <?php
+							if($propertyBuildYear_max)
+		 					{						
+                                foreach($propertyBuildYear_max as $key=>$value)
+                                {
+                                    $selected = ($this->postValue['property_build_year_<='] == $value['property_build_year'] && strtolower($this->postValue['property_build_year_<=']) != '' && strtolower($this->postValue['property_build_year_<=']) != 'any' ) ? ' selected="selected" ' : '';
+                            ?>
+                                <option value="<?php echo $value['property_build_year']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_build_year']); ?></option>
+                            <?php
+                                }
+							}
+                            ?>
+                        </select>
+                </div>
+                
+                <div class="block-content-3">
+                    <select name="stars_=" id="stars_=">
+                    <option value=""><?php echo $this->_translator->translator('block_search_stars','','', $this->_front_template['theme_folder']); ?></option>
+                    <?php
+                     if($stars)
+		 			 {
+                            foreach($stars as $key=>$value)
+                            {
+                                if(!empty($value['stars']))
+                                {
+                                $selected = ($this->postValue['stars_='] == $value['stars']) ? ' selected="selected" ' : '';
+                        ?>
+                            <option value="<?php echo $value['stars']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['stars']); ?></option>
+                        <?php
+                                }
+                            }
+					 }
+                        ?>
+                    </select>
+                  
+                    <select name="feature_bedroom_=" id="feature_bedroom_=">
+                    <option value=""><?php echo $this->_translator->translator('block_search_bedroom_any','','', $this->_front_template['theme_folder']); ?></option>
+                    <?php
+    					if($bedrooms)
+		 			 	{
+                            foreach($bedrooms as $key=>$value)
+                            {
+                                if(!empty($value['feature_bedroom']))
+                                {
+                                $selected = ($this->postValue['feature_bedroom_='] == $value['feature_bedroom']) ? ' selected="selected" ' : '';
+                        ?>
+                            <option value="<?php echo $value['feature_bedroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bedroom']); ?></option>
+                        <?php
+                                }
+                            }
+						}
+                        ?>
+                    </select>
+                    
+                    <select name="feature_bathroom_=" id="feature_bathroom_=">
+                    <option value=""><?php echo $this->_translator->translator('block_search_bathroom_any','','', $this->_front_template['theme_folder']); ?></option>
+                    <?php
+                        if($bedrooms)
+		 			 	{   
+                            foreach($bathrooms as $key=>$value)
+                            {
+                                if(!empty($value['feature_bathroom']))
+                                {
+                                $selected = ($this->postValue['feature_bathroom_='] == $value['feature_bathroom']) ? ' selected="selected" ' : '';
+                        ?>
+                            <option value="<?php echo $value['feature_bathroom']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['feature_bathroom']); ?></option>
+                        <?php
+                                }
+                            }
+						}
+                        ?>
+                    </select>
+                    
+                    
+                    <select name="property_size_=" id="property_size_=">
+                    <option value=""><?php echo $this->_translator->translator('block_search_size_any','','', $this->_front_template['theme_folder']); ?></option>
+                    <?php
+                        if($propertySize)
+		 			 	{   
+                            foreach($propertySize as $key=>$value)
+                            {
+                                if(!empty($value['property_size']))
+                                {
+                                $selected = ($this->postValue['property_size_='] == $value['property_size']) ? ' selected="selected" ' : '';
+                        ?>
+                            <option value="<?php echo $value['property_size']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_size']).$this->_translator->translator('block_search_size_unit','','', $this->_front_template['theme_folder']); ?></option>
+                        <?php
+                                }
+                            }
+						}
+                        ?>
+                    </select>
+                    
+                    <select name="property_build_year_=" id="property_build_year_=">
+                    <option value=""><?php echo $this->_translator->translator('block_search_build_year_any','','', $this->_front_template['theme_folder']); ?></option>
+                    <?php
+                        if($propertyBuildYear)
+		 			 	{  
+                            foreach($propertyBuildYear as $key=>$value)
+                            {
+                                if(!empty($value['property_build_year']))
+                                {
+                                $selected = ($this->postValue['property_build_year_='] == $value['property_build_year']) ? ' selected="selected" ' : '';
+                        ?>
+                            <option value="<?php echo $value['property_build_year']; ?>"<?php echo $selected; ?>><?php echo $this->_view->escape($value['property_build_year']); ?></option>
+                        <?php
+                                }
+                            }
+						}
+                        ?>
+                    </select>
+                    
+                    <input type="submit" name="button" id="button" value="<?php echo $this->_translator->translator('block_inner_search_btn','','', $this->_front_template['theme_folder']); ?>">
+                    <a href="javascript:void(0);" class="clear_search"><?php echo $this->_translator->translator('block_inner_search_clear','','', $this->_front_template['theme_folder']); ?></a>
+                </div>
+            </div>
+        </div>
+	</form>
+<?php
+	}
+}
+	
+	try
+	{
+		$advanced_search_class = new property_sidebar_search($this);
+		$advanced_search_class->class_body();
+	}
+	catch(Exception $e)
+	{
+		echo $e->getMessage();
+	}	
+?>

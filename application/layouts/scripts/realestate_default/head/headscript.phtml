@@ -1,0 +1,88 @@
+<?php
+$front_template = Zend_Registry::get('front_template');
+echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/jquery/jquery-1-8-3/jquery.js', '');
+echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/jui/jui-1-9-2/green/jquery-ui-custom.js', '');
+echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/jui/jui-1-9-2/green/jquery-ui-custom.css');
+echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/js/jquery.idTabs.min.js', '');
+echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/js/common.js', '');
+echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/template.css');
+echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/general.css');
+
+/*********************************************************Kendo Start*********************************************/
+$kendo_theme = 'Bootstrap';
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/kendo/src/js/kendo.all.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Portfolio/js/uploader.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.common.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.'.strtolower($kendo_theme).'.css');
+/*********************************************************Kendo End*********************************************/
+
+$locale = Eicra_Global_Variable::getSession()->sess_lang;
+$locale_arr = explode('_', $locale);
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$style_direction = ($locale_direction == 'rtl') ? '_'.$locale_direction : '';
+
+if($locale_direction == 'rtl')
+{
+    echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/template'.$style_direction.'.css');
+    echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/general'.$style_direction.'.css'); 
+}	
+echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/pagination.css');
+?>
+
+<script>
+
+$(document).ready(function(){
+
+$("a.jQueryBookmark").click(function(e){
+
+	e.preventDefault(); // this will prevent the anchor tag from going the user off to the link
+
+	var bookmarkUrl = this.href;
+
+	var bookmarkTitle = this.title;
+
+	if (window.sidebar) { // For Mozilla Firefox Bookmark
+
+		window.sidebar.addPanel(bookmarkTitle, bookmarkUrl,"");
+
+	} else if( window.external || document.all) { // For IE Favorite
+
+		window.external.AddFavorite( bookmarkUrl, bookmarkTitle);
+
+	} else if(window.opera) { // For Opera Browsers
+
+		$("a.jQueryBookmark").attr("href",bookmarkUrl);
+
+		$("a.jQueryBookmark").attr("title",bookmarkTitle);
+
+		$("a.jQueryBookmark").attr("rel","sidebar");
+
+	} else { // for other browsers which does not support
+
+		 alert('Your browser does not support this bookmark action');
+
+		 return false;
+
+	}
+
+});
+
+$( document ).tooltip({
+			content: function() {
+				var element = $( this );
+				if(element.attr('link'))
+				{
+					 return (element.attr('title')) ? "<img  src='"+element.attr('link')+"' width='300' /><br />"+element.attr('title') : "<img  src='"+element.attr('link')+"' width='300' />";
+				}
+				else
+				{
+					if(element.attr('title'))
+					{
+						return element.attr('title');
+					}
+				}
+			},
+			track: true
+		});
+});
+</script>

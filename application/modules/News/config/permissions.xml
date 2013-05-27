@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Manage News Category" langKey="permisson_category">
+		<privilege for="dashboard" name="list" description="View the list of Category" langKey="permisson_category_list" />
+		<privilege for="dashboard" name="add" description="Create new Category" langKey="permisson_category_add" />
+		<privilege name="edit" description="Edit Category" langKey="permisson_category_edit" />
+		<privilege name="delete" description="Delete a Category" langKey="permisson_category_delete" />
+		<privilege name="featured" description="Featured Category" langKey="permisson_category_featured" />
+		<privilege name="publish" description="Active Deactive a Category" langKey="permisson_category_activeDeactive" />
+	</resource>
+	<resource name="backendgrp" for="backend" description="Manage News Group" langKey="permisson_news">
+		<privilege for="dashboard" name="listgrp" description="View the list of News Group" langKey="permisson_News_group_list" />
+		<privilege for="dashboard" name="addgrp" description="Create new News Group" langKey="permisson_News_group_add" />
+		<privilege name="editgrp" description="Edit a News Group" langKey="permisson_News_group_edit" />
+		<privilege name="deletegrp" description="Delete a News Group" langKey="permisson_News_group_delete" />
+		<privilege name="publishgrp" description="Active Deactive a News Group" langKey="permisson_News_group_activeDeactive" />
+	</resource>	
+	
+	<resource name="backendpro" for="backend" description="Manage News Page" langKey="permisson_page">
+		<privilege for="dashboard" name="list" description="View the list of Page" langKey="permisson_page_list" />
+		<privilege for="dashboard" name="add" description="Create new Page" langKey="permisson_page_add" />
+		<privilege name="edit" description="Edit Page" langKey="permisson_page_edit" />
+		<privilege name="delete" description="Delete a Page" langKey="permisson_page_delete" />
+		<privilege name="featured" description="Featured Page" langKey="permisson_page_featured" />
+		<privilege name="publish" description="Active Deactive a Page" langKey="permisson_page_activeDeactive" />
+	</resource>
+	<resource name="frontend" for="frontend" description="Frontend News" langKey="permisson_frontend_News">
+		<privilege name="view" description="News Home page" langKey="permisson_News_front_view" img="permisson_News_front_view.jpg"/>
+		<privilege name="categories" description="View the News Category" langKey="permisson_News_front_category" img="permisson_News_front_category.jpg" />
+		<privilege name="article" description="View the News Article" langKey="permisson_News_front_article" img="permisson_News_front_article.jpg" />
+		<privilege name="archive" description="View the Archive" langKey="permisson_News_front_archive" img="permisson_News_front_archive.jpg" />
+	</resource>
+	<resource name="advertise" for="frontend" description="Advertise" langKey="permisson_frontend_Advertise">
+		<privilege name="list" description="View Advertise List" langKey="permisson_advertise_list_front_view" img="permisson_advertise_list_front_view.jpg" />
+		<privilege name="categories" description="View Advertise Category" langKey="permisson_advertise_list_front_category" img="permisson_advertise_list_front_category.jpg" />
+	</resource>
+	<resource name="event" for="frontend" description="Events" langKey="permisson_frontend_Events">
+		<privilege name="list" description="View Events List" langKey="permisson_events_list_front_view" img="permisson_events_list_front_view.jpg" />		
+	</resource>
+	<resource name="feedback" for="frontend" description="Feedback" langKey="permisson_frontend_Feedback">
+		<privilege name="list" description="View Feedback List" langKey="permisson_feedback_list_front_view" img="permisson_feedback_list_front_view.jpg" />
+	</resource>
+	<resource name="project" for="frontend" description="Projects" langKey="permisson_frontend_projects">
+		<privilege name="document" description="View Project Document" langKey="permisson_projects_list_front_document" img="permisson_projects_list_front_document.jpg" />
+	</resource>
+	<resource name="search" for="frontend" description="Search Content" langKey="permisson_frontend_search">
+		<privilege name="search" description="View Search Page" langKey="permisson_frontend_search_action" img="permisson_frontend_search.jpg" />
+	</resource>
+	<dbtable name="news_group" for="view">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="news_name" />
+	</dbtable>
+	<dbtable name="news_category" for="categories">
+		<tablefield name="category_order" />
+		<tablefield name="id" />
+		<tablefield name="category_name" />
+	</dbtable>
+	<dbtable name="news_page" for="article">
+		<tablefield name="page_order" />
+		<tablefield name="id" />
+		<tablefield name="page_name" />
+	</dbtable>
+	<dbtable name="news_group" for="archive">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="news_name" />
+	</dbtable>
+	<dbtable name="news_group" for="list">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="news_name" />
+	</dbtable>
+</permissions>

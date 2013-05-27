@@ -1,0 +1,321 @@
+<?php
+$menu_session_arr = (Eicra_Global_Variable::getSession()->admin_top_menu) ? Eicra_Global_Variable::getSession()->admin_top_menu : '';
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+$style_direction = ($locale_direction == 'rtl') ? '_'.$locale_direction : '';
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/megamenu.css', "screen", false);
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/js/mobile.js');
+
+if($locale_direction == 'rtl')
+{
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/megamenu'.$style_direction.'.css');	
+}
+?>
+<!--[if lt IE 9]>
+<?php echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/admin_menu/css/ie/ie.css', "screen", true); ?>
+<![endif]-->
+<?php
+if(empty($menu_session_arr) || empty($menu_session_arr['complete']))
+{
+	Eicra_Global_Variable::getSession()->admin_top_menu = '';
+	$auth = Zend_Auth::getInstance ();	
+	$role_id = ($auth->hasIdentity ()) ? $auth->getIdentity()->role_id : '' ;
+?>	
+	<script type="text/javascript">
+	var count = 0;
+	var module = [];
+	var controller = [];
+	var action = [];
+	var main_menu_const = [];
+	var sub_menu_const = [];
+	var menu_link = [];
+	var travel_array = [4,5,6,7,8,9,10,11];
+	var all_menu = new Array();
+	var travel_array_string = travel_array.join(',');	
+	var all_menu_obj = {};
+	
+	$(document).ready(function(){
+		
+		module[0] = 'Administrator,Members,Members,Members,Members,Members';
+		controller[0] = 'role,index,index,index,form,password';
+		action[0] = 'list,add,list,list,values,change';
+		main_menu_const[0] = 'admin_menu_user';
+		sub_menu_const[0] = 'admin_menu_new_group;;;;menu_divider,,admin_menu_new_user;;;<?php echo $this->url(array("module" => "Members","controller"=>"index", "action"=>"group"),"adminrout",true);?>,,admin_menu_edit_user,,admin_menu_search_user;;;;menu_divider,,admin_menu_package;;;<?php echo $this->url(array("module" => "Members","controller"=>"form", "action"=>"values", "form_id" => "9"),"adminrout",true);?>;menu_divider,,Member_menu_change_pass;;Members';
+				
+		module[1] = 'Settings,Members,Members,Administrator,Members';
+		controller[1] = 'global,form,form,index,index';
+		action[1] = 'update,add,list,approval,profile';
+		main_menu_const[1] = 'admin_menu_site';
+		sub_menu_const[1] = 'admin_header_menu_global_settings;;;;menu_divider,,admin_menu_custom_form_create,,admin_menu_custom_form;;;;menu_divider,,admin_menu_pending_approval;;;;menu_divider,,admin_menu_site_preview;;;<?php echo $this->baseUrl().'/'; ?>';
+			
+		module[2] = 'Articles,Articles,Articles,Menu,Articles';
+		controller[2] = 'backend,backend,backend,backend,backend';
+		action[2] = 'add,list,list,add,list';
+		main_menu_const[2] = 'admin_menu_page';
+		sub_menu_const[2] = 'admin_menu_article_add,,admin_menu_article_list_view,,admin_menu_article_edit_delete;;;;menu_divider,,admin_menu_article_link_to_menu;;;<?php echo $this->url(array("module" => "Articles","controller"=>"backend", "action"=>"list", "link" => "1" ),"adminrout",true);?>,,admin_menu_article_draft;;;<?php echo $this->url(array("module" => "Articles","controller"=>"backend", "action"=> "list", "draft" => "0" ),"adminrout",true);?>';
+		
+		module[3] = 'Menu,Menu,Menu,Menu,Menu';
+		controller[3] = 'backend,backend,backend,backend,backend';
+		action[3] = 'addgrp,listgrp,add,list,list';
+		main_menu_const[3] = 'admin_menu_name';
+		sub_menu_const[3] = 'admin_menu_group_add;;;<?php echo $this->url(array("module" => "Menu","controller"=>"backend", "action"=>"listgrp", "create" => "new"),"adminrout",true);?>,,admin_menu_group_manage;;;;menu_divider,,admin_menu_menu_add,,admin_menu_edit_delete;;;;menu_divider,,admin_menu_list_draft;;;<?php echo $this->url(array("module" => "Menu","controller"=>"backend", "action"=>"list", "draft" => "0"),"adminrout",true);?>';
+		
+		
+		
+		module[6] = 'Property,Property,Property,Property,Property,Property,Property,Property,Property,Property';
+		controller[6] = 'backendgrp,backendgrp,backendgrp,backendpro,backendpro,backendpro,backendtype,backendtype,backend,backend';
+		action[6] = 'listgrp,addgrp,listgrp,add,list,saved,add,list,add,list';
+		main_menu_const[6] = 'admin_menu_property';
+		sub_menu_const[6] = 'admin_menu_property_group;;Property,,property_menu8;;Property,,property_menu9;;Property;;menu_divider,,property_menu10;;Property,,property_menu11;;Property,,property_menu7;;Property;;menu_divider,,property_menu12;;Property;<?php echo $this->url(array("module" => "Property","controller"=>"backendtype", "action"=>"list", "create" => "new"),"adminrout",true);?>,,property_menu13;;Property;;menu_divider,,property_menu14;;Property,,property_menu15;;Property';
+		
+		
+		
+		
+		
+		
+		module[12] = 'Gallery,News,Projects,Newsletter,Poll,Review,Comment';
+		controller[12] = 'backendgrp,backendgrp,index,templates,backendpoll,backend,backendcomment';
+		action[12] = 'listgrp,listgrp,filepreview,send,list,list,list';
+		main_menu_const[12] = 'admin_menu_module';
+		sub_menu_const[12] = 'admin_menu_gallery;;;;menu_divider,,admin_menu_news,,admin_menu_project,,admin_menu_newsletter;;;;menu_divider,,admin_menu_poll,,admin_menu_review,,admin_menu_comment';
+		
+		module[13] = 'Paymentgateway,Invoice,Settings';
+		controller[13] = 'backendgateway,backend,global';
+		action[13] = 'list,list,price';
+		main_menu_const[13] = 'admin_menu_billing';
+		sub_menu_const[13] = 'gateway_menu_title;;Paymentgateway;;menu_divider,,invoice_admin_menu;;Invoice;;menu_divider,,admin_header_menu_global_price_settings;;Settings';
+		
+		module[14] = 'Administrator,Administrator,Editors,Editors,Editors,Editors,Theme,Database,Newsletter,Geo,Geo,Geo';
+		controller[14] = 'privilege,role,backend,backend,backend,backend,template,backend,templates,country,state,city';
+		action[14] = 'list,list,template,js,css,language,list,backup,list,list,list,list';
+		main_menu_const[14] = 'admin_menu_setup';
+		sub_menu_const[14] = 'admin_menu_prev,,admin_menu_role;;;;menu_divider,,admin_menu_template,,admin_menu_js,,admin_menu_css,,admin_menu_language;;;;menu_divider,,admin_header_menu_manage_template;;;;menu_divider,,admin_menu_database;;;;menu_divider,,admin_menu_email_template;;Newsletter;;menu_divider,,geo_menu1;;Geo;;,,geo_menu2;;Geo;;,,geo_menu3;;Geo;;';
+		
+		module[15] = 'Settings,Database,Utility,Settings,Utility,Utility';
+		controller[15] = 'global,csv,backend,global,backend,backend';
+		action[15] = 'ip,list,php,cronsetup,cache,log';
+		main_menu_const[15] = 'admin_menu_utility';
+		sub_menu_const[15] = 'admin_menu_setting_ip;;Settings;;menu_divider,,admin_menu_export_import;;;;menu_divider,,admin_menu_php_info,,admin_menu_cronsetup_info;;Property;;menu_divider,,admin_menu_cache_refresh,,admin_menu_logs';
+		
+		<?php if ($role_id <= '101') : ?>
+		module[16] = '';
+		controller[16] = '';
+		action[16] = '';
+		main_menu_const[16] = 'admin_menu_helps';
+		sub_menu_const[16] = '';
+		<?php endif; ?> 		
+		
+		$.each(module, function(i) {
+			all_menu_obj[i] = {};
+			all_menu_obj[i]['module']				= module[i];
+			all_menu_obj[i]['controller'] 			= controller[i];
+			all_menu_obj[i]['action']				= action[i];
+			all_menu_obj[i]['main_menu_const'] 		= main_menu_const[i];
+			all_menu_obj[i]['sub_menu_const'] 		= sub_menu_const[i];			
+		});			
+		
+		getMenu();	
+		
+	});
+	
+	function getMenu()
+	{
+		//alert($('ul.menu').html());	
+		var t_menu = (jQuery.inArray(count,travel_array) < 0) ? 0 : 1;
+		
+		if(main_menu_const[count])
+		{
+			$.ajax({
+				  url: "<?php echo $this->url( array('module' => 'Administrator', 'controller' => 'menu', 'action'     => 'ajax' ), 'adminrout',    true) ?>",
+				  type: 'POST',
+				  data: { menu_module: module[count], menu_controller: controller[count], menu_action : action[count], main_menu_const : main_menu_const[count], sub_menu_const : sub_menu_const[count], travel_menu : t_menu, all_menu: all_menu_obj, count : count, travel_array_string : travel_array_string },
+				  beforeSend: function(){						
+						$('ul.menu').append('<li style="display:none;line-height:36px;" class="ajax-loader"><img src="application/modules/Administrator/layouts/scripts/images/loader/menu-ajax-loader.gif" border="0"  /></li>');
+						$('li.ajax-loader').fadeIn();
+							if(t_menu == 1)
+							{
+								$('li.travel-menu').children('div:first').children('div:first').children('ul:first').append('<li style="display:none;line-height:36px;" class="ajax-loader"><img src="application/modules/Administrator/layouts/scripts/images/loader/menu-ajax-loader.gif" border="0"  /></li>');
+								$('li.ajax-loader').fadeIn();
+							}
+						},
+				  success: function(response){
+					//alert(response);
+					var json_arr = eval("("+response+")");
+								
+					if(json_arr.status == 'ok')
+					{				
+						if(jQuery.inArray(count,travel_array) < 0)
+						{				
+							$('li.ajax-loader').fadeOut();
+							$('li.ajax-loader').remove();
+							$('ul.menu').append(json_arr.menu_code);
+							$('ul.menu').children('li:last').fadeIn();	
+						}
+						else
+						{
+							$('li.ajax-loader').fadeOut();
+							$('li.ajax-loader').remove();
+							
+							if ($('ul.menu').children().hasClass('travel-menu')) 
+							{
+								$('li.travel-menu').children('div:first').children('div:first').children('ul:first').append(json_arr.menu_code);
+							}
+							else
+							{	
+								if(json_arr.menu_code)
+								{					
+									var travel_menu = '<li style="display:none" class="travel-menu">';
+											travel_menu += '<a href="javascript:void(0);" class="drop"><?php echo $this->translator->translator("admin_menu_travels"); ?></a>';
+											travel_menu += '<div class="dropdown_1column">';
+												travel_menu += '<div class="col_1 firstcolumn">';
+													travel_menu += '<ul class="levels">';
+														travel_menu += json_arr.menu_code;
+													travel_menu += '</ul>';
+												travel_menu += '</div>';
+											travel_menu += '</div>';
+											travel_menu += '</li>';								
+									$('ul.menu').append(travel_menu);
+									$('li.travel-menu').fadeIn();	
+								}
+							}
+						}						
+					}
+					else
+					{
+						$('li.ajax-loader').fadeOut();
+						$('li.ajax-loader').remove();
+					}						
+					count++;
+					//alert(count);
+					var l = module.length;
+					if(count < l)
+					{
+						getMenu();
+					}
+					else
+					{
+						completeSession();
+					}
+				  },
+					error: function(xhr, status, error){					
+						var msg = "Error! " + xhr.status + " " + error;
+						//alert(msg);
+					}
+			});	
+		}
+		else
+		{
+			count++;
+			getMenu();
+		}
+	}
+	
+	function completeSession()
+	{
+		$.ajax({
+			  url: "<?php echo $this->url( array('module' => 'Administrator', 'controller' => 'menu', 'action'     => 'complete' ), 'adminrout',    true) ?>",
+			  type: 'POST',			  
+			  data: { complete_data : 'complete' },
+			  success: function(response){
+				//alert(response);				
+			  }
+		});
+	}
+	
+	function deleteSession()
+	{
+		$.ajax({
+			  url: "<?php echo $this->url( array('module' => 'Administrator', 'controller' => 'menu', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+			  type: 'POST',			  
+			  data: { delete_data : 'delete' },
+			  success: function(response){
+				//alert(response);				
+			  }
+		});
+	}
+	</script>
+	<div class="wrapper_menu menu_dark_theme"><!-- BEGIN MENU WRAPPER -->
+	
+	
+		<ul class="menu menu_black"><!-- BEGIN MENU -->
+		   
+			<?php if ($this->allow('index','index','Administrator')) : ?>
+			<li class="nodrop"><a href="Dashboard"><?php echo $this->translator->translator('admin_menu_home'); ?></a><!-- Begin Home Item --></li><!-- End Home Item -->
+			<?php endif; ?>
+				
+		</ul><!-- END MENU -->
+	
+	
+	</div>
+<?php
+}
+else
+{
+	unset($menu_session_arr['complete']);	
+	function printSubMenu($menus_arr, $view)
+	{
+		$menu_code = '';
+		if(!empty($menus_arr) && !empty($menus_arr[0]))
+		{
+			foreach($menus_arr as $menus_key => $menus)
+			{
+				$parent_class = (!empty($menus['sub_menu']) && !empty($menus['sub_menu'][0])) ? 'parent' : '';	
+				$li_class = (!empty($menus['menu_li_class'])) ? $menus['menu_li_class'] : '';	
+				$menu_target	=		(!empty($menus['menu_target'])) ? $menus['menu_target'] : '';
+				if(preg_match('@^(?:http://)?([^/]+)@i', $menus['menu_link']))
+				{
+					$menu_link = $menus['menu_link'];
+				}
+				else
+				{
+					$menu_link = ($menus['menu_link'] == 'javascript:void(0);') ? 'javascript:void(0);' : $view->baseUrl().$menus['menu_link'];							
+				}
+					$menu_code .= '<li '.$li_class.'>';
+						$menu_code .= '<a href="'.$menu_link.'" class="'.$parent_class.'" '.$menu_target.'>'.$menus['menu_name'].'</a>';
+						if(!empty($menus['sub_menu']) && !empty($menus['sub_menu'][0]))
+						{
+							$menu_code .= '<ul>';
+							$menu_code .= printSubMenu($menus['sub_menu'], $view);
+							$menu_code .= '</ul>';
+						}
+					$menu_code .= '</li>';				
+			}
+		}
+		return $menu_code;
+	}
+?>
+	<div class="wrapper_menu menu_dark_theme">	
+		<ul class="menu menu_black">
+			<?php if ($this->allow('index','index','Administrator')) : ?>
+				<li><a href="Dashboard"><?php echo $this->translator->translator('admin_menu_home'); ?></a></li>
+			<?php endif; ?>
+			<?php
+				foreach($menu_session_arr as $menu_session_key => $menus_arr)
+				{
+					$drop_class = ($menus_arr['menu_link'] == 'javascript:void(0);') ? 'drop' : '';	
+					$menu_link = ($menus_arr['menu_link'] == 'javascript:void(0);') ? 'javascript:void(0);' : $this->baseUrl().$menus_arr['menu_link'];					
+			?>					
+				<li>
+					<a href="<?php echo $menus_arr['menu_link']; ?>" class="<?php echo $drop_class; ?>"><?php echo $menus_arr['menu_name']; ?></a>
+					<?php
+						if(!empty($menus_arr['sub_menu']) && !empty($menus_arr['sub_menu'][0]))
+						{
+					?>
+					 <div class="dropdown_1column">
+						<div class="col_1 firstcolumn">
+							<ul class="levels">
+								<?php echo printSubMenu($menus_arr['sub_menu'], $this); ?>
+							</ul>
+						</div>
+					</div>
+					<?php
+						}
+					?>
+				</li>							
+			<?php
+				}
+			?>
+		</ul>
+	</div>
+<?php
+}
+?>

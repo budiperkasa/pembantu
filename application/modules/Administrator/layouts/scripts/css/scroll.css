@@ -1,0 +1,26 @@
+#scrollbar1 { width: 440px; margin:auto; border:1px solid #CCC; border-radius:5px; padding:2px;}
+#scrollbar1 .viewport { width: 420px; height: 490px; overflow: hidden; position: relative; }
+#scrollbar1 .overview { list-style: none; position: absolute; left: 0; top: 0; padding: 10px; margin: 0; }
+#scrollbar1 .scrollbar{ background: transparent url(../images/common/bg-scrollbar-track-y.png) no-repeat 0 0; position: relative; background-position: 0 0; float: right; width: 15px; }
+#scrollbar1 .track { background: transparent url(../images/common/bg-scrollbar-trackend-y.png) no-repeat 0 100%; height: 100%; width:13px; position: relative; padding: 0 1px; }
+#scrollbar1 .thumb { background: transparent url(../images/common/bg-scrollbar-thumb-y.png) no-repeat 50% 100%; height: 20px; width: 25px; cursor: pointer; overflow: hidden; position: absolute; top: 0; left: -5px; }
+#scrollbar1 .thumb .end { background: transparent url(../images/common/bg-scrollbar-thumb-y.png) no-repeat 50% 0; overflow: hidden; height: 5px; width: 25px; }
+#scrollbar1 .disable { display: none; }
+
+.scroll-content-item {width:370px;}
+
+.scroll-content-sub-item div.title{ padding-top:35px; text-align:center;}
+
+.scroll-content-sub-item1 img { float:left;width:100px; border:1px solid #DFDFDF; padding:5px;}
+
+.ui-state-active{
+	background:#D5EBFD; 
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF', endColorstr='#C4E4FD');
+	background: -moz-linear-gradient(top, #FFFFFF, #C4E4FD);
+	background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), to(#C4E4FD)); 
+	border:1px solid #A4DBFF; 
+}
+
+.ui-corner-all{
+	overflow:hidden;
+}

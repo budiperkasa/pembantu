@@ -1,0 +1,61 @@
+<?php 
+if($this->view_datas['meta_keywords']){ $this->headMeta()->setName('keywords',$this->view_datas['meta_keywords']);	}
+if($this->view_datas['meta_desc']){ $this->headMeta()->setName('description',$this->view_datas['meta_desc']); }
+$this->headTitle()->headTitle($this->view_datas['page_title'],'SET')->setSeparator(' - ')->headTitle($this->view_datas['meta_title']); 
+
+$allow_obj = new News_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+	<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+<?php else : ?>
+
+<div class="mod mod-news">
+	<div class="news-icon">
+        <h1><?php echo $this->escape($this->view_datas['page_name']); ?></h1>
+    </div>
+    
+	<div class="clear">&nbsp;</div>
+	<div class="news-content">
+        <!-- News Left Info Start -->
+        <div class="news-desc">
+            <div class="mod-content">
+                <div class="calendar">
+                    <div class="month"><?php echo date("M",strtotime($this->view_datas['page_date'])); ?></div>
+                    <h1><?php echo $this->numbers(date("d",strtotime($this->view_datas['page_date']))); ?></h1>
+                    <div class="year"><?php echo $this->numbers(date("Y",strtotime($this->view_datas['page_date']))); ?></div>
+                </div>   		
+                
+                <h4><?php echo $this->escape($this->view_datas['page_name']); ?></h4>
+                <div class="date"><?php echo $this->numbers($this->escape($this->view_datas['page_date'])); ?> <?php echo $this->translator->translator('news_frontend_posted_by_title'); ?> <?php echo $this->escape($this->view_datas['title'].' '.$this->view_datas['firstName'].' '.$this->view_datas['lastName']); ?></div>
+                <div class="clear"><?php echo stripslashes($this->view_datas['page_desc']); ?></div>
+            </div>
+            
+            <div class="clear">
+                <!-- Getting All Comments from Comment Module and Add Comment Form -->
+                <?php 
+                    $allCommentObj = new Comment_View_Helper_RepliedComment($this);
+                    echo $allCommentObj->getAllActiveComments('news_page',$this->escape($this->view_datas['id']));		
+                ?>
+                <!-- End of Getting All Comments from Comment Module Add Comment Form -->
+            </div>
+        </div>
+        <!-- News Left Info End -->
+        
+        <!-- News Right Category Start -->
+        <?php
+            if($this->groupInfo['category_panel'] == '1')
+            {
+                $categoryPanel = new News_View_Helper_CategoryPanel();				
+        ?>
+        	<div class="clear">&nbsp;</div>
+       		<div class="search-icon">
+        	<h1><?php echo $this->escape($this->menu_id).' Category'; ?></h1>
+            </div>
+            <div class="clear"></div>
+			<?php echo $categoryPanel->getCategories('0',$this,$this->groupInfo['id'],null,$this->menu_id, $this->translator); ?>
+        <?php
+            }
+        ?>
+        <!-- News Right Category End -->
+    </div>
+</div>
+<?php endif; ?>

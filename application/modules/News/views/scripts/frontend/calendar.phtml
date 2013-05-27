@@ -1,0 +1,107 @@
+<?php 
+$version = Zend_Registry::get('version');  
+
+if($this->catInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->catInfo['meta_keywords']);	}
+if($this->catInfo['meta_desc']){ $this->headMeta()->setName('description',$this->catInfo['meta_desc']); }
+$this->headTitle()->headTitle($this->catInfo['category_title'],'SET')->setSeparator(' - ')->headTitle($this->catInfo['meta_title']);
+
+
+$allow_obj = new News_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : 
+
+$cateDB = new News_Model_DbTable_Category();
+
+?>
+<script>
+$(document).ready(function(){
+	
+	var links = "<?php echo $this->baseUrl().'/News-Cal/'.$this->escape($this->menu_id); ?>/";
+	$( "#datepicker" ).datepicker({	
+		dateFormat:'yy-MM-dd',
+		monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+		dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+		defaultDate:'+<?php echo $this->escape($this->yearAdd); ?>y +<?php echo $this->escape($this->monthAdd); ?>m +<?php echo $this->escape($this->dayAdd); ?>d',	
+		onSelect: function( dateText, inst ) {;
+			var date_arr = dateText.split('-');
+			document.location.href= links+date_arr[0]+"/"+date_arr[1]+"/"+date_arr[2];
+		}
+	});
+	
+});
+</script>
+
+<div class="news-heading">
+	<h1><?php $this->translatortranslator('news_frontend_calendar_page_name'); ?></h1>
+</div>
+<div class="clear">&nbsp;</div>
+
+<div class="mod news">
+	<!-- Category Panel Start -->
+    <?php
+		if($this->groupInfo['category_panel'] == '1')
+		{
+			$categoryPanel = new News_View_Helper_CategoryPanel();				
+	?>
+	<div class="category">
+	<a href="javascript:void(0);" class="toggle_pro toggle-link"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/mod_img/plus.png" border="0" /><div class="toggle"><?php echo $this->translator->translator('news_frontend_common_category_list_title'); ?></div></a>
+	<div id="pro_list" class="clear">
+            <?php echo $categoryPanel->getCategories('0',$this,$this->group_datas['id'],null,$this->menu_id, $this->translator); ?>            
+        </div>
+    </div>
+	<?php
+		}
+	?>
+    <!-- Category Panel End -->
+    
+	<div class="news-content">
+    	<!-- News Info Start -->
+            <div class="news-desc">
+				<?php
+                
+                    $filters = new Zend_Filter_StripTags();
+                
+                    if($this->data_type == 'news')
+                    {	
+                        foreach($this->view_datas as $entry)
+                        {
+                            $cat_info = $cateDB->getCategoryInfo($entry['category_id']);
+                            
+                ?>
+                <div class="mod-content">
+                    <h3><a title="<?php echo $this->escape($entry['page_title']); ?>" href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->menu_id,'category_id' => $this->escape($cat_info['category_title']) ,'page_id'=> $this->escape($entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',false);  ?>"><?php echo $this->escape($entry['page_name']); ?></a></h3>
+                    <div class="news-date-time"><?php echo $this->translator->translator('common_posted_date_title'); ?> <?php echo $this->numbers($this->escape($entry['page_date'])); ?> <?php echo $this->translator->translator('news_frontend_posted_by_title'); ?> <?php echo $this->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']); ?></div>
+                    
+                    <img src="data/frontImages/news/page_thumb/<?php echo $this->escape($entry['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> class="img" border="0" />                    
+                    <?php  $desc = $filters->filter($entry['page_desc']);
+					echo $this->viewHelper->truncate($desc,$this->groupInfo['news_desc_truncate']);  ?>
+                    
+                    <div class="news-link"><a href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->menu_id,'category_id' => $this->escape($cat_info['category_title']) ,'page_id'=> $this->escape($entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',false);  ?>"><?php echo $this->translator->translator('common_readmore'); ?> &raquo;</a></div>
+                </div>
+                <?php
+					}
+				}
+				?>
+                
+                <div class="clear">
+                    <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'frontend/pagination-calendar-flickr.phtml'); ?>
+                </div>
+        </div>
+        <!-- News Info End -->  
+		
+        <!-- News Calendar Start -->
+        <?php
+		if($this->groupInfo['calendar_on_off'] == '0')
+			{			
+		?>
+			<div id="datepicker"></div>
+		<?php
+        	}
+		?>
+        <!-- News Calendar End -->
+    </div>
+</div>
+<?php endif; ?>

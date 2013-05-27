@@ -1,0 +1,121 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step6_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){		
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php/step3'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php'; ?>";
+		});	
+		$('#refresh').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php/step4'; ?>";
+		});	
+		$('#gotoFrontend').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl(); ?>";
+		});
+		$('#gotoBackend').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/Administrator'; ?>";
+		});	
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}	
+	//-->
+	</script>
+    
+    <form id="step4frm" name="step4frm" method="post" action="<?php echo $this->baseUrl().'/upgrade.php/step6'; ?>">
+        <fieldset>
+            <legend><?php echo $this->translator->translator('install_step_6_of_6'); ?></legend>
+            
+            <?php
+            	if(empty ($this->isSuccess)){
+			?>
+            
+			<div class="status">
+            	<div class="wrong"></div>
+                <?php echo $this->translator->translator('upgrade_has_failed_to_complete'); ?>
+            </div>
+                        
+            <?php
+			}
+			
+			else {	
+			
+			?>
+            
+            
+            <div class="status">
+            	<div class="correct"></div>
+                <?php echo $this->translator->translator('upgrade_has_been_upgraded_successfully'); ?>
+            </div>
+            
+
+            
+            <?php 
+			}
+			 		
+			?>
+           
+            
+    	
+            <?php if($this->isSuccess != 1){ ?> 
+                <div id="errorBoxMessageDiv" class="errors">
+                    <?php echo $this->translator->translator('install_step5_error_message') . '  :  ' .$this->error; ?> 		
+                </div>
+            <?php 
+                }
+                else
+                {
+            ?>
+            
+            <div id="errorBoxMessageDiv" class="warning">
+                    <?php echo $this->translator->translator('upgrade_success_please_delete_install_upgrade_files') . '  <br /> '; 
+					?> 		
+                    <p>
+                    01 : upgrade.php <br />
+					02 : install.php
+                    </p>
+            </div>
+         
+            <div class="chart-1">
+
+            </div>
+            
+			<div class="infoMess"><?php echo $this->translator->translator('upgrade_success_clear_browser_cache_and_refresh'); ?></div>
+            
+
+			<?php
+                }
+            ?>	
+            
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="gotoFrontend" id="gotoFrontend" value=" <?php echo $this->translator->translator('install_step6_go_to_frontend'); ?>" class="button-frontend" /></div>
+                <div class="icon"><input type="button" name="gotoBackend" id="gotoBackend" value="<?php echo $this->translator->translator('install_step6_go_to_backtend'); ?>" class="button-backend" /></div>
+            </div>
+        
+        </fieldset>	
+    </form>

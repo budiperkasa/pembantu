@@ -1,0 +1,110 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step2_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){
+		init();
+		$('#prev').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php'; ?>";
+		});
+		$('#cancel').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php'; ?>";
+		});
+		
+		$('#yes').click(function(){	
+					
+			setButtonState('next', true);
+			setFocus('next');
+ 
+		});
+		$('#no').click(function(){
+			setButtonState('next', false);
+			 
+		});
+	});
+	<!--
+	function setButtonState(button, state) 
+	{		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.parents('div:first').removeClass('icon-inactive');			
+				b.parents('div:first').addClass('icon');
+				b.removeAttr('disabled');
+				b.removeClass('icon-disable');
+				b.addClass('button-next');
+			}
+			else
+			{
+				b.parents('div:first').removeClass('icon');			
+				b.parents('div:first').addClass('icon-inactive');
+				b.attr('disabled','disabled');
+				b.addClass('icon-disable');
+				b.removeClass('button-next');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}
+	
+	function init() 
+	{
+		
+		setButtonState('next', false);
+	}
+	//-->
+	</script>
+    
+    <form method="post" action="<?php echo $this->baseUrl().'/upgrade.php/step2'; ?>">
+        <fieldset>
+        <legend><?php echo $this->translator->translator('install_step_2_of_6'); ?> </legend>
+            <p class="title">
+                <?php echo $this->translator->translator('upgrade_step2_page_confirm_upgrade'); ?>
+            </p>
+            
+            <div>
+            		<div height="70px" style="font-size:24px" >
+                    	<?php echo $this->translator->translator('upgrade_step2_page_current_version')  . ' :  ' .  $this->oldVersion;?>  
+                    </div>
+                    
+              <br />
+            		<div height="70px" style="font-size:24px">
+                    	<?php echo $this->translator->translator('upgrade_step2_page_new_version') . ' :  ' . $this->newVersion; ?>  
+                    </div>
+                    
+            </div>
+            
+            <br /> <br /> <br />
+            
+            <div style="font-size:12px">
+            		<?php echo $this->translator->translator('upgrade_step2_page_note_db_backup'); ?> :
+
+            </div>
+            
+            <br /> <br /> 
+            <div style="font-size:12px">
+            		<?php echo $this->translator->translator('upgrade_step2_page_reconfirm_db_backup'); ?> :
+
+            </div>
+             <div><input type="hidden" name="sequence" id="sequence1"  value="2" />	 </div> 
+            <br /> <br />
+            
+            <input type="radio" name="backup_type" id="yes" value="yes"   /> &nbsp;
+            <span class="title" style="font-style:italic"><?php echo $this->translator->translator('upgrade_step2_page_reconfirm_yes'); ?></span><br />
+
+	 		<hr />           
+            <input type="radio" name="backup_type" id="no" value="no" checked="checked"/> &nbsp;
+            <span class="title" style="font-style:italic"><?php echo $this->translator->translator('upgrade_step2_page_reconfirm_no'); ?></span>
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="prev" id="prev" value=" <?php echo $this->translator->translator('install_steps_back_button'); ?>" class="button-prev" /></div>
+                <div class="icon-inactive"><input type="submit" name="next" id="next" value="<?php echo $this->translator->translator('install_steps_next_button'); ?>" class="button-disable"/></div>
+                <div class="icon"><input type="button" name="cancel" id="cancel" value="<?php echo $this->translator->translator('install_steps_cancel_button'); ?>" class="button-cancel" /></div>
+            </div>
+        </fieldset>
+    </form>

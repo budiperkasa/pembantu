@@ -1,0 +1,125 @@
+<?php 
+$auth = Zend_Auth::getInstance ();
+$version = Zend_Registry::get('version'); 
+$license = new Zend_Session_Namespace('License'); 
+$global_conf = Zend_Registry::get('global_conf');
+
+$mem_db = new Members_Model_DbTable_MemberList();
+$modules_license = new Administrator_Controller_Helper_ModuleLoader();
+?>
+
+<div id="container">
+<div class="title-container">
+	<div class="pending"><h1><?php echo $this->translator->translator('Administrator_approval_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<div class="tabular approval-tabular">
+    	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="user"><?php echo $this->translator->translator('dashboard_project_pending_approval_user_no'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+            	<?php if($this->allow('list','index','Members')){ ?><?php  $inactive_users = $mem_db->getInactiveMembers();  ?><a href="<?php echo $this->url( array('module' => 'Members','controller' => 'index','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $inactive_users[0]['num']; ?></a><?php }else{ echo $inactive_users[0]['num']; } ?>
+            </div>
+        </div>
+        
+        <?php if($this->allow('list','backendpro','News') && $modules_license->checkModulesLicense('News')){ ?>
+        <div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="feedback"><?php echo $this->translator->translator('dashboard_project_pending_approval_feedback_no'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+            	<?php
+					$news_db = new News_Model_DbTable_Page();
+					$feedback_num = $news_db->getNumInActiveNews('2');
+				?>
+				<a href="<?php echo $this->url( array('module' => 'News','controller' => 'backendpro','action' => 'list', 'group_id' => '2', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $feedback_num; ?></a>
+            </div>
+        </div>
+        
+        <div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="news"><?php echo $this->translator->translator('dashboard_project_pending_approval_news_no'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+            	<?php
+					$news_num = $news_db->getNumInActiveNews('1');
+				?>
+				<a href="<?php echo $this->url( array('module' => 'News','controller' => 'backendpro','action' => 'list', 'group_id' => '1', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $news_num; ?></a>
+            </div>
+        </div>
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Gallery') && $modules_license->checkModulesLicense('Gallery')){ ?>
+        <div class="tabular-row">
+        	<div class="tabular-col-1">
+            	<p class="picture"><?php echo $this->translator->translator('dashboard_project_pending_approval_picture_no'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+            	<?php
+					$gallerys_db = new Gallery_Model_DbTable_Product();
+					$picture_num = $gallerys_db->getNumInActiveProduct();
+				?>
+				<a href="<?php echo $this->url( array('module' => 'Gallery','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $picture_num; ?></a>
+            </div>
+        </div>
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Property') && $modules_license->checkModulesLicense('Property') && $version->getProductType() == 2){ ?>
+       	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="property"><?php echo $this->translator->translator('administrator_dashboard_block_module_no_listing'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+				<a href="<?php echo $this->url( array('module' => 'Property','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $this->inActive_property; ?></a>
+            </div>
+        </div> 	
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Autos') && $modules_license->checkModulesLicense('Autos') && $version->getProductType() == 4){ ?>
+       	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="property"><?php echo $this->translator->translator('administrator_dashboard_block_module_no_listing'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+				<a href="<?php echo $this->url( array('module' => 'Autos','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $this->inActive_autos; ?></a>
+            </div>
+        </div> 	
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Hotels') && $modules_license->checkModulesLicense('Hotels') && ($version->getProductType() == 5 || $version->getProductType() == 6)){ ?>
+       	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="property"><?php echo $this->translator->translator('administrator_dashboard_block_module_no_listing'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+				<a href="<?php echo $this->url( array('module' => 'Hotels','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $this->inActive_hotels; ?></a>
+            </div>
+        </div> 	
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Vacationrentals') && $modules_license->checkModulesLicense('Vacationrentals') && $version->getProductType() == 7){ ?>
+       	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="property"><?php echo $this->translator->translator('administrator_dashboard_block_module_no_listing'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+				<a href="<?php echo $this->url( array('module' => 'Vacationrentals','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $this->inActive_vacationrentals; ?></a>
+            </div>
+        </div> 	
+        <?php } ?>
+        
+        <?php if($this->allow('list','backendpro','Tours') && $modules_license->checkModulesLicense('Tours') && $version->getProductType() == 9){ ?>
+       	<div class="tabular-row">
+        	<div class="tabular-col-1">
+                <p class="property"><?php echo $this->translator->translator('administrator_dashboard_block_module_no_listing'); ?></p>
+            </div>
+            <div class="tabular-col-2">
+				<a href="<?php echo $this->url( array('module' => 'Tours','controller' => 'backendpro','action' => 'list', 'approve' => 0 ), 'adminrout',    true); ?>" ><?php echo $this->inActive_tours; ?></a>
+            </div>
+        </div> 	
+        <?php } ?>
+    </div>	
+</div>
+</div>

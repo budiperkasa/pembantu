@@ -1,0 +1,402 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/colorbox/jquery.colorbox.js');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/* Get the rows which are currently selected */
+		function fnGetSelected( oTableLocal )
+		{
+			var aReturn = new Array();
+			var aTrs = oTableLocal.fnGetNodes();
+			
+			for ( var i=0 ; i<aTrs.length ; i++ )
+			{
+				if ( $(aTrs[i]).hasClass('row_selected') )
+				{
+					aReturn.push( aTrs[i] );
+				}
+			}
+			return aReturn;
+		}	
+	
+	lastClassAdd(oTable);
+	/****************************Sorting Table End*********************/
+	
+		function openMsgDialog(msg)
+		{
+			$('#dialog_container').html(msg).dialog({
+				autoOpen: true,
+				modal: false,
+				show: 'fade',
+				resizable: 'false',				
+				buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+				open: function(event, ui)
+					 {
+						setTimeout(function() 
+						{									
+							if($('#' + event.target.id).dialog('isOpen'))
+							{
+								$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+							}
+						}, 10000);
+					  }
+			});
+		}
+		
+		
+		
+		function deleteThis(self)
+		{
+			var arr = $(self).attr('rel').split('_');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Newsletter', 'controller' => 'templates', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[0], templates_name: arr[1] },
+				 beforeSend: function(){
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+					 },
+				 success: function(response) 
+				 {
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+						var oTables = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTables );
+						oTables.fnDeleteRow( anSelected[0] );
+						lastClassAdd(oTables);
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png"  title="<?php echo $this->translator->translator("common_delete_title"); ?>" alt="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" />');
+					}
+				 }
+			});
+		}
+		
+		function deleteAll(self)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Newsletter', 'controller' => 'templates', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+							{									
+								if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+								{							
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');								
+								}
+							}
+							var oTabled = $('#sortTable').dataTable();
+							var anSelected = fnGetSelected( oTabled );
+							for(var k = 0; k < anSelected.length; k++)
+							{
+								oTabled.fnDeleteRow( anSelected[k] );
+							}
+							lastClassAdd(oTabled);	
+						}
+						else
+						{							
+							openMsgDialog(json_arr.msg);
+						}	
+						$(self).html('<span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span>');
+					}
+			});	
+		}
+	
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('newsletter_list_delete_confirm')); ?>").dialog({
+			resizable: false,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteThis(self);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});
+		
+	});	
+		
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('newsletter_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('newsletter_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	function checkNonDeletedId(id,id_arr)
+	{
+		var tmp = false;
+		for(var i = 0;i < id_arr.length;i++)
+		{
+			if(id_arr[i] == id)
+			{
+				tmp = true;
+				break;
+			}
+		}
+		
+		return tmp;
+	}
+	
+});
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("a[rel='preview_btn']").colorbox({width:"98%", height:"98%",slideshow:true});
+});
+</script>
+<style type="text/css">
+/*
+    ColorBox Core Style
+    The following rules are the styles that are consistant between themes.
+    Avoid changing this area to maintain compatability with future versions of ColorBox.
+*/
+#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:9999; overflow:hidden;}
+#cboxOverlay{position:fixed; width:100%; height:100%;}
+#cboxMiddleLeft, #cboxBottomLeft{clear:left;}
+#cboxContent{position:relative; overflow:hidden;}
+#cboxLoadedContent{overflow:auto;}
+#cboxLoadedContent iframe{display:block; width:100%; height:100%; border:0;}
+#cboxTitle{margin:0;}
+#cboxLoadingOverlay, #cboxLoadingGraphic{position:absolute; top:0; left:0; width:100%;}
+#cboxPrevious, #cboxNext, #cboxClose, #cboxSlideshow{cursor:pointer;}
+
+/* 
+    Example user style
+    The following rules are ordered and tabbed in a way that represents the
+    order/nesting of the generated HTML, so that the structure easier to understand.
+*/
+#cboxOverlay{background:url(css/jqueryCSS/colorbox/example1/images/overlay.png) 0 0 repeat;}
+#colorbox{}
+    #cboxTopLeft{width:21px; height:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -100px 0 no-repeat;}
+    #cboxTopRight{width:21px; height:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -129px 0 no-repeat;}
+    #cboxBottomLeft{width:21px; height:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -100px -29px no-repeat;}
+    #cboxBottomRight{width:21px; height:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -129px -29px no-repeat;}
+    #cboxMiddleLeft{width:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) left top repeat-y;}
+    #cboxMiddleRight{width:21px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) right top repeat-y;}
+    #cboxTopCenter{height:21px; background:url(css/jqueryCSS/colorbox/example1/images/border.png) 0 0 repeat-x;}
+    #cboxBottomCenter{height:21px; background:url(css/jqueryCSS/colorbox/example1/images/border.png) 0 -29px repeat-x;}
+    #cboxContent{background:#fff;}
+        #cboxLoadedContent{margin-bottom:28px;}
+        #cboxTitle{position:absolute; bottom:4px; left:0; text-align:center; width:100%; color:#949494;}
+        #cboxCurrent{position:absolute; bottom:4px; left:58px; color:#949494;}
+        #cboxSlideshow{position:absolute; bottom:4px; right:30px; color:#0092ef;}
+        #cboxPrevious{position:absolute; bottom:0; left:0px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -75px 0px no-repeat; width:25px; height:25px; text-indent:-9999px;}
+        #cboxPrevious.hover{background-position:-75px -25px;}
+        #cboxNext{position:absolute; bottom:0; left:27px; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -50px 0px no-repeat; width:25px; height:25px; text-indent:-9999px;}
+        #cboxNext.hover{background-position:-50px -25px;}
+        #cboxLoadingOverlay{background:url(css/jqueryCSS/colorbox/example1/images/loading_background.png) center center no-repeat;}
+        #cboxLoadingGraphic{background:url(css/jqueryCSS/colorbox/example1/images/loading.gif) center center no-repeat;}
+        #cboxClose{position:absolute; bottom:0; right:0; background:url(css/jqueryCSS/colorbox/example1/images/controls.png) -25px 0px no-repeat; width:25px; height:25px; text-indent:-9999px;}
+        #cboxClose.hover{background-position:-25px -25px;}
+</style>
+<div id="container">
+<?php if (!$this->allow('list')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="newsletter-templates"><h1><?php echo $this->translator->translator('newsletter_temp_list_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <?php if ($this->allow('add','templates','Newsletter')) : ?>
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Newsletter','controller'=>'Templates', 'action'=>'add'),'adminrout',true);?>"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        <?php  if ($this->allow('delete','templates','Newsletter')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<div id="button_top_bar"></div>
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('nav_menu.phtml');  ?>
+    </div>
+    
+    
+    <div id="content-inner">
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->template_datas, 'Sliding', 'top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+        	<div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                	<thead>
+                    	<tr>
+                            <th width="3%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                            <th width="5%"><?php echo $this->translator->translator('newsletter_temp_list_page_id'); ?></th>
+                            <th width="62%"><?php echo $this->translator->translator('newsletter_temp_list_page_temp_name'); ?></th>
+                            <th width="16%"><?php echo $this->translator->translator('common_date'); ?></th>
+                            <th width="14%"><?php echo $this->translator->translator('common_action'); ?></th>
+                    	</tr>
+                	</thead>
+                   	<tbody>
+						<?php 
+                        $j = 1;
+                        foreach ($this->template_datas as $entry): 
+                            if($j % 2 == 0)
+                            {
+                                $onmouseout = "this.bgColor='#FFFFFF';";
+                                $background = '#FFFFFF';
+                            }
+                            else
+                            {
+                                $onmouseout = "this.bgColor='#F7F7F7';";
+                                $background = '#F7F7F7';
+                            }
+                        ?>
+                    	<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                     		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                      		<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                      		<td><?php echo $this->escape($entry->templates_name); ?></td>
+                      		<td class="center"><?php echo $this->escape($entry->templates_date); ?></td>
+                      		<td class="tools-list">
+                            	<ul>
+                                	<li>
+										<?php if ($this->allow('edit','templates','Newsletter')) : ?>
+                                            <a href="<?php echo $this->url( array('module'=> 'Newsletter', 'controller' => 'templates', 'action'     => 'edit', 'id' => $this->escape($entry->id) ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" alt="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                        <?php endif; ?>
+                                    </li>
+                              		<li>
+										<?php if ($this->allow('delete','templates','Newsletter')) : ?>
+                                            <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>_<?php echo str_replace('_',' ',$this->escape($entry->templates_name)); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>" alt="<?php echo $this->translator->translator('common_delete_title'); ?>" border="0" /></a>
+                                        <?php endif; ?>	
+                             		</li>
+                                    <li>
+										<?php if ($this->allow('preview','templates','Newsletter')) : ?>
+                                            <a  rel="preview_btn" href="<?php echo $this->url( array('module'=> 'Newsletter', 'controller' => 'templates', 'action'     => 'preview', 'id' => $this->escape($entry->id) ), 'adminrout',    true) ?>" ><img src="application/modules/Administrator/layouts/scripts/images/tools/preview.gif" border="0" title="<?php echo $this->translator->translator('common_preview_title'); ?>" alt="<?php echo $this->translator->translator('common_preview_title'); ?>" /></a>
+                                        <?php endif; ?>	
+                                    </li>
+                              	</ul>
+							</td>
+                    	</tr>
+                    	<?php 													
+                        	$j++;
+                        	endforeach;	
+                      	?>
+                   	</tbody>										
+				</table>
+            </div>
+		</div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->template_datas, 'Sliding', 'pagination.phtml'); ?>
+        </div>
+	</div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('newsletter_temp_list_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <?php if ($this->allow('add','templates','Newsletter')) : ?>
+        <span class="button  ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Newsletter','controller'=>'Templates', 'action'=>'add'),'adminrout',true);?>"><span class="icon add"><?php echo $this->translator->translator('common_add'); ?></span></a></span>
+        <?php endif; ?>
+        <?php  if ($this->allow('delete','templates','Newsletter')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('newsletter_temp_list_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+</div>

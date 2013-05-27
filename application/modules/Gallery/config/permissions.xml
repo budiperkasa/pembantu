@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Manage Gallery Category" langKey="permisson_category">
+		<privilege for="dashboard" name="list" description="View the list of Category" langKey="permisson_category_list" />
+		<privilege for="dashboard" name="add" description="Create new Category" langKey="permisson_category_add" />
+		<privilege name="edit" description="Edit Category" langKey="permisson_category_edit" />
+		<privilege name="delete" description="Delete a Category" langKey="permisson_category_delete" />
+		<privilege name="featured" description="Featured Category" langKey="permisson_category_featured" />
+		<privilege name="publish" description="Active Deactive a Category" langKey="permisson_category_activeDeactive" />
+	</resource>
+	<resource name="backendgrp" for="backend" description="Manage Gallery Group" langKey="permisson_gallery">
+		<privilege for="dashboard" name="listgrp" description="View the list of Gallery Group" langKey="permisson_gallery_group_list" />
+		<privilege for="dashboard" name="addgrp" description="Create new Gallery Group" langKey="permisson_gallery_group_add" />
+		<privilege name="editgrp" description="Edit a Gallery Group" langKey="permisson_gallery_group_edit" />
+		<privilege name="deletegrp" description="Delete a Gallery Group" langKey="permisson_gallery_group_delete" />
+		<privilege name="publishgrp" description="Active Deactive a Gallery Group" langKey="permisson_gallery_group_activeDeactive" />
+	</resource>		
+	<resource name="backendpro" for="backend" description="Manage Gallery Product" langKey="permisson_product">
+		<privilege for="dashboard" name="list" description="View the list of Product" langKey="permisson_product_list" />
+		<privilege for="dashboard" name="add" description="Create new Product" langKey="permisson_product_add" />
+		<privilege name="edit" description="Edit Product" langKey="permisson_product_edit" />
+		<privilege name="delete" description="Delete a Product" langKey="permisson_product_delete" />
+		<privilege name="featured" description="Featured Product" langKey="permisson_product_featured" />
+		<privilege name="publish" description="Active Deactive a Product" langKey="permisson_product_activeDeactive" />
+	</resource>
+	<resource name="frontend" for="frontend" description="Frontend Gallery" langKey="permisson_frontend_gallery">
+		<privilege name="view" description="View the Frontend of Gallery" langKey="permisson_gallery_front_view" img="permisson_gallery_front_view.jpg" />
+		<privilege name="categories" description="View the Gallery Category" langKey="permisson_gallery_front_category" img="permisson_gallery_front_category.jpg" />
+		<privilege name="viewproduct" description="View the Gallery Product" langKey="permisson_gallery_front_product" img="permisson_gallery_front_product.jpg" />
+	</resource>
+	<resource name="chart" for="frontend" description="Product Indexing Chart" langKey="permisson_product_indexing_chart">
+		<privilege name="view" description="View the Frontend of Product Indexing Chart" langKey="permisson_product_indexing_chart_view" img="permisson_product_indexing_chart_view.jpg" />
+		<privilege name="categories" description="View the Chart Category" langKey="permisson_product_indexing_chart_category" img="permisson_product_indexing_chart_category.jpg" />
+	</resource>
+	<resource name="gallerysearch" for="frontend" description="Search Gallery Pictures" langKey="permisson_frontend_gallery_search">
+		<privilege name="simplesearch" description="Simple Search" langKey="permisson_frontend_gallery_simple_search" img="permisson_frontend_gallery_simple_search.jpg" />
+		<privilege name="advancesearch" description="Advanced Search" langKey="permisson_frontend_gallery_advanced_search" img="permisson_frontend_gallery_advanced_search.jpg" />
+	</resource>
+	<dbtable name="gallery_group" for="view">
+		<tablefield name="id" />
+		<tablefield name="id" />
+		<tablefield name="gallery_name" />
+	</dbtable>
+	<dbtable name="gallery_category" for="categories">
+		<tablefield name="category_order" />
+		<tablefield name="id" />
+		<tablefield name="category_name" />
+	</dbtable>
+	<dbtable name="gallery_category" for="viewproduct">
+		<tablefield name="category_order" />
+		<tablefield name="id" />
+		<tablefield name="category_name" />
+	</dbtable>
+</permissions>

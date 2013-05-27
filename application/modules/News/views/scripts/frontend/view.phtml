@@ -1,0 +1,196 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/newsSlide/jquery.easynews.js');
+$version = Zend_Registry::get('version');  
+
+$filters = new Zend_Filter_StripTags();
+$news_db = new News_Model_DbTable_Page();
+$cateDB = new News_Model_DbTable_Category();
+if($this->menu_id)
+{
+	$menu_db = new Menu_Model_DbTable_Menu();
+	$menu_info = $menu_db->getMenuByTitle($this->menu_id);
+}
+
+if($this->groupInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->groupInfo['meta_keywords']); }	
+if($this->groupInfo['meta_desc']){ $this->headMeta()->setName('description',$this->groupInfo['meta_desc']); }
+if($this->groupInfo['news_name']){ $this->headTitle()->headTitle($this->groupInfo['news_name'],'SET')->setSeparator(' - ')->headTitle($this->groupInfo['meta_title']); }
+
+?>
+
+<script>
+$(document).ready(function(){
+
+
+var links = "<?php echo $this->baseUrl().'/News-Cal/'.$this->escape($this->menu_id); ?>/";
+$( "#datepicker" ).datepicker({	
+	dateFormat:'yy-MM-dd',
+	monthNames:<?php echo $this->translator->translator("common_calender_monthNames"); ?>,
+	dayNamesMin:<?php echo $this->translator->translator("common_calender_dayNamesMin"); ?>,
+	defaultDate:'+<?php echo $this->escape($this->yearAdd); ?>y +<?php echo $this->escape($this->monthAdd); ?>m +<?php echo $this->escape($this->dayAdd); ?>d',	
+	onSelect: function( dateText, inst ) {;
+		var date_arr = dateText.split('-');
+		//alert(date_arr[0]+' '+date_arr[1]+' '+date_arr[2]);
+		document.location.href= links+date_arr[0]+"/"+date_arr[1]+"/"+date_arr[2];
+	}
+});
+
+
+var newsoption1 = {
+  firstname: "mynews",
+  secondname: "showhere",
+  thirdname:"news_display",
+  fourthname:"news_button",
+   newsspeed:'6000'
+}
+$.init_news(newsoption1);
+
+
+var myoffset=$('#news_button').offset();
+
+var mytop=myoffset.top-1;
+
+$('#news_button').css({top:mytop});
+
+});
+</script>
+
+<div class="mod mod-news">
+	<div class="news-icon">
+        <h1><?php if($menu_info){ echo $this->escape($menu_info['menu_name']); } ?></h1>
+    </div>
+
+	<div class="clear">&nbsp;</div>
+    
+    <!-- News Info Start -->
+    <div class="news-desc">
+        <div>
+            <h3><?php echo $this->translator->translator('common_breaking_news'); ?></h3><br />
+            <!--This is the left side 1st news html style-->
+            <div id="mynewsdis">
+                <div class="news_border">
+                    <div id="showhere" class="news_show"></div>
+                </div>
+                <div class="buttondiv" id="news_button">
+                    <img src="js/jquery/newsSlide/prev.gif" align="absmiddle" id="news_prev"><img src="js/jquery/newsSlide/pause.gif" align="absmiddle" id="news_pause"><img src="js/jquery/newsSlide/next.gif" align="absmiddle" id="news_next">
+                </div>
+                
+                <div id="news_display" class="news-title-scroll"></div>
+            </div>
+            <!--This is the left side 1st news hide container-->
+            
+            <div id="mynews">
+                <div id="news1" class="news_style" rel="Breaking News">
+                    <?php	
+                    
+                        $i = 1;						
+                        foreach($this->breaking_news as $entry)
+                        {
+                            try
+                            {
+                                $cat_info = $cateDB->getCategoryInfo($entry['category_id']);
+                            }
+                            catch(Exception $e)
+                            {
+                                $cat_info = null;
+                            }
+                    ?>
+                    <div class="mod-container">  	
+                        <img src="data/frontImages/news/page_thumb/<?php echo $this->escape($entry['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> class="thumb" border="0" />
+                        <h4><a href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->menu_id,'category_id' => $this->escape($cat_info['category_title']) ,'page_id'=> $this->escape($entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',false); ?>"><?php echo $this->escape($entry['page_name']); ?></a></h4>
+                        <div class="date"><?php echo $this->numbers($this->escape($entry['page_date'])); ?> <?php echo $this->translator->translator('news_frontend_posted_by_title'); ?> <?php echo $this->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']); ?></div>
+                        <?php 
+                        $desc = $filters->filter($entry['page_desc']);
+                        echo $this->viewHelper->truncate($desc,$this->groupInfo['news_desc_truncate']); ?>
+                    </div>
+                    <?php
+                        if($i % $this->escape($this->groupInfo['num_news_each_block']) == 0)
+                        {
+                            echo '</div><div id="news'.$i.'" class="news_style" rel="'.$this->escape($entry['page_name']).'" >';
+                        }
+                            $i++;
+                    }
+                    ?>
+                </div>								
+            </div>
+        </div>
+    </div>
+    <!-- News Info End -->
+    
+	<div class="clear"></div>
+    
+    <div class="mod mod-news">
+            <!-- News Info Start -->
+            <div class="news-desc">
+                <div>
+                    <?php
+                    $i = 1;				
+                    if($this->newsCategory)
+                    {
+                     
+                        foreach($this->newsCategory as $category)
+                        {
+                                            
+                            $num_of_news = $news_db->getNumNews($category[0]['id']);
+                    ?>
+                    <div>
+                        <fieldset>
+                        <legend><a href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'categories','menu_id'=> $this->menu_id,'category_id' => $this->escape($category[0]['category_title'])),'News-Section/:menu_id/:category_id',true);  ?>"><?php echo $this->escape($category[0]['category_name'])." (".$num_of_news.")"; ?></a></legend>
+                        <?php						
+                            $news_limit = $this->escape($this->groupInfo['num_news_each_block']);
+                            $news_data = $news_db->getNewsInfo($category[0]['id'],$this->groupInfo,$news_limit);					
+                                
+                            foreach($news_data as $news)
+                            {	
+                                if($news['active'] == '1')
+                                {
+                                    try
+                                    {
+                                        $cat_info = $cateDB->getCategoryInfo($news['category_id']);	
+                                    }
+                                    catch(Exception $e)
+                                    {
+                                        $cat_info = null;
+                                    }						
+                        ?>
+                       
+                        <div class="mod-container">
+                            <img src="data/frontImages/news/page_thumb/<?php echo $this->escape($news['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> class="thumb" border="0" />
+                            <h4><a title="<?php echo $this->escape($news['page_name']); ?>" href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->escape($this->menu_id),'category_id' => $this->escape($cat_info['category_title']),'page_id' => $this->escape($news['page_title'])),'News-Article/:menu_id/:category_id/:page_id',false);  ?>"><?php echo $this->viewHelper->truncate($this->escape($news['page_name']),'50'); ?></a></h4>
+                            <div class="date"><?php echo $this->translator->translator('common_posted_date_title'); ?> <?php echo $this->numbers($this->escape($news['page_date'])); ?> <?php echo $this->translator->translator('news_frontend_posted_by_title'); ?> <?php echo $this->escape($entry['title'].' '.$entry['firstName'].' '.$entry['lastName']); ?></div>
+                            <?php 							
+                            $desc = $filters->filter($this->escape($news['page_desc']));
+                            echo $this->viewHelper->truncate($desc,$this->groupInfo['news_desc_truncate']); ?>
+                            <div class="more"><a href="<?php echo $this->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->escape($this->menu_id),'category_id' => $this->escape($cat_info['category_title']),'page_id' => $news['page_title']),'News-Article/:menu_id/:category_id/:page_id',false);  ?>"> <?php echo $this->translator->translator('common_readmore'); ?> &raquo;</a></div>
+                        </div>
+                       
+                        <?php
+                                }							
+                            }								
+                        ?>
+                        </fieldset>
+                    </div>
+                    <?php
+                            //if($i % 2 == 0)
+                            //{
+                                //echo "</tr><tr>";					
+                            //}
+                            $i++;						
+                        }
+                    }
+                    ?>
+                </div>
+            </div>
+            <!-- News Info End -->
+            
+            <!-- News Calendar Start -->
+            <?php
+            if($this->groupInfo['calendar_on_off'] == '0')
+                {			
+            ?>
+                <div id="datepicker"></div>
+            <?php
+                }
+            ?>
+            <!-- News Calendar End -->
+    </div>
+</div>

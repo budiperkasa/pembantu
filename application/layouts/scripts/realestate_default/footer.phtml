@@ -1,0 +1,61 @@
+<?php 
+$front_template = Zend_Registry::get('front_template'); 
+$this->translator = Zend_Registry::get('translator');
+$global_conf = Zend_Registry::get('global_conf');
+?>
+
+<footer id="footer">
+    <div class="container">
+        <div class="block-ad-footer">
+            <?php echo $this->partial('blocks/ad_footer.phtml'); ?>
+        </div>
+    
+        <div class="social">
+            <?php echo $this->translator->translator('footer_social','', '', $front_template['theme_folder']); ?><br /><br />
+            <a href="http://www.facebook.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/facebook.png" width="20" height="20" border="0" title="Facebook"></a>
+            <a href="http://www.twitter.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/twitter.png" width="20" height="20" border="0" title="Twitter"></a>
+            <a href="http://www.youtube.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/youtube.png" width="20" height="20" border="0" title="Youtube"></a>
+            <a href="http://www.flickr.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/flickr.png" width="20" height="20" border="0" title="Flickr"></a>
+            <a href="http://www.delicious.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/delicious.png" width="20" height="20" border="0" title="Delicious"></a>
+            <a href="http://www.stumbleupon.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/stumbleupon.png" width="20" height="20" border="0" title="Stumbleupon"></a>
+            <a href="http://www.digg.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/digg.png" width="20" height="20" border="0" title="Digg"></a>
+            <a href="http://feeds.feedburner.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/rss.png" width="20" height="20" border="0" title="RSS"></a>
+            <a href="https://plus.google.com" target="_blank"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/google-plus-one.png" width="32" height="20" border="0" title="Google +1"></a>
+        </div>
+        
+        <div class="links">
+            <span><?php echo $this->translator->translator('footer_link_important','', '', $front_template['theme_folder']); ?></span>
+            <ul>
+                <li class="first"><a href="Search-Items"><?php echo $this->translator->translator('footer_link_find_property','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="LATEST-PROPERTIES"><?php echo $this->translator->translator('footer_link_latest_property','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="SELL"><?php echo $this->translator->translator('footer_link_sell_property','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="WANTED-BUY"><?php echo $this->translator->translator('footer_link_buy_property','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="LETTING"><?php echo $this->translator->translator('footer_link_left_property','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="GALLERIES"><?php echo $this->translator->translator('footer_link_gallery','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="News"><?php echo $this->translator->translator('footer_link_news','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="LATEST-PROPERTIES"><?php echo $this->translator->translator('footer_link_list','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="About-Us"><?php echo $this->translator->translator('footer_link_about','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Contact-Us"><?php echo $this->translator->translator('footer_link_contact','', '', $front_template['theme_folder']); ?></a></li>
+            </ul>
+        </div>
+        
+        <div class="links">
+            <span><?php echo $this->translator->translator('footer_link_quick','', '', $front_template['theme_folder']); ?></span> 
+            <ul>
+                <li class="first"><a href="<?php echo $this->url(); ?>" class="jQueryBookmark" title="<?php echo $global_conf['site_name'].' - '.strip_tags($this->headTitle()); ?>"><?php echo $this->translator->translator('footer_link_favorites','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Feedback"><?php echo $this->translator->translator('footer_link_feedback','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Contact-Us"><?php echo $this->translator->translator('footer_link_report','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Help"><?php echo $this->translator->translator('footer_link_help','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Advertising"><?php echo $this->translator->translator('footer_link_ad','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Terms-Conditions"><?php echo $this->translator->translator('footer_link_terms','', '', $front_template['theme_folder']); ?></a></li>
+                <li><a href="Privacy-Policy"><?php echo $this->translator->translator('footer_link_privacy','', '', $front_template['theme_folder']); ?></a></li>
+            </ul>
+        </div>
+        
+        <div class="copyright">
+            <?php echo $this->translator->translator('footer_copyright','', '', $front_template['theme_folder']); ?> <?php echo date("Y"); ?> <?php echo $this->translator->translator('footer_all_rights','', '', $front_template['theme_folder']); ?> &nbsp;<a href="http://www.<?php if(!empty($global_conf['frontend_footer_url'])){ echo $global_conf['frontend_footer_url']; }else if(!empty($validation_data['vendor_domain'])){  echo $validation_data['vendor_domain']; }else{ echo 'eicra.com'; } ?>" target="_blank" title="<?php if(!empty($global_conf['frontend_footer'])){ echo $global_conf['frontend_footer']; }else if($validation_data['footer_name']){ echo $validation_data['footer_name']; }else{ echo 'Eicra Soft Ltd'; } ?>"><?php echo $this->translator->translator('footer_develop_by','', '', $front_template['theme_folder']); ?></a>            
+            <?php if(!empty($global_conf['frontend_footer'])){ echo $global_conf['frontend_footer']; }else if($validation_data['footer_name']){ echo $validation_data['footer_name']; }else{ echo 'Eicra Soft Ltd'; } ?>                                          
+            <?php echo $this->translator->translator('footer_version','', '', $front_template['theme_folder']); ?> <?php echo Eicra_License_Version::getVersion(); ?>
+        </div>
+    </div>
+</footer>

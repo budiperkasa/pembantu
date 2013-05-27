@@ -1,0 +1,106 @@
+<?php 
+class upcoming_event_box
+{
+	protected	$_group = 4;
+	protected	$_limit = 3;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+?>
+
+<div class="block">  
+       	<?php
+		$today = date("Y-m-d");
+		$get_group = new News_Model_DbTable_NewsGroup();
+		$groupInfo	=	$get_group->getGroupName($this->_group);
+		$news_box = new News_Model_DbTable_Page();
+		$selectEvent = $this->_DBconn->select()
+									->from(array('n' => Zend_Registry::get('dbPrefix').'news_page'), array('*'))
+									->where('n.group_id = ?', $this->_group)
+									->where('n.page_date >= ?', $today)	
+									->order('n.page_date ASC')												
+									->limit($this->_limit);
+		
+		$news_box_data = $selectEvent->query()->fetchAll();
+		if($news_box_data)
+		{   
+			foreach($news_box_data as $partial_entry)
+			{
+				$pageInfo = $news_box->getPageInfo($partial_entry['id']);
+				
+				//Breaking News
+				 $selectMenu = $this->_DBconn->select()
+										->from(array('ma' => Zend_Registry::get('dbPrefix').'menu_assign'), array('ma.menu_id','ma.id'))
+										->where('ma.module_name = ?', 'News')
+										->where('ma.controller_name = ?', 'event')
+										->where('ma.action_name = ?', 'list')
+										->limit(1);
+				$assign_menu =  $selectMenu->query()->fetchAll();
+				$selectMenuTitle = $this->_DBconn->select()
+										->from(array('m' => Zend_Registry::get('dbPrefix').'menu'), array('m.menu_title'))
+										->where('m.menu_id = ?', $assign_menu[0]['menu_id'])
+										->limit(1);
+				$menuTitle =  $selectMenuTitle->query()->fetchAll();
+				$selectCatTitle = $this->_DBconn->select()
+										->from(array('nc' => Zend_Registry::get('dbPrefix').'news_category'), array('nc.category_title'))
+										->where('nc.id = ?', $pageInfo['category_id'])
+										->limit(1);
+				$catTitle =  $selectCatTitle->query()->fetchAll();	
+			?>	
+			<div class="block">
+				<div class="block-content">	
+					<div class="img-wrapper"><a href="<?php echo $this->_view->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->_view->escape($menuTitle[0]['menu_title']),'category_id' => $this->_view->escape($catTitle[0]['category_title']) ,'page_id'=> $this->_view->escape($partial_entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',true);  ?>"><img src="data/frontImages/news/page_thumb/<?php echo $this->_view->escape($partial_entry['page_thumb']); ?>" width="120" height="80" border="0" class="thumb" /></a></div>
+					
+					<div class="block-title">
+						<a href="<?php echo $this->_view->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->_view->escape($menuTitle[0]['menu_title']),'category_id' => $this->_view->escape($catTitle[0]['category_title']) ,'page_id'=> $this->_view->escape($partial_entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',true);  ?>" title="<?php echo $this->_view->escape($partial_entry['page_title']); ?>">
+							<?php echo $this->truncate($this->_view->escape($partial_entry['page_name']),0,12); ?>
+						</a> 
+					</div>
+					<span class="date"><?php echo strftime("%d-%m-%Y [%I:%M %p]",strtotime($partial_entry->page_date)); ?></span><br />
+					<?php echo $this->truncate($this->_view->escape($partial_entry['page_desc']),0,30); ?>
+				  
+					<div class="link-btn"><a href="<?php echo $this->_view->url(array('module'=>'News','controller'=>'frontend','action'=>'article','menu_id' => $this->_view->escape($menuTitle[0]['menu_title']),'category_id' => $this->_view->escape($catTitle[0]['category_title']) ,'page_id'=> $this->_view->escape($partial_entry['page_title'])),'News-Article/:menu_id/:category_id/:page_id',true);  ?>"><?php echo $translator->translator('block_events_btn','','',$this->_front_template['theme_folder']); ?></a></div>
+				</div>
+				<div class="seperator"></div>
+			</div>      
+		  <?php
+		  }
+	  	}
+	  ?> 
+		<div class="more"><a href="<?php if($menuTitle[0]['menu_title']){ echo $this->_view->escape($menuTitle[0]['menu_title']); } ?>"><?php echo $translator->translator('block_events_more_links','', '', $this->_front_template['theme_folder']); ?></a></div>
+</div>
+
+<?php
+	}
+}
+try
+{
+	$upcoming_event_box_class = new upcoming_event_box($this);
+	$upcoming_event_box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

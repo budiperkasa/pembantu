@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backend" for="backend" description="Manage Contact" langKey="permisson_contact">
+		<privilege for="dashboard" name="update" description="Update Contact Settings" langKey="permisson_contact_settings_update" />
+	</resource>	
+	<resource name="view" for="frontend" description="Contact Form" langKey="permisson_frontend_contact">
+		<privilege name="form" description="View Contact Us" langKey="permisson_contact_form_front_view" img="permisson_contact_form_front_view.jpg" />
+	</resource>
+</permissions>

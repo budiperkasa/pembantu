@@ -1,0 +1,52 @@
+<?php
+
+if($this->last > 1)
+{
+?>
+
+
+<div  style="width:100%">
+    
+    <div style="float:right;width:70%;">
+		<ul id="pagination-flickr">
+			<!-- First page link -->
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('page' => $this->first)); ?>">Start</a></li>
+			<?php else: ?>
+					<li class="previous-off">Start</li> 
+			<?php endif; ?>
+		
+			<!-- Previous page link -->
+		
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('page' => $this->previous)); ?>">&lt; Previous</a></li>
+			<?php else: ?>
+				<li class="previous-off">&lt; Previous</li>
+			<?php endif; ?>
+			<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<li><a href="<?php echo $this->url(array('page' => $page)); ?>"><?php echo $page; ?></a></li>
+				<?php else: ?>
+					<li class="active"><?php echo $page; ?></li>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('page' => $this->next)); ?>">Next &gt;</a></li>
+			<?php else: ?>
+				<li class="next-off">Next &gt;</li>
+			<?php endif; ?>
+			<!-- Last page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('page' => $this->last)); ?>">End</a></li>
+			<?php else: ?>
+				<li class="next-off">End</li>
+			<?php endif; ?>
+		</ul>
+        &nbsp; <span class="current_page">Page <?php echo $this->current; ?> of <?php echo $this->last; ?></span>
+    </div>
+ </div>
+ <?php
+ }
+ ?>

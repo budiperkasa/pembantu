@@ -1,0 +1,131 @@
+<?php
+$version = Zend_Registry::get('version'); 
+$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri(); 
+if($this->pageInfo['meta_key']){ $this->headMeta()->setName('keywords',$this->form_info['meta_key']);}
+if($this->pageInfo['meta_desc']){ $this->headMeta()->setName('description',$this->form_info['meta_desc']); }
+$this->headTitle()->headTitle($this->form_info['meta_title'],'SET');
+
+$auth = Zend_Auth::getInstance ();
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$symbol = $currency->getSymbol();
+$field_db = new Members_Model_DbTable_Fields();
+?>
+<script type="text/javascript">
+	$(function() {
+		$("#tabs").tabs();
+	});
+</script>
+
+<div class="mod mod-packages">
+	<div class="packages-icon">
+        <h1><?php echo $this->translator->translator('package_form_name'); ?></h1>
+    </div>
+   
+	<div class="clear"></div>
+
+
+    <div class="mod-container package-info">
+        <?php if(!empty($this->form_info['front_desc'])){ echo stripslashes($this->form_info['front_desc']); } ?>
+    </div>
+	
+    <div id="tabs">
+            <ul>
+                <?php
+                foreach($this->packages_info as $tab_list)
+                {
+                ?>
+                    <li><a href="<?php echo $tab_base_link; ?>#tabs-<?php echo $this->escape($tab_list['g_id']); ?>"><?php echo $this->escape($tab_list['package_name']).' '.$symbol.$this->escape($tab_list['package_price']); ?></a></li>		
+                <?php
+                }
+                ?>
+            </ul>
+                
+			<?php
+            foreach($this->packages_info as $package_list)
+            	{
+            ?>
+				<div id="tabs-<?php echo $this->escape($package_list['g_id']); ?>">
+                		<div class="chart">
+                        <?php
+                            $cnt= 0;
+                            foreach($package_list as $key=>$value)
+                            {	
+                                if($key != 'g_id' && $key != 'form_id' && !empty($value))
+                                {					
+                                    if($key == 'package_name')
+                                    {
+                                        echo '<h2>'.$value.'</h2><br />';
+                                    }
+                                    else if($key == 'package_price')
+                                    {
+                                            $field_info = $field_db->getFieldIdByFieldName($package_list['form_id'],$key) ;
+                                           	if($field_info[0]['display_frontend'] == '1')
+											{
+										    	echo '<div class="label">'.$field_info[0]['field_label'].'</div><div class="value price">'.$symbol.$value.'</div>';													
+											}
+									}                                
+                                }
+                                $cnt++;
+                            }				
+                        ?>
+                        
+                        <?php
+                            $cnt= 0;
+                            foreach($package_list as $key=>$value)
+                            {	
+                                if($key != 'g_id' && $key != 'form_id' && ($value != '') && !empty($key))
+                                {					
+                                    
+                                    $field_info = $field_db->getFieldIdByFieldName($package_list['form_id'],$key) ;
+									if($field_info[0]['display_frontend'] == '1')
+									{
+										if($field_info[0]['field_type'] == 'file')
+										{
+											echo '<div class="label">'.$field_info[0]['field_label'].'</div><div class="value"><img src="'.$this->form_info['attach_file_path'].'/'.$value.'" width="80" height="60" /></div>';	
+										}
+										else
+										{									
+											echo '<div class="label">'.$field_info[0]['field_label'].'</div><div class="value">'.$value.'</div>';	
+										}					
+									}
+                                }
+                                $cnt++;
+                            }				
+                        ?>
+                        </div>
+                        <?php
+                        if(!empty($package_list['package_price']) && $package_list['package_price'] != '0.00')
+                        {
+                            if ($auth->hasIdentity ())
+                            {
+                        ?>
+                            <div class="clear btn-container">	   
+                                <div class="form-button ui-widget-content-1"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=<?php echo $global_conf['payment_email']; ?>&item_name=<?php echo $this->escape($package_list['package_name']); ?>&item_number=1&amount=<?php echo $this->escape($package_list['package_price']); ?>&no_shipping=0&no_note=1&currency_code=<?php echo $currency->getShortName(); ?>&bn=PP%2dBuyNowBF&charset=UTF%2d8 target=_blank"  target="_blank"><?php echo $this->translator->translator('Member_Buy_Now_btn'); ?></a></div>
+                            </div>
+                        <?php
+                            }
+                            else
+                            {
+                        ?>
+                            <div class="clear btn-container">
+                                <div class="form-button ui-widget-content-1"><a href="Register" ><?php echo $this->translator->translator('Member_Register_now_btn'); ?></a></div>
+                            </div>
+                        <?php
+                            }
+                        }
+                        else
+                        {
+                        ?>
+							<div class="clear btn-container">
+                                <div class="form-button ui-widget-content-1"><a href="Register" ><?php echo $this->translator->translator('Member_Register_now_btn'); ?></a></div>
+                            </div>
+                        <?php
+                        }
+                        ?>
+                    </div>
+			<?php
+            	}
+            ?>
+    </div>
+</div>

@@ -1,0 +1,59 @@
+<?php
+if($this->last > 1)
+{
+$frontController = Zend_Controller_Front::getInstance();
+$module = $frontController->getRequest()->getModuleName();
+$controller = $frontController->getRequest()->getControllerName();
+$action = $frontController->getRequest()->getActionName();
+$menu_id = $frontController->getRequest()->getParam('menu_id');
+$year = $frontController->getRequest()->getParam('year');
+$month = $frontController->getRequest()->getParam('month');
+$day = $frontController->getRequest()->getParam('day');
+
+$route_name = ($year && $month && $day)? 'Event-Cal/:menu_id/:year/:month/:day/:page' : 'Lists/:menu_id/:page';
+$translator = Zend_Registry::get('translator');
+?>
+
+<div class="flickr-pagination-container">
+		<ul id="pagination-flickr">
+			<!-- First page link -->
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'year' => $year,'month' => $month,'day' => $day,'page' => $this->first),$route_name,true); ?>"><?php echo $translator->translator('pagination_start'); ?></a></li>
+			<?php else: ?>
+					<li class="previous-off"><?php echo $translator->translator('pagination_start'); ?></li> 
+			<?php endif; ?>
+		
+			<!-- Previous page link -->
+		
+			<?php if (isset($this->previous)): ?>
+				  <li class="previous"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'year' => $year,'month' => $month,'day' => $day,'page' => $this->previous),$route_name,true); ?>">&lt; <?php echo $translator->translator('pagination_previous'); ?></a></li>
+			<?php else: ?>
+				<li class="previous-off">&lt; <?php echo $translator->translator('pagination_previous'); ?></li>
+			<?php endif; ?>
+			<!-- Numbered page links -->
+			<?php foreach ($this->pagesInRange as $page): ?>
+				<?php if ($page != $this->current): ?>
+					<li><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'year' => $year,'month' => $month,'day' => $day,'page' => $page),$route_name,true); ?>"><?php echo $this->numbers($page); ?></a></li>
+				<?php else: ?>
+					<li class="active"><?php echo $this->numbers($page); ?></li>
+				<?php endif; ?>
+			<?php endforeach; ?>
+			<!-- Next page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'year' => $year,'month' => $month,'day' => $day,'page' => $this->next),$route_name,true); ?>"><?php echo $translator->translator('pagination_next'); ?> &gt;</a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_next'); ?> &gt;</li>
+			<?php endif; ?>
+			<!-- Last page link -->
+			<?php if (isset($this->next)): ?>
+				  <li class="next"><a href="<?php echo $this->url(array('module'=>$module,'controller' => $controller,'action' => $action,'menu_id' => $menu_id,'year' => $year,'month' => $month,'day' => $day,'page' => $this->last),$route_name,true); ?>"><?php echo $translator->translator('pagination_end'); ?></a></li>
+			<?php else: ?>
+				<li class="next-off"><?php echo $translator->translator('pagination_end'); ?></li>
+			<?php endif; ?>
+            	<li>&nbsp; <span class="current_page"><?php echo $translator->translator('pagination_Page'); ?> <?php echo $this->numbers($this->current); ?> <?php echo $translator->translator('pagination_of'); ?> <?php echo $this->numbers($this->last); ?></span></li>
+		</ul>
+  
+</div>
+<?php
+}
+?>

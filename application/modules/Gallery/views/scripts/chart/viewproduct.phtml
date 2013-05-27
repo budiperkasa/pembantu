@@ -1,0 +1,149 @@
+<?php
+if(!empty($this->headerInfo['meta_keywords'])) { $this->headMeta()->setName('keywords',$this->headerInfo['meta_keywords']);}
+if(!empty($this->headerInfo['meta_desc'])) { $this->headMeta()->setName('description',$this->headerInfo['meta_desc']); }
+$headTitle = ($this->headerInfo['gallery_name']) ? $this->headerInfo['gallery_name'] : $this->headerInfo['category_name'];
+$this->headTitle()->headTitle($headTitle,'SET')->setSeparator(' - ')->headTitle($this->headerInfo['meta_title']);
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+
+
+if($this->group_datas['light_box_on'] == '1')
+{
+	echo $this->headLink()->setStylesheet($this->baseUrl().'/js/jquery/pirobox/css_pirobox/demo5/style.css'); 
+	echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/pirobox/pirobox.js');
+	
+
+
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('img[title]').qtip({			
+				position: { my: 'bottom left', at: 'top center' },
+				show: {  target: false, event: 'mouseover', effect: function(offset) { /*$(this).slideDown(200);*/ $(this).show(300); } },
+				hide: {  event: 'mouseout' , effect: function(offset) { /*$(this).slideUp(200);*/ $(this).hide(300); } },
+				style: { classes: 'ui-tooltip-frontend' }
+			});
+	$('.pirobox').piroBox({
+			my_speed: 300, //animation speed
+			bg_alpha: 0.7, //background opacity
+			slideShow : false, // true == slideshow on, false == slideshow off
+			slideSpeed : 4, //slideshow duration in seconds(3 to 6 Recommended)
+			close_all : '.piro_close,.piro_overlay'// add class .piro_overlay(with comma)if you want overlay click close piroBox
+
+	});
+});
+</script>
+<?php
+}
+?>
+
+<div class="mod mod-gallery">
+    <div class="chart-icon">
+        <h1><?php $menu_db_class = new Menu_Model_DbTable_Menu(); $menu_name = $menu_db_class->getMenuName($this->menu_id); echo $this->escape($menu_name); ?></h1>
+    </div>
+	<div class="clear">&nbsp;</div>
+
+	<?php if($this->group_datas['horizontal_panel'] == '1') { echo $this->partial('blocks/pathway.phtml'); } ?>
+    <div class="gallery-chart">
+        <div class="chart-header">
+            <div class="chart-col-1">
+                <?php echo $this->translator->translator('gallery_chart_product_image'); ?>
+            </div>
+            <div class="chart-col-1 col-2">
+                <?php echo $this->translator->translator('gallery_chart_product_menu_items'); ?>
+            </div>
+            <div class="chart-col-1 col-3">
+                <?php echo $this->translator->translator('gallery_chart_product_code'); ?>          	
+            </div>
+            
+             <div class="chart-col-1 col-4">
+                <?php echo $this->translator->translator('gallery_chart_product_price'); ?>
+            </div>
+        </div>
+        
+        <?php
+            $i =1 ;
+            
+            foreach ($this->view_datas as $entry=>$value): 	
+            
+            $col_num =  $this->escape($this->group_datas['file_col_num']);			
+            $link = $this->url( array('module' => 'Gallery','controller' =>'chart','action' => 'productdetails','menu_id' => $this->escape($this->menu_id),'product_title' => $this->escape($value['product_title']) ), 'Chart-Details/:menu_id/:product_title',    false);
+            
+            if($value['featured'] == '1')
+            {
+                $style = 'style="background: #FF0000;"';
+            }
+            else
+            {
+                $style = "";
+            }
+            $row_class = ($i % 2 == 0) ? 'chart-bg' : '';
+        
+            if($this->escape($value['product_thumb_primary']))
+            { 
+                $thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($value['product_thumb_primary']); 
+            }
+            else
+            { 
+                if($this->escape($value['product_thumb']))
+                {
+                    $product_thumb_val_arr = explode(',',$value['product_thumb']);
+                    $thumb_image = 'data/frontImages/gallery/product_thumb/'.$this->escape($product_thumb_val_arr[0]); 
+                }
+                else
+                {
+                    if($this->escape($value['product_file_primary']))
+                    {
+                        $thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($value['product_file_primary']); 
+                    }
+                    else
+                    {
+                        $product_file_val_arr = explode(',',$value['product_file']);
+                        $thumb_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+                    }
+                }		
+            }
+            
+            if($this->escape($value['product_file_primary']))
+            {
+                $light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($value['product_file_primary']); 
+            }
+            else
+            {
+                $product_file_val_arr = explode(',',$value['product_file']);
+                $light_box_image = 'data/frontImages/gallery/product_image/'.$this->escape($product_file_val_arr[0]); 
+            }
+                            
+        ?>
+        <div class="chart-body <?php echo $row_class; ?>">
+            <div class="chart-col-1 col-1"><a <?php if($this->group_datas['light_box_on'] == '1'){ ?>class="pirobox" href="<?php echo $light_box_image; ?>" title="<?php echo $this->escape($value['product_title']); ?>" <?php }else{ ?> href="<?php echo $link; ?>" <?php } ?> ><img src="<?php echo $thumb_image; ?>" border="0" class="thumb" title="<?php echo $this->escape($value['product_name']); ?>" <?php if($this->group_datas['file_thumb_width'] && $this->group_datas['file_thumb_resize_func'] != 'resizeToHeight'){ echo 'width="'.$this->escape($this->group_datas['file_thumb_width']).'"'; } if($this->group_datas['file_thumb_height'] && $this->group_datas['file_thumb_resize_func'] != 'resizeToWidth'){ echo 'height="'.$this->escape($this->group_datas['file_thumb_height']).'"'; } ?> /></a></div>
+            <div class="chart-col-1 col-2">
+                <a href="<?php echo $link; ?>"><?php echo $this->escape($value['product_name']); ?></a><br />
+                <?php echo truncate($this->escape(strip_tags(nl2br($value['product_desc']))), 0, 35); ?>
+            </div>
+            <div class="chart-col-1 col-3"><?php echo $this->escape($value['product_code']); ?></div>
+            <div class="chart-col-1 col-4"><?php echo $this->escape($value['product_price'])."&nbsp;".$currency->getSymbol(); ?></div>
+        </div>
+        <?php
+            $i++;
+            endforeach;	 			
+        ?>
+    </div>
+    
+    <div class="back-btn">
+        <a href="<?php echo $this->url( array('module' => 'Gallery','controller' =>'chart','action' => 'view','menu_id' => $this->escape($this->menu_id)), $this->escape($this->menu_id),    false); ?>">« <?php echo $this->translator->translator('gallery_chart_product_menu_list') ?></a>
+    </div>
+	<div class="clear">&nbsp;</div>
+    <div>
+        <?php echo $this->paginationControl($this->view_datas, 'Sliding', 'chart/viewproduct-pagination-flickr.phtml'); ?>
+    </div>
+</div>

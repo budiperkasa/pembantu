@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+	<resource name="backendgateway" for="backend" description="Manage Payment Gateways" langKey="permisson_gateway">
+		<privilege for="dashboard" name="list" description="Gateway List" langKey="permisson_gateway_list" />
+		<privilege name="publish" description="Gateway Publish / Unpublish" langKey="permisson_gateway_list_publish" />
+		<privilege name="add" description="Save Gateway" langKey="permisson_add_comment_list" />
+		<privilege name="edit" description="Edit Gateway" langKey="permisson_edit_comment_list" />
+		<privilege name="paypal" description="Paypal Gateway" langKey="permisson_payment_Paypal_edit_comment_list" />	
+		<privilege name="tocheckout" description="2Checkout Gateway" langKey="permisson_payment_edit_2Checkout_comment_list" />		
+		<privilege name="payza" description="Payza Gateway" langKey="permisson_payment_edit_payza_comment_list" />		
+		<privilege name="moneybookers" description="Moneybookers" langKey="permisson_payment_edit_moneybookers_comment_list" />		
+		<privilege name="worldpay" description="WorldPay Gateway" langKey="permisson_payment_edit_worldpay_comment_list" />		
+		<privilege name="authorizenet" description="Authorizenet Gateway" langKey="permisson_payment_edit_authorizenet_comment_list" />		
+		<privilege name="bank" description="Bank Cheque or Cash" langKey="permisson_payment_edit_bank_comment_list" />		
+		<privilege name="ccAvenue" description="ccAvenue Gateway" langKey="permisson_payment_edit_ccAvenue_comment_list" />		
+		<privilege name="setdefault" description="Set Default" langKey="permisson_set_default" />
+	</resource>
+</permissions>

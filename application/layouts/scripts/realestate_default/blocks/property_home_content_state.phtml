@@ -1,0 +1,91 @@
+<?php
+class property_home_content_state_wise
+{
+	protected	$_group = 1;
+	protected	$_limit = 20;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');		
+?>
+
+<div class="block">
+	<div class="block-heading">
+		<div class="symbol"><?php echo $translator->translator('block_state_title','','', $this->_front_template['theme_folder']); ?></div>
+	</div>
+   
+    <div class="block-body">
+		<div class="list">
+			<ul>
+				<?php	
+                    $DBconn = Zend_Registry::get('msqli_connection');
+                    $DBconn->getConnection();
+                    $selectGP = $DBconn->select()
+                                    ->from(array('hp' => Zend_Registry::get('dbPrefix').'states'), array('DISTINCT(hp.state_id)'))	
+                                    ->where('vv.active = ?','1')									
+                                    ->order('hp.state_name ASC')
+                                    ->joinLeft(array('vv' => Zend_Registry::get('dbPrefix').'property_page'), 'vv.state_id = hp.state_id',array('state_id' => 'hp.state_id', 'state_name' => 'hp.state_name', 'country_id' => 'hp.country_id'))
+                                    ->limit($this->_limit);
+                    $state_info =  $selectGP->query()->fetchAll();							
+                    if(count($state_info) > 0)	
+                    {
+                        $l = 1;							
+                        foreach($state_info as $entry)
+                        {								
+                            $selectCount = $DBconn->select()
+                                ->from(array('vv' => Zend_Registry::get('dbPrefix').'property_page'), array('count' => 'COUNT(*)'))
+                                ->where('vv.active = ?','1')
+                                ->where('vv.state_id = ?',$entry['state_id']);
+                            $count_info =  $selectCount->query()->fetchAll();	
+                            if(count($state_info) > 0)	
+                            {	
+                ?>
+                <li><a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'cityhotellist', 'action' => 'viewstate','state' => $this->_view->escape($entry['state_name']),'state_id' => $this->_view->escape($entry['state_id']) ),'Property-list-state/:state/:state_id',true); ?>" title="<?php echo $this->_view->escape($entry['state_name']); ?>" class="preview" link=""><?php echo $this->truncate($this->_view->escape($entry['state_name']), 0, 3).' ('.$count_info[0]['count'].')'; ?></a></li>												
+				<?php
+                
+                            }
+                            if($l++ % 5 == 0)
+                            {
+                                echo '</ul></div><div class="list"><ul>';
+                            }
+                        }							
+                    }
+                ?>
+			</ul>			
+		</div>       
+	</div>
+</div>
+
+<?php
+	}
+}
+try
+{
+	$property_home_content_state_wise_class = new property_home_content_state_wise($this);
+	$property_home_content_state_wise_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

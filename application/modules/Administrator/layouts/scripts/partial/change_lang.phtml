@@ -1,0 +1,174 @@
+<?php
+class change_lang
+{	
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+			
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{			
+		$translator = Zend_Registry::get('translator');		
+		$globalForm = new Settings_Form_GlobalSettingsForm();	
+		$lang_arr = $globalForm->default_language->getMultiOptions();	
+		if(Eicra_Global_Variable::getSession()->sess_lang)
+		{
+			$default_lang_code = Eicra_Global_Variable::getSession()->sess_lang;	
+			$default_lang_name = 	$globalForm->default_language->getMultiOption($default_lang_code);
+			$default_lang_code_arr = explode('_', $default_lang_code);
+			$default_territory_code = $default_lang_code_arr[1];			
+		}
+		else
+		{
+			$global_conf = Zend_Registry::get('global_conf');
+			$default_lang_code = $global_conf['default_language'];
+			$default_lang_name = $globalForm->default_language->getMultiOption($default_lang_code);
+			$default_lang_code_arr = explode('_', $default_lang_code);
+			$default_territory_code = $default_lang_code_arr[1];			
+		}
+		
+		$default_site_lang_arr	=	Zend_Locale_Data::getList($default_lang_code, 'language');
+		$default_site_lang = $default_site_lang_arr[$default_lang_code_arr[0]];
+		
+		$default_site_territory_arr	=	Zend_Locale_Data::getList($default_lang_code, 'territory');
+		$default_site_territory = $default_site_territory_arr[$default_territory_code];				
+		$tab_base_link = Zend_Controller_Front::getInstance()->getRequest()->getRequestUri();	
+	?>
+		
+		<script type="text/javascript">		
+		$(document).ready(function() { //on DOM ready
+				$("a.change_lang").click(function() {	
+					var self = this;
+					var lang = $(self).attr('rel');
+					
+					$.ajax({
+						url: "<?php echo $this->_view->url( array('module' => 'Settings','controller' => 'language', 'action'     => 'update' ), 'adminrout',    true) ?>",
+							type: 'POST',
+							data: { lang_name : lang },
+							beforeSend: function(){								
+								$(self).children("span:nth-child(1)").children("img:nth-child(1)").attr('src','data/adminImages/commonImages/flag_loader.gif');	
+								$(self).children("span:nth-child(1)").children("img:nth-child(1)").attr('height','15');			
+							 },
+							success: function(response)
+							{	
+								//alert(response);											
+								var json_arr = eval("("+response+")");	
+								var url = '<?php echo $tab_base_link; ?>';
+								var baseUrl = '<?php echo $this->_view->baseUrl(); ?>';
+								var ckUrl = 'Administrator/login/auth';
+								var match_res = url.match(/Administrator\/login\/auth/g);
+								var tmp = false;
+								for (i in match_res) 
+								{
+									if(match_res[i] == ckUrl){ tmp = true;  }
+								  //alert(i + ' : ' + match_res[i]);
+								}
+								if(tmp == true)
+								{
+									var rightUrl = baseUrl+'/Administrator';
+								}
+								else
+								{
+									var rightUrl = url;
+								}				
+												
+								if(json_arr.status == 'ok')
+								{
+									document.location.href=rightUrl;													
+								}					
+							}
+					  });
+				});
+			});
+		
+		</script>
+        
+        <script type="text/javascript">
+        $(document).ready(function() {
+            $(".dropdown img.flag").addClass(""); //flagvisibility
+		
+            $(".dropdown dt a").click(function() {
+                $(".dropdown dd ul").toggle();
+            });
+                        
+            $(".dropdown dd ul li a").click(function() {
+                var text = $(this).html();
+                $(".dropdown dt a span").html(text);
+                $(".dropdown dd ul").hide();
+                $("#result").html("Selected value is: " + getSelectedValue("sample"));
+            });
+                        
+            function getSelectedValue(id) {
+                return $("#" + id).find("dt a span.value").html();
+            }
+		
+            $(document).bind('click', function(e) {
+                var $clicked = $(e.target);
+                if (! $clicked.parents().hasClass("dropdown"))
+                    $(".dropdown dd ul").hide();
+            });
+		
+		
+            $("#flagSwitcher").click(function() {
+                $(".dropdown img.flag").toggleClass("flagvisibility");
+            });
+        });
+    	</script>
+    	
+        <dl id="sample" class="dropdown" style="margin:0; padding:0">
+            <dt><a href="javascript:void(0);"><span><?php echo $default_site_lang.' - '.$default_site_territory; ?><span class="flag"><img src="data/adminImages/flagsImage/<?php echo $default_territory_code; ?>.gif" border="0" title="<?php echo $default_lang_name; ?>" /></span></span></a></dt>
+            <dd>
+                <ul>
+					<?php
+					foreach($lang_arr as $lang_arr_key => $lang_arr_value)
+					{
+						$key_arr = explode('_', $lang_arr_key);
+						$iso_code = $key_arr[0];
+						$territory_code = $key_arr[1];
+						
+						$localeData = Zend_Locale_Data::getList($lang_arr_key, 'layout');
+						$site_direction = $localeData['characters'];
+						$site_direction_symbol = ($site_direction == 'right-to-left') ? 'rtl' : 'ltr';
+						
+						$site_lang_arr	=	Zend_Locale_Data::getList($lang_arr_key, 'language');
+						$site_lang = $site_lang_arr[$iso_code];
+						
+						$site_territory_arr	=	Zend_Locale_Data::getList($lang_arr_key, 'territory');
+						$site_territory = $site_territory_arr[$territory_code];
+					?>
+                    <li><a class="change_lang" rel="<?php echo $lang_arr_key.':'.$site_direction_symbol; ?>" href="javascript:void(0);"><?php echo $site_lang.' - '.$site_territory; ?><span class="flag"><img src="data/adminImages/flagsImage/<?php echo $territory_code; ?>.gif" border="0" title="<?php echo $lang_arr_value; ?>" /></span></a></li>
+                   	<?php
+					}
+					?>
+                </ul>
+           </dd>
+    	</dl>
+<?php
+	}
+}
+
+try
+{	
+	$change_lang_class = new change_lang($this);
+	$change_lang_class->class_body();
+}
+catch(Exception $e)
+{
+	echo 'You have to create menu first.';
+}
+?>

@@ -1,0 +1,305 @@
+<?php
+$this->headTitle()->headTitle( $this->translator->translator('news_frontend_search_page_name'),'SET');
+$version = Zend_Registry::get('version'); 
+$front_template = Zend_Registry::get('front_template');
+function getNumberOfArticles($month,$year,$select_month_year_list)
+{
+	$i = 0;
+	foreach($select_month_year_list as $months_years)
+	{
+		if($months_years['years'] == $year && $months_years['months'] == $month)
+		{
+			$i++;
+		}
+	}
+	return $i;
+}
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+      $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+?>
+<script type="text/javascript">
+function stripslashes(str) 
+{
+	str=str.replace(/\\'/g,'\'');
+	str=str.replace(/\\"/g,'"');
+	str=str.replace(/\\0/g,'\0');
+	str=str.replace(/\\\\/g,'\\');
+	return str;
+}
+$(document).ready(function() {
+	$('select.search_date_field').change(function() {			
+			if($('select.search_date_field option:selected').val() == 'any' || $('select.search_date_field option:selected').val() =='')
+			{
+				$('select.group_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');	
+				$('select.category_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+				$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+			}
+			else
+			{	
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' =>'News','controller' => 'search', 'action'     => 'groups' ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { search_date_field: $('select.search_date_field option:selected').val() },
+					  beforeSend: function(){						
+								$('select.group_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+								$('select.category_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+								$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');			
+								$('#group_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							 },
+					  success: function(response){
+						//alert(response);
+						//$('#group_id_err').html(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value=""><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.select_group_list.length;i++)
+							{
+								if(json_arr.select_group_list[i].id)
+								{
+									option += '<option value="'+json_arr.select_group_list[i].id+'" >'+stripslashes(json_arr.select_group_list[i].news_name)+' ('+json_arr.select_group_list[i].article_no+') </option>';
+								}
+							}
+							$('select.group_id').html(option);
+						}
+						else
+						{
+							$('select.group_id').html('<option value=""><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+						}
+						$('#group_id_err').html('');
+					  },
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#group_id_err').html(msg);	
+					}
+				});
+			}
+		});
+		
+		$('select.group_id').change(function() {		
+					
+			if($('select.group_id option:selected').val() == 'any' || $('select.group_id option:selected').val() == '')
+			{
+				$('select.category_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+				$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+			}
+			else
+			{
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' =>'News','controller' => 'search', 'action'     => 'categories'  ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { group_id: $('select.group_id option:selected').val(), search_date_field: $('select.search_date_field option:selected').val() },
+					  beforeSend: function(){						
+							$('select.category_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+							$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+							$('#category_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							},
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0;i<json_arr.select_category_list.length;i++)
+							{
+								if(json_arr.select_category_list[i].id)
+								{
+									option += '<option value="'+json_arr.select_category_list[i].id+'" >'+stripslashes(json_arr.select_category_list[i].category_name)+' ('+json_arr.select_category_list[i].article_no+') </option>';
+								}
+							}
+							$('select.category_id').html(option);
+						}
+						else
+						{
+							$('select.category_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+						}
+						$('#category_id_err').html('');
+					  },
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#category_id_err').html(msg);	
+					}
+				});
+			}
+		});	
+		
+		$('select.category_id').change(function() {		
+					
+			if($('select.category_id option:selected').val() == 'any' || $('select.category_id option:selected').val() == '')
+			{
+				$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+			}
+			else
+			{
+				$.ajax({
+					  url: "<?php echo $this->url( array('module' =>'News','controller' => 'search', 'action'     => 'users'  ), 'adminrout',    true) ?>",
+					  type: 'POST',
+					  data: { category_id: $('select.category_id option:selected').val(), group_id: $('select.group_id option:selected').val(), search_date_field: $('select.search_date_field option:selected').val() },
+					  beforeSend: function(){						
+							$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("common_loading_language"); ?></option>');
+							$('#user_id_err').html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" width="15" border="0" />');	
+							},
+					  success: function(response){
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						var option = '<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>';				
+						if(json_arr.status == 'ok')
+						{
+							for(var i = 0; i < json_arr.select_user_list.length; i++)
+							{
+								if(json_arr.select_user_list[i].user_id)
+								{
+									option += '<option value="'+json_arr.select_user_list[i].user_id+'" >'+stripslashes(json_arr.select_user_list[i].title+' '+json_arr.select_user_list[i].firstName+' '+json_arr.select_user_list[i].lastName)+' ('+json_arr.select_user_list[i].article_no+') </option>';
+								}
+							}
+							$('select.user_id').html(option);
+						}
+						else
+						{
+							$('select.user_id').html('<option value="any"><?php echo $this->translator->translator("news_frontend_search_select"); ?></option>');
+						}
+						$('#user_id_err').html('');
+					  },
+					error: function(xhr, status, error){
+						closeLoaderDialog();
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#user_id_err').html(msg);	
+					}
+				});
+			}
+		});
+		
+		$( "#news_page" ).autocomplete({
+			source: function( request, response ) {
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'News', 'controller' => 'search', 'action'     => 'pagename' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					dataType: "json",
+					data: {
+						page_name: request.term
+					},
+					success: function( data ) {
+						if(data.status == 'ok')
+						{
+							response( $.map( data.search_data, function( item ) {
+								return {
+									label: item.page_name,
+									value: item.page_name
+								}
+							}));
+						}
+						else
+						{
+							response( $.map( data, function( item ) {
+								return { }
+							}));
+						}
+					}
+				});
+			},
+			minLength: 2,
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		})
+		.data( "autocomplete" )._renderItem = function( ul, item ) {
+			return $( "<li></li>" )
+				.data( "item.autocomplete", item )
+				.append( "<a>"  + item.label  + "</a>" )
+				.appendTo( ul );
+		};
+});
+</script>
+
+<div class="mod mod-news">
+	<div class="search-icon">
+        <h1><?php echo $this->translator->translator('news_frontend_search_page_name'); ?></h1>
+    </div>
+	<div class="clear">&nbsp;</div>
+
+    <div class="mod-container">
+    	<form id="searchForm" method="post" action="<?php echo $this->url(); ?>">
+            <div class="col">
+                <p><?php echo $this->translator->translator('news_frontend_search_date_label'); ?></p>
+            	<select name="search_date_field" id="search_date_field" class="search_date_field">
+                     <option value=""><?php echo $this->translator->translator('news_frontend_search_select'); ?></option>
+                     <?php
+                        foreach($this->select_year_list as $years)
+                        {
+                            foreach($this->select_month_year_list as $months_years)
+                            {
+                                if($months_years['years'] == $years['years'])
+                                {
+                     ?>
+                     <option value="<?php echo $this->escape($months_years['months']).','.$this->escape($years['years']); ?>"><?php echo $this->escape($months_years['months']).', '.$this->escape($years['years']).' ('.getNumberOfArticles($months_years['months'],$years['years'],$this->select_month_year_list).')'; ?></option>
+                     <?php
+                                }
+                            }
+                        }
+                     ?>
+				</select>
+            </div>
+            
+            <div class="col">
+            	<p><?php echo $this->translator->translator('news_frontend_search_type_label'); ?></p>
+                <select name="group_id" id="group_id" class="group_id">
+                    <option value=""><?php echo $this->translator->translator('news_frontend_search_select'); ?></option>
+                </select><span id="group_id_err"></span>
+            </div>
+            
+            <div class="col">
+            	<p><?php echo $this->translator->translator('news_frontend_search_category_label'); ?></p>
+                <select name="category_id" id="category_id" class="category_id">
+                    <option value=""><?php echo $this->translator->translator('news_frontend_search_select'); ?></option>
+                </select><span id="category_id_err"></span>
+            </div>
+            
+            <div class="col">
+            	<p><?php echo $this->translator->translator('news_frontend_search_author_label'); ?></p>
+                <select name="user_id" id="user_id" class="user_id">
+                 	<option value=""><?php echo $this->translator->translator('news_frontend_search_select'); ?></option>
+                </select><span id="user_id_err"></span>
+            </div>
+           
+            <div class="col">
+				<p><?php echo $this->translator->translator('news_frontend_search_article_label'); ?></p>
+               	<input type="text" name="news_page" id="news_page" />
+           	</div>
+           
+            <div class="clear btn-container">
+                <input type="submit" name="submit" value="<?php echo $this->translator->translator('news_frontend_search_btn'); ?>" />
+            </div>
+       	</form>	
+    </div>
+
+    <?php
+        if($this->datas['status'] == 'ok')
+        {
+            foreach($this->datas['search_data'] as $key=>$entry)
+            {
+    ?>		
+        <div class="mod-container">              
+            <a href="<?php echo $this->url(array('module'=>'News','controller'=>'event','action'=>'details','menu_id' => $this->menu_id ,'page_id'=> $this->escape($entry['page_title'])),'Event-Details/:menu_id/:page_id',false);  ?>"><img src="data/frontImages/news/page_thumb/<?php echo strip_tags($this->escape($entry['page_thumb'])); ?>" class="thumb" border="0" height="120"/></a>
+            <div class="mod-title"><a href="<?php echo $this->url(array('module'=>'News','controller'=>'event','action'=>'details','menu_id' => $this->menu_id ,'page_id'=> $this->escape($entry['page_title'])),'Event-Details/:menu_id/:page_id',false);  ?>"><?php echo $this->escape($entry['page_name']); ?></a></div>
+            <?php echo truncate(strip_tags($this->escape($entry['page_desc'])), 0,65); ?>
+            <div class="more"><a href="<?php echo $this->url(array('module'=>'News','controller'=>'event','action'=>'details','menu_id' => $this->menu_id ,'page_id'=> $this->escape($entry['page_title'])),'Event-Details/:menu_id/:page_id',false);  ?>"><?php echo $this->translator->translator('common_readmore'); ?> &raquo;</a></div>
+        </div>
+    <?php
+            }
+        }
+        else
+        {
+            echo $this->escape($this->datas['msg']);
+        }
+    ?>
+</div>

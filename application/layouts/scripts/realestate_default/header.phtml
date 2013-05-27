@@ -1,0 +1,26 @@
+<?php 
+$front_template = Zend_Registry::get('front_template'); 
+$this->translator = Zend_Registry::get('translator');
+$global_conf = Zend_Registry::get('global_conf');
+?>
+
+<header id="header">
+    <div class="container">
+        <div class="logo">
+            <a href="#"><img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/logo.png" alt="Best Realestate script &amp; Online Property rental management script" title="Property Listing script | Property Buy | Property Sell | Property letting" height="92" border="0"></a>
+            <!--<h1><?php //echo $this->translator->translator('header_logo','', '', $front_template['theme_folder']); ?></h1>-->
+        </div>
+            
+        <div class="support">
+            <?php echo $this->partial('blocks/ad_header.phtml'); ?>
+            <div class="clear"></div>
+
+            <?php
+                $properties = new Property_Model_DbTable_Properties();
+                $listings = $properties->numOfProperty();
+            ?>
+            <span class="listing-count"><span class="no"><?php echo $listings; ?></span> <?php echo $this->translator->translator('header_listings','', '', $front_template['theme_folder']); ?></span>
+            <span class="listing"><a href="<?php echo $add_url; ?>"><span class="icon"></span><?php echo $this->translator->translator('header_add_btn','', '', $front_template['theme_folder']); ?></a></span>
+        </div>     
+    </div>
+</header>

@@ -1,0 +1,188 @@
+<?php 
+class quick_contact_box
+{
+	protected	$_group = 1;
+	protected	$_limit = 10;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+
+	$('a.reset_btn').click(function() {			
+		 resetFields();	
+		 removeError();	
+	});
+	
+	
+	
+	function resetFields()
+	{
+		$( "#contactFormBox" )[ 0 ].reset();
+	}
+	
+	function removeError()
+	{		
+		$('#actionMessageBox').html('');
+		$('#security_captcha-input_box_err').html('');
+				
+		$.each($('#contactFormBox').serializeArray(), function(i, field) {				
+				$('#'+field.name).removeClass('ui-state-error');
+				$('#'+field.name+'_box_err').html('');									
+		});			
+	}
+	
+	function addQuickError(key,errMsg)
+	{
+		var err_id = key+'_box_err';
+		var field_name = key;
+		$('#'+field_name+'_box').addClass('ui-state-error');
+		$('#'+err_id).append(errMsg);
+	}
+	
+	function getFormData()
+	{
+		var fieldObj = {};
+		$.each($('#contactFormBox').serializeArray(), function(i, field) {		 					
+				fieldObj[field.name] = field.value;											
+		});
+		return fieldObj;
+	}
+	
+
+	$('a.submit_box_btn').click(function() {
+		
+		removeError();				
+		$('#actionMessageBox').html("<?php echo $translator->translator('block_quickcontact_loader','', '', $this->_front_template['theme_folder']); ?>"+"&nbsp;<img src=\"application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/ajax-loader-email.gif\" />");	
+		var formData = getFormData();
+		
+		$.ajax({
+			url: "<?php echo $this->_view->url( array('module' => 'Contact','controller' => 'View', 'action'     => 'form' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: formData,
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");										
+					if(json_arr.status == 'ok')
+					{
+						$('#actionMessageBox').html(succMsgDesign(json_arr.msg));	
+						resetFields();																
+					}
+					else if(json_arr.status == 'errV')
+					{
+						$('#actionMessageBox').html(errMsgDesign("<?php echo $translator->translator('block_quickcontact_err','', '', $this->_front_template['theme_folder']); ?>"));
+												
+						for(var i= 0; i < json_arr.msg.length; i++)
+						{
+							addQuickError(json_arr.msg[i].key,json_arr.msg[i].value);							
+						}
+					}
+					else
+					{
+						$('#actionMessageBox').html(errMsgDesign(json_arr.msg));
+					}
+					
+					if(json_arr.captcha && json_arr.captcha.status && json_arr.captcha.status == 'ok')
+					{						
+						var captcha_name = json_arr.captcha.captcha_name;
+						//alert($('input[name="'+captcha_name+'[id]"]').parents('span:first').html());
+						$('input[name="'+captcha_name+'[id]"]').parents('span:first').children('img:first').attr('src', json_arr.captcha.ImgUrl+json_arr.captcha.id+json_arr.captcha.Suffix);
+						$('input[name="'+captcha_name+'[id]"]').val(json_arr.captcha.id);
+						//alert($('input[name="'+captcha_name+'[id]"]').parents('td:first').children('img:first').attr('src'));						
+					}
+				},
+				error: function(xhr, status, error){
+					closeLoaderDialog();
+					var msg = "Error! " + xhr.status + " " + error;					
+					$('#actionMessage').html(errMsgDesign(msg));
+				}
+		});
+	});
+	
+});
+</script>
+<div class="block block-contact">
+   	<h2 class="contact"><?php echo $translator->translator('block_quickcontact_title','', '', $this->_front_template['theme_folder']); ?></h2>
+    <div class="block-body">    
+        <form id="contactFormBox" name="contactFormBox" method="post" action="">
+            <div id="actionMessageBox"></div>
+            <p><?php echo $translator->translator('block_quickcontact_name','', '', $this->_front_template['theme_folder']); ?> <span class="star_class">*</span></p>
+           	<input name="contact_name" id="contact_name_box" type="text" size="18"/>
+            <div id="contact_name_box_err" class="input-errors"></div>
+            
+          	<p><?php echo $translator->translator('block_quickcontact_email','', '', $this->_front_template['theme_folder']); ?> <span class="star_class">*</span></p>
+           	<input name="contact_email" id="contact_email_box" type="text" size="18" />
+           	<div id="contact_email_box_err" class="input-errors"></div>
+            
+           	<p><?php echo $translator->translator('block_quickcontact_phone','', '', $this->_front_template['theme_folder']); ?></p>
+           	<input name="contact_phone" id="contact_phone_box" type="text" size="18" />
+            <div id="contact_phone_box_err"></div>
+          
+          	<p><?php echo $translator->translator('block_quickcontact_message','', '', $this->_front_template['theme_folder']); ?> <span class="star_class">*</span></p>
+           	<textarea name="contact_message" id="contact_message_box"  cols="15"></textarea>
+          	<div id="contact_message_box_err" class="input-errors"></div>
+            <div class="clear"></div>
+           	<?php				
+				$contactForm = new Contact_Form_ViewForm();
+				if($contactForm->security_captcha){
+				?>
+                <p><?php echo $contactForm->security_captcha->getLabel(); ?> <span class="star_class">*</span></p>				  
+				  <span>
+                  <?php 
+		
+					$contactForm->security_captcha->setDecorators(array());		
+					$contactForm->security_captcha->getCaptcha()->setFontSize(20);
+					$contactForm->security_captcha->getCaptcha()->setHeight(28);
+					$contactForm->security_captcha->getCaptcha()->setWidth(60);					
+					$contactForm->security_captcha->setAttrib('class', '');
+					$contactForm->security_captcha->setAttrib('style', 'width:70px;');
+					echo $contactForm->security_captcha; ?>          
+					</span>
+				
+				<div id="security_captcha-input_box_err" class="input-errors"></div>
+				<?php
+				}
+				?>
+            <div class="clear">
+           		<a href="javascript:void(0);" class="submit_box_btn"><?php echo $translator->translator('block_quickcontact_btn','', '', $this->_front_template['theme_folder']); ?></a>
+            </div>
+        </form>
+    </div>            
+	<div class="block-footer"></div>
+</div>
+<?php
+	}
+}
+
+try
+{
+	$quick_contact_box_class = new quick_contact_box($this);
+	$quick_contact_box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

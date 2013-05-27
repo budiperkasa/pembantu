@@ -1,0 +1,521 @@
+<?php
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Settings/css/admin.css');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Settings/js/jquery.tipsy.js');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	deleteRow();
+	statusFunction();
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 3, "desc" ],[ 1, "desc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	
+	
+	/****************************Sorting Table End*********************/
+	
+		
+		
+	$('a.remove_all').click(function() {
+		var self = this;
+		<?php if ($this->allow('deleteip','global','Settings')){ ?>
+			if($('input.check_btn:checked').length > 0)
+			{
+				var id_str = '';
+				for(var i=0;i < $('input.check_btn:checked').length;i++)
+				{
+					if(i == 0)
+					{
+						 id_str += $('input.check_btn:checked:eq('+i+')').val();
+					}
+					else
+					{
+						id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+					}
+				}
+				
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'removebanall' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { id_st: id_str},
+						beforeSend: function(){
+							$(self).html('<span class="icon loader"></span>');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+								{								
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');							
+								}
+								var oTabled = $('#sortTable').dataTable();
+								var anSelected = fnGetSelected( oTabled );
+								for(var k = 0; k < anSelected.length; k++)
+								{
+									oTabled.fnDeleteRow( anSelected[k] );
+								}
+							}
+							else
+							{
+								openMsgDialog(json_arr.msg);
+							}	
+							$(self).html('<span class="icon delete"><?php echo $this->translator->translator("settings_bannedlist_remove_all_title"); ?></span>');
+						},
+						error: function(xhr, status, error){
+							var msg = "Error! " + xhr.status + " " + error;
+							openMsgDialog(msg);
+						}
+				});			
+			}
+			else
+			{
+				var msg = "<?php echo $this->translator->translator('item_selected_err'); ?>";
+				openMsgDialog(msg);
+			}
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	$(".action_button.ban").click(function(){ // create ban
+		create(this, '2', oTable);
+	});
+		
+	$(".action_button.trust").click(function(){ // create ban
+		create(this, '1', oTable);
+	});
+});
+
+function create(self, status, oTable)
+{
+	<?php if ($this->allow('addip','global','Settings')){ ?>
+			$(self).attr("disabled", "disabled");
+			$this = $(self);
+			var ip = jQuery.trim($('.text.ip').val());			
+			if(validateIp(ip, $("input[name='ip_type']:checked").val()))
+			{
+				$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'addip' ), 'adminrout',    true) ?>",
+					type: "post",
+					data: {ip : ip, status : status},
+					beforeSend: function(){
+						$('#ip_err').html('<span class="create-spinner"><?php echo $this->translator->translator("settings_banned_remove_wait"); ?></span>');
+					},
+					success: function(obj)
+					{
+						$("span.create-spinner").remove();
+						var json_arr = eval("("+obj+")");				
+						if(json_arr.status == 'err')
+						{
+							switch(json_arr.type)
+							{
+								case "already_exists":
+									$('#ip_err').html("&nbsp;<span class='error'><?php echo $this->translator->translator('settings_banned_ip_already_banned'); ?></span>");
+									$("span.error").fadeOut(10000);
+									$('.text.ip').attr("value", "");
+									break;
+								case "database_error":
+									openMsgDialog('<?php echo $this->translator->translator("settings_banned_db_error"); ?>');
+									break;
+							}
+						} 
+						else if(json_arr.msg == 'ban_created') 
+						{
+							// prepare the date of ban timestamp
+							// @TODO Find a better method!
+							$('#ip_err').html("&nbsp;<span class='success'><?php echo $this->translator->translator('settings_banned_banned_created'); ?></span>");
+							$("span.success").fadeOut(10000);
+							now = new Date();
+							months = "<?php echo $this->translator->translator('settings_banned_month'); ?>";
+							months_arr = months.split(',');
+							ban_time = months_arr[now.getMonth()]+" "+now.getDate()+", "+now.getFullYear();
+							var ban = (status == '1') ? 'opacity: 0.3;' : '';
+							var trust = (status == '2') ? 'opacity: 0.3;' : '';
+							var ban_calss = (status == '2') ? 'class="publish_btn"' : '';
+							var trust_calss = (status == '1') ? 'class="publish_btn"' : '';
+							var last_col = '<ul class="ip-list">'+
+												'<li>'+
+											<?php if ($this->allow('banip','global','Settings')) : ?>
+												'<span class="trust-btn"><a href="javascript:void(0);" '+ban_calss+' rel="1_'+json_arr.id+'" style="'+ban+'"><?php echo strtoupper($this->translator->translator("common_unpublish_title")); ?></a></span>'+
+												'<span class="block-btn"><a href="javascript:void(0);" '+trust_calss+' rel="2_'+json_arr.id+'" style="'+trust+'"><?php echo strtoupper($this->translator->translator("common_publish_title")); ?></a></span>'+
+											<?php endif; ?>	
+												'</li>'+
+												'<li>'+	
+											<?php if ($this->allow('deleteip','global','Settings')) : ?>
+												'<a href="javascript:void(0);" class="action ban remove" rel="'+ip+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/trash.png" border="0" title="<?php echo $this->translator->translator("settings_remove_banned_ip"); ?>" class="ip-trash"/></a>'
+											<?php endif; ?>
+												'<li>'+	
+											'</ul>';
+							
+							oTable.fnAddData( [
+								'<input type="checkbox" name="checkbtn" id="checkbtn" value="'+json_arr.id+'" class="check_btn" />',
+								''+json_arr.id+'',
+								ip,
+								json_arr.ip_status,
+								ban_time,
+								last_col
+								 ] );
+							$('.text.ip').val("");	
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(1)').addClass('center');
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(1)').addClass('checkbox');
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(2)').addClass('center');	
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(4)').addClass('center');
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(5)').addClass('center');
+							$('td', oTable.fnGetNodes()).parents("tr:first").parents("tbody:first").children('tr').children('td:nth-child(6)').addClass('tools-list');		
+						}
+						
+						$('td', oTable.fnGetNodes()).hover( function() {		
+							$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+						}, function() {
+							$('td.highlighted').removeClass('highlighted');
+						} );
+						$this.removeAttr("disabled");	
+						deleteRow();
+						statusFunction();			
+					},
+					error: function(xhr, status, error){
+						$this.next("span.spinner").remove();
+						var msg = "Error! " + xhr.status + " " + error;
+						openMsgDialog(msg);
+						$this.removeAttr("disabled");
+						$("span.create-spinner").remove();
+					}
+				});
+			}
+			else
+			{
+				$('#ip_err').html("&nbsp;<span class='error'><?php echo $this->translator->translator('settings_banned_ip_invalid'); ?></span>");
+				$("span.error").fadeOut(10000);
+				$('.text.ip').attr("value", "");
+				$this.removeAttr("disabled");
+			}
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_container').html(msg).dialog({
+				autoOpen: true,
+				modal: false,
+				show: 'fade',
+				resizable: 'false',				
+				buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, "UTF-8"); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+				open: function(event, ui)
+					 {
+						setTimeout(function() 
+						{									
+							if($('#' + event.target.id).dialog('isOpen'))
+							{
+								$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+							}
+						}, 10000);
+					  }
+			});
+}
+
+/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+
+function deleteRow()
+{
+	$(".action.ban.remove").unbind('click');
+	$(".action.ban.remove").click(function(){ // remove ban
+		$this = $(this);
+		<?php if ($this->allow('deleteip','global','Settings')){ ?>
+			var self =  $(this);
+			ip = $this.attr('rel');
+			//ip = $(this).parent().siblings("td.ip").text();
+			$this.html("<span class='spinner'></span>");
+			//$this.hide();
+			$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'deleteip' ), 'adminrout',    true) ?>",
+				type: "post",
+				data: {ip : ip},
+				success: function(obj){
+					
+					$this.children("span:first").remove();		
+					
+					
+					var json_arr = eval("("+obj+")");
+					if(json_arr.status == 'err')
+					{
+						switch(json_arr.type)
+						{
+							case "parameters_missing":
+								openMsgDialog("<?php echo $this->translator->translator('settings_banned_no_ip_found'); ?>");
+								$this.show();							
+							case "database_error":
+								openMsgDialog("<?php echo $this->translator->translator('settings_banned_db_error'); ?>");
+								$this.show();
+						}
+					} 
+					else if(json_arr.msg == "ban_removed")
+					{					
+						$(self).parents("td:first").parents("tr:first").addClass('row_selected');
+						var oTables = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTables );
+						oTables.fnDeleteRow( anSelected[0] );
+						$this.parent().parent().fadeOut();
+					}
+				},
+				error: function(xhr, status, error){
+					$this.next("span.spinner").remove();
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(msg);
+				}
+			});
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+}
+
+function statusFunction()
+{
+	$('a.publish_btn').unbind('click');
+	$('a.publish_btn').click(function() {
+		var self = this;
+		<?php if ($this->allow('banip','global','Settings')){ ?>		
+			var arr = $(self).attr('rel').split('_');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'banip' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[1], paction: arr[0]},
+				 beforeSend: function(){
+					 $(self).html("<span class='spinner'></span>");
+				 },
+				 success: function(response) 
+				 {
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						if(json_arr.active == '1')
+						{
+							$(self).removeClass('publish_btn');
+							$(self).css('opacity', '0.3');							
+							$(self).text('<?php echo strtoupper($this->translator->translator("common_unpublish_title")); ?>');
+							$(self).parents("span:first").next().children("a:first").css('opacity', '1');
+							$(self).parents("span:first").next().children("a:first").addClass('publish_btn');
+							$(self).parents('td:first').parents('tr:first').children('td:nth-child(4)').html('<?php echo $this->translator->translator("settings_banned_ip_status_trust"); ?>');
+							$(self).unbind('click');
+						}
+						else
+						{
+							$(self).removeClass('publish_btn');
+							$(self).css('opacity', '0.3');							
+							$(self).text('<?php echo strtoupper($this->translator->translator("common_publish_title")); ?>');
+							$(self).parents("span:first").prev().children("a:first").css('opacity', '1');
+							$(self).parents("span:first").prev().children("a:first").addClass('publish_btn');
+							$(self).parents('td:first').parents('tr:first').children('td:nth-child(4)').html('<?php echo $this->translator->translator("settings_banned_ip_status_ban"); ?>');
+							$(self).unbind('click');
+						}
+						statusFunction();
+					}
+					else
+					{
+						if(arr[0] == '1')
+						{
+							$(self).html('<?php echo strtoupper($this->translator->translator("common_unpublish_title")); ?>');
+						}
+						else
+						{
+							$(self).html('<?php echo strtoupper($this->translator->translator("common_publish_title")); ?>');
+						}
+						openMsgDialog(json_arr.msg);
+					}
+				 },
+				error: function(xhr, status, error){	
+					if(arr[0] == '1')
+					{
+						$(self).html('<?php echo strtoupper($this->translator->translator("common_unpublish_title")); ?>');
+					}
+					else
+					{
+						$(self).html('<?php echo strtoupper($this->translator->translator("common_publish_title")); ?>');
+					}			
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(msg);
+				}
+			});
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});	
+}
+</script>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+<div id="button_top_bar"></div>
+<div class="title-container">
+	<div class="ip-banned"><h1><?php echo $this->translator->translator('settings_setting_bannedlist_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <?php if ($this->allow('deleteip','global','Settings')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="remove_all"><span class="icon delete"><?php echo $this->translator->translator('settings_bannedlist_remove_all_title'); ?></span></a></span>
+        <?php endif; ?>
+	</div>
+</div>
+
+<div class="content-container">
+		<?php if ($this->allow('addip')) : ?>		
+     	<div class="banned-ip-container clr">              
+			<h4><?php echo $this->translator->translator('settings_banned_ip_title'); ?></h4>
+            
+           	<input type="text" class='text long ip' placeholder='<?php echo $this->translator->translator("settings_banned_enter_ip"); ?>' />
+            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->translator->translator("settings_banned_enter_ip_help"); ?>"><p><span class="ui-icon ui-icon-help"></span></p></div></div>
+            
+			<input type="radio" name="ip_type" id="ip_type" value="4" checked="checked" /><?php echo $this->translator->translator("settings_banned_radio_ip_4"); ?> &nbsp;&nbsp;&nbsp;<input type="radio" name="ip_type" id="ip_type" value="6" /><?php echo $this->translator->translator("settings_banned_radio_ip_6"); ?> &nbsp; &nbsp;
+            <button class="action_button ban"><?php echo strtoupper($this->translator->translator("settings_banned_create_ban")); ?></button>
+			<button class="action_button trust"><?php echo strtoupper($this->translator->translator("settings_banned_create_trust")); ?></button>
+			<span id="ip_err"></span>
+     	</div>
+            
+         	
+        <?php endif; ?>
+        <div class="pagination">
+            <?php echo $this->paginationControl($this->datas, 'Sliding', 'top_pagination.phtml'); ?>
+        </div>
+            
+        <div class="chart">
+            <div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                    <thead>
+                    	<tr>
+                   		  <th width="3%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                      		<th width="6%"><?php echo $this->translator->translator('settings_setting_bannedlist_page_id'); ?></th>
+                      		<th width="40%"><?php echo $this->translator->translator('settings_setting_bannedlist_ip'); ?> </th>
+        <th width="11%"><?php echo $this->translator->translator('common_status'); ?></th>
+                       		<th width="17%"><?php echo $this->translator->translator('settings_setting_bannedlist_created'); ?></th>
+                      		<th width="21%"><?php echo $this->translator->translator('common_action'); ?></th>
+                    	</tr>
+                	</thead>
+                    <tbody>
+                    <?php 
+                    $j = 1;
+                    foreach ($this->datas as $entry): 
+                        if($j % 2 == 0)
+                        {
+                            $onmouseout = "this.bgColor='#FFFFFF';";
+                            $background = '#FFFFFF';
+                        }
+                        else
+                        {
+                            $onmouseout = "this.bgColor='#F7F7F7';";
+                            $background = '#F7F7F7';
+                        }
+                    ?>
+                   		<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                      		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                      		<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                      		<td><?php echo $this->escape($entry->ip); ?></td>	
+							<td class="center"><?php  if($entry->status == '1'){ $trust = 'opacity: 0.3;'; $ban = ''; echo $this->translator->translator('settings_banned_ip_status_trust'); }else{ $ban = 'opacity: 0.3;'; $trust =''; echo $this->translator->translator('settings_banned_ip_status_ban'); } ?></td>	
+                      		<td class="center"><?php echo strftime('%B %d, %Y',strtotime($this->escape($entry->created_date))); ?></td>
+                      		<td class="tools-list">
+								<ul class="ip-list">
+									<li>
+									<?php if ($this->allow('banip','global','Settings')) : ?>
+									<span class="trust-btn"><a href="javascript:void(0);" <?php  if($entry->status == '2'){ ?>class="publish_btn"<?php }else{ ?>style="opacity:0.3"<?php } ?> rel="1_<?php echo $this->escape($entry->id); ?>"><?php echo strtoupper($this->translator->translator('common_unpublish_title')); ?></a></span>
+									<span class="block-btn"><a href="javascript:void(0);" <?php  if($entry->status == '1'){ ?>class="publish_btn"<?php }else{ ?>style="opacity:0.3"<?php } ?> rel="2_<?php echo $this->escape($entry->id); ?>"><?php echo strtoupper($this->translator->translator('common_publish_title')); ?></a></span>
+									<?php endif; ?>	
+									</li>
+									<li>	
+                                	<?php if ($this->allow('deleteip','global','Settings')) : ?>
+                                	<a href="javascript:void(0);" class="action ban remove" rel="<?php echo $this->escape($entry->ip) ?>" ><img src="application/modules/Administrator/layouts/scripts/images/tools/trash.png" border="0" title="<?php echo $this->translator->translator('settings_remove_banned_ip'); ?>" class="ip-trash"/></a>
+                                	<?php endif; ?>	
+									</li>
+								</ul>											  
+                          	</td>
+                   		</tr>
+                    <?php 													
+                        $j++;
+                        endforeach;
+                      ?>
+                   </tbody>
+											</table>
+            </div>
+        </div>
+            
+        <div class="pagination">
+            <?php echo $this->paginationControl($this->datas, 'Sliding', 'pagination.phtml'); ?>
+        </div>
+	
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('settings_setting_bannedlist_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <?php if ($this->allow('deleteip','global','Settings')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="remove_all"><span class="icon delete"><?php echo $this->translator->translator('settings_bannedlist_remove_all_title'); ?></span></a></span>
+        <?php endif; ?>
+	</div>
+</div>
+<?php endif; ?>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('settings_setting_bannedlist_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+</div>

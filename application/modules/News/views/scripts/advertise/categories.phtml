@@ -1,0 +1,101 @@
+<?php
+
+if($this->catInfo['meta_keywords']){ $this->headMeta()->setName('keywords',$this->catInfo['meta_keywords']);	}
+if($this->catInfo['meta_desc']){ $this->headMeta()->setName('description',$this->catInfo['meta_desc']); }
+$this->headTitle()->headTitle($this->catInfo['category_title'],'SET')->setSeparator(' - ')->headTitle($this->catInfo['meta_title']);
+
+$allow_obj = new News_View_Helper_Allow();
+if (!$allow_obj->allowRule('view',null,null,$this->group_datas['role_id'])) : ?>
+<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : 
+
+$cateDB = new News_Model_DbTable_Category();
+
+?>
+
+<div class="news-heading">
+	<h1><?php echo $this->escape($this->catInfo['category_name']); ?></h1>
+</div>
+<div class="clear">&nbsp;</div>
+
+<div class="mod news">
+	<div class="news-content">
+    	<div class="news-desc">
+			<?php echo stripslashes($this->catInfo['category_desc']); ?>
+        </div>
+  	</div>
+</div>
+
+<div class="clear">&nbsp;</div>
+
+<div class="mod news">
+	<div class="news-content">
+    	<!-- News Left Info Start -->
+        <div class="news-desc">
+            <?php
+			
+				$filters = new Zend_Filter_StripTags();
+					
+				if($this->data_type == 'category')
+				{		
+					
+							foreach($this->view_datas as $entry)
+							{	
+											
+			?>
+            <div class="mod-content">
+                <h3><?php echo $this->escape($entry['category_name']); ?></h3>
+                
+                <img src="data/frontImages/news/category_thumb/<?php echo $this->escape($entry['category_thumb']); ?>" <?php if(!empty($this->groupInfo['news_cat_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_cat_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_cat_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_cat_thumb_height']).'"'; } ?> alt="<?php echo $this->escape($entry['category_title']); ?>" class="img" border="0" />
+                <?php echo stripslashes($entry['category_desc']); ?>
+			</div>
+            <?php
+						  }
+				}
+				else if($this->data_type == 'news')
+				{	
+					foreach($this->view_datas as $entry)
+					{
+						$cat_info = $cateDB->getCategoryInfo($entry['category_id']);
+						
+			  ?>
+             <div class="mod-content">
+             	<img src="data/frontImages/news/page_thumb/<?php echo $this->escape($entry['page_thumb']); ?>" <?php if(!empty($this->groupInfo['news_thumb_width'])){ echo 'width="'.$this->escape($this->groupInfo['news_thumb_width']).'"'; } ?> <?php if(!empty($this->groupInfo['news_thumb_height'])){ echo 'height="'.$this->escape($this->groupInfo['news_thumb_height']).'"'; } ?> alt="<?php echo $this->escape($entry['page_title']); ?>" class="img" border="0" />
+                <h6><?php echo $this->escape($entry['page_name']); ?></h6>
+                <?php echo strip_tags($entry['page_desc']); ?>
+			</div>
+            <?php
+				}
+			}
+			?>
+            <div class="clear">
+            	<?php echo $this->paginationControl($this->view_datas, 'Sliding', 'advertise/pagination-category-flickr.phtml'); ?>
+            </div>
+        </div>
+		<!-- News Left Info End -->
+        
+        <!-- News Right Category Start -->
+        <?php
+			if($this->groupInfo['category_panel'] == '1')
+			{
+				$categoryPanel = new News_View_Helper_CategoryPanel();				
+		?>
+        
+        <div class="news-cat">
+        	<div class="cat-content">
+                <span class="cat-title"><?php echo $this->translator->translator('common_category_list'); ?></span>
+                <div class="cat">
+                    <?php echo $categoryPanel->getSubCategory('0',$this,$this->groupInfo['id'],null,$this->menu_id); ?>
+                </div>
+            </div>
+        </div>
+        
+        <?php
+			}
+		?>
+        <!-- News Right Category End -->    
+	</div>	
+</div>
+<?php endif; ?>

@@ -1,0 +1,757 @@
+<?php echo $this->doctype(); ?> 
+<?php
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jquery/jquery-'.str_replace('.', '-', $version->getJQueryVersion()).'/jquery.js');
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.js');
+$kendo_theme = 'Silver';
+echo $this->headScript()->setFile($this->baseUrl().'/vendor/scripts/kendo/src/js/kendo.all.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Administrator/layouts/scripts/js/common.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Portfolio/js/uploader.js');
+
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/jui/jui-'.str_replace('.', '-', $version->getJQueryUIVersion()).'/'.Zend_Registry::get('jtheme').'/jquery-ui.custom.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.common.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/vendor/scripts/kendo/src/styles/kendo.'.strtolower($kendo_theme).'.css');
+
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/tree/javascripts/jquery.treeTable.js');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/stylesheet.css');
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Administrator/layouts/scripts/css/kendo-uploader.css');
+
+
+$file_arr = Eicra_File_Utility::getAllFilesFolders($this->upload_path.'/'.$this->upload_folder);
+$num = 0;
+$folder_tree = Projects_View_Helper_FolderTree::getSubFolder($this->upload_folder,$num,$this,$this->upload_path,null);				
+
+$FileInfo = Projects_View_Helper_FileInfo::getFileInfo($this->user_id);
+$file_format =	Projects_View_Helper_FileInfo::formatFile($FileInfo['file_type']);
+
+$auth = Zend_Auth::getInstance ();
+if ($auth->hasIdentity ())
+{
+	$globalIdentity = $auth->getIdentity ();
+	$login_user_id = $globalIdentity->user_id;
+}
+?>
+
+<script type="text/javascript">
+
+$(document).ready(function() {	
+	
+	/**************************FILE UPLOAD START******************************/
+	dynamicUploader("file_name_upload", "file_name", <?php echo $this->settings_json_info; ?>, languageArray(), "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+	$('div.k-upload-button').children('input:first').after("<div class='round' style='background-position: 50% 50%; transition: background-position 0.4s ease 0s;'></div>");
+	/**************************FILE UPLOAD END*********************************/
+	
+	folderTreeGen();
+	setUpload();	
+	
+	$( document ).tooltip({
+		  tooltipClass: "jui-tooltip",
+		  track: true
+	  });
+	
+	$('a.reset_btn').click(function() {			
+		 $( "form" )[ 0 ].reset();	
+		 $("#file_name").val('');
+		 $("#file_name_upload_err").html("");
+		 $("#log").html("");
+		 $('#actionMessage').html("");
+		 $('#queuestatus').text('');
+		 $('div.file_box').css('border','1px solid #CCCCCC');	
+	});
+	
+	allFunctions();
+	
+	$('a.create_dir_btn').click(function(){			
+		 var self = this;
+		 var dir_name = $('#dir_name').val();
+		 var dir_path = $('#upload_path').html();
+		 if(dir_name == '' || dir_name == null)
+		 {
+			var msg = "<?php echo $this->translator->translator('dir_name_err'); ?>";
+			openMsgDialog(msg);
+		 }
+		 else
+		 {
+			$.ajax({
+				url: "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'createdir' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { dir_name: dir_name, dir_path: dir_path },
+				beforeSend: function(){					
+					openLoaderDialog();
+				 },
+				success: function(response){
+					//alert(response);
+					closeLoaderDialog();
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						var ext = dir_name;
+						var addToBox = '<div class="upload-img"><div class="file_box image-thumb">'+
+									'<a href="javascript:void(0);" rel="'+$('#upload_path').html()+','+dir_name+','+ext+',folder" class="select_file_btn" >'+
+															'<img src="<?php echo $this->baseUrl().'/application/modules/Administrator/layouts/scripts/images/common/folder.png'; ?>" width="70" height="60" border="0" /><br />'+
+															dir_name+
+															'</a>'+
+														'</div></div>';
+						$('#img_box').append(addToBox);
+						allFunctions();						
+						$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+						refreshFolderTree();	
+													
+					}
+					else
+					{
+						var msg = json_arr.msg;
+						
+						$('#actionMessage').html(errMsgDesign(json_arr.msg));	
+					}
+					
+				}
+			});
+		 }		
+	});
+		
+	$('a.privilege_btn').click(function(){			
+		 var self = this;
+		 var value = $('#file_name').val();
+		 if(value == '' || value == null)
+		 {
+		 	var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';
+			openMsgDialog(msg);
+		 }
+		 else
+		 {
+		 	var value_arr = value.split(',');
+		 	var type = value_arr[3];
+		 	if(type == 'file')
+			{
+				var msg = "<?php echo $this->translator->translator('select_folder_err'); ?>";
+				openMsgDialog(msg);
+			}
+			else
+			{
+				var user_info = $(self).attr('rel');						
+				$.ajax({
+					url: "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'privilege' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: { file_info: value,user_info:user_info,file_type:$('#file_type').val(),file_size_max:$('#file_size_max').val() },
+					beforeSend: function(){
+						removeError();
+						openLoaderDialog();
+					 },
+					success: function(response){
+						//alert(response);
+						closeLoaderDialog();
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							$('div.file_box').css('border','1px solid #CCCCCC');
+							$("#file_name").val('');
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));																
+						}
+						else
+						{
+							var msg = json_arr.msg;
+							openMsgDialog(msg);
+						}
+						
+					}
+				});
+			}
+		 }
+	});
+	
+	$('a.delete_btn').click(function(){			
+		 var self = this;
+		 var value = $('#file_name').val();
+		 if(value == '' || value == null)
+		 {
+		 	var msg = '<?php echo $this->translator->translator("insert_selected_file_err"); ?>';
+			openMsgDialog(msg);
+		 }
+		 else
+		 {
+		 	var arr = value.split(',');
+		 	var upload_path  = arr[0];
+			var upload_folder  = arr[1];
+			var folder_type  = arr[3];
+			
+		 	if(upload_path == '<?php echo $this->upload_path; ?>')
+			{
+				var msg = "<?php echo $this->translator->translator('root_folder_delete_err'); ?>";
+				openMsgDialog(msg);
+			}
+			else
+			{		
+				$.ajax({
+					url: "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: { file_info: value },
+					beforeSend: function(){
+						removeError();
+						openLoaderDialog();
+					 },
+					success: function(response){
+						//alert(response);
+						closeLoaderDialog();
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							for(var i=0;i < $('a.select_file_btn').length;i++)
+							{
+								if($('a.select_file_btn:eq('+i+')').attr('rel') == value)
+								{
+									$('a.select_file_btn:eq('+i+')').parents("div:first").remove();
+								}
+							}
+							$("#file_name").val('');
+							$('#actionMessage').html(succMsgDesign(json_arr.msg));	
+							refreshFolderTree();								
+						}
+						else
+						{
+							var msg = json_arr.msg;
+							openMsgDialog(msg);
+						}
+						
+					}
+				});
+			}
+		 }
+	});
+		
+});
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'explode',
+		width : '250px',
+		resizable: true,				
+		buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 12000);
+			  }
+	});
+}
+
+function openLoaderDialog()
+{
+	$('#dialog_container').dialog({
+				autoOpen: true,
+				modal: true,
+				show: 'explode',
+				resizable: false,				
+				open: function(event, ui)
+					 {
+						$("#progressbar").progressbar({
+							value:100
+			
+						});							
+					  }
+			});
+}
+
+function removeError()
+{	
+	$('#actionMessage').html('');
+}
+
+function closeLoaderDialog()
+{
+	$('#dialog_container').dialog('option','hide','explode').dialog('close');
+}
+	
+	
+
+function allFunctions()
+{
+	$('a.select_file_btn').click(function() {			
+		 var self = this;
+		 var rel = $(self).attr('rel');
+		 $('#file_name').val(rel);		 
+	});
+	
+	$('a.select_file_btn').dblclick(function() {
+		var rel = $(this).attr('rel');
+		var rel_arr = rel.split(',');
+		var node_name = rel_arr[1];
+		var path = rel_arr[0];
+		if(rel_arr[3] == 'folder')
+		{		
+			goIntoFolder(node_name,path);
+		}
+	});
+	
+	$('a.upload_thumb_btn').click(function() {			
+		 $( "form" )[ 0 ].submit();	
+	});
+	
+	$('div.file_box').click(function() {			
+		 var self = this;
+		 var rel = $(self).children('a:first').attr('rel');		 
+		 $('#file_name').val(rel);			
+		 $('div.file_box').css('border','1px solid #CCCCCC');		 
+		 $(self).css('border','1px solid #FF0000');
+	});		
+	
+}
+
+function ReplaceAll(Source,stringToFind,stringToReplace)
+{
+  var temp = Source;
+
+    var index = temp.indexOf(stringToFind);
+
+        while(index != -1){
+
+            temp = temp.replace(stringToFind,stringToReplace);
+
+            index = temp.indexOf(stringToFind);
+
+        }
+
+        return temp;
+}
+
+function goIntoFolder(folder_name,path)
+{
+	$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'folders' ), 'adminrout',    false) ?>",
+			type: 'POST',
+			data: { folder_name: folder_name,path: path },
+			beforeSend: function(){					
+				openLoaderDialog();
+			 },
+			success: function(response){
+				//alert(response);
+				closeLoaderDialog();
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					var addToBox = '';
+					$('#img_box').html('');	
+					for(var i=0;i < json_arr.file_arr.length;i++)
+					{
+						addToBox += '<div class="upload-img"><div class="file_box image-thumb">'+
+							'<a href="javascript:void(0);" rel="'+json_arr.file_arr[i].path+','+json_arr.file_arr[i].name+','+json_arr.file_arr[i].ext+','+json_arr.file_arr[i].type+'" class="select_file_btn" title="'+json_arr.file_arr[i].name+'" >'+
+													'<img src="<?php echo $this->baseUrl(); ?>'+json_arr.file_arr[i].thumb_path+'" width="70" height="60" border="0" />';
+													if(json_arr.file_arr[i].type != 'file') 
+													{ 
+														addToBox += '<br />'+json_arr.file_arr[i].name; 
+													}													
+										addToBox += '</a>'+
+												'</div></div>';							
+					}
+					$('#img_box').html(addToBox);
+					
+					var full_path = path+'/'+folder_name;					
+					$('#upload_path').html(full_path);
+					
+					for(var j = 0; j < $('span.folder').length;j++)
+					{
+						if($('span.folder:eq('+j+')').html() == folder_name)
+						{
+							$('span.folder:eq('+j+')').parents("td:first").addClass('selected');
+						}
+						else
+						{
+							$('span.folder:eq('+j+')').parents("td:first").removeClass('selected');
+						}
+					}	
+					allFunctions();	
+					setUpload();									
+				}
+				else
+				{
+					var msg = json_arr.msg;
+					openMsgDialog(msg);
+				}
+				
+			}
+		});
+}
+
+
+/***********************************************************************UPLOAD FUNCTIONS START********************************************************/
+
+function setUpload()
+{	
+	var dataObj = <?php echo $this->settings_json_info; ?>;
+	var upload_path = $('#upload_path').text();
+	dataObj.folder_path = upload_path;	
+	var upload = $("#file_name_upload").data("kendoUpload");	
+	upload.destroy();	
+	$("#file_name_upload").parents('div.field').html('<input type="file" name="file_name_upload" id="file_name_upload" />'+"<?php echo $this->translator->translator("zero_file_size"); ?>");
+	
+	/**************************FILE UPLOAD START******************************/
+	dynamicUploader("file_name_upload", "file_name", dataObj, languageArray(), "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'upload'), 'adminrout',    true) ?>", "<?php echo $this->url( array('module' => 'Portfolio','controller' => 'frontend', 'action'     => 'remove'), 'adminrout',    true) ?>", true);
+	$('div.k-upload-button').children('input:first').after("<div class='round' style='background-position: 50% 50%; transition: background-position 0.4s ease 0s;'></div>");
+	/**************************FILE UPLOAD END*********************************/
+}
+
+
+function languageArray()
+{
+	var language_array = [];
+	language_array['portfolio_upload_dy_text_select'] 					= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_select", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_cancel'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_cancel", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_dropFilesHere'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_dropFilesHere", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_remove'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_remove", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_retry'] 						= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_retry", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusFailed'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusFailed", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploaded'] 				= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploaded", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_statusUploading'] 			= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_statusUploading", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_upload_text_uploadSelectedFiles'] 		= "<?php echo html_entity_decode($this->translator->translator("portfolio_upload_text_uploadSelectedFiles", '', 'Portfolio'), ENT_QUOTES, 'UTF-8'); ?>";
+	language_array['portfolio_file_extension_dy_support'] 				= "<?php echo $this->translator->translator("portfolio_file_extension_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext1'] 	= "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext1", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_extension_dy_not_supportable_ext2']  = "<?php echo $this->translator->translator("portfolio_file_extension_dy_not_supportable_ext2", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_size_dy_support'] 					= "<?php echo $this->translator->translator("portfolio_file_size_dy_support", '', 'Portfolio'); ?>";
+	language_array['portfolio_file_upload_err'] 						= "<?php echo $this->translator->translator("portfolio_file_upload_err", '', 'Portfolio'); ?>";
+	return language_array;
+}
+
+
+function successFileDecoretion(fileObj, serverData, upload_field, upload_value_field)
+{		
+	if(serverData.status == 'ok')
+	{
+		var extension = fileObj.extension;
+		var ext = extension.replace('.','');	
+		
+		var img_path = '';
+		switch(ext)
+		{
+			case 'flv':
+			case 'swf':
+			case 'FLV':
+			case 'SWF':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/flash.png';
+				break;
+			case 'mp3':
+			case 'MP3':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/mp3.png';
+				break;
+			case 'avi':
+			case 'wmv':
+			case 'wma':
+			case 'WMA':
+			case 'AVI':
+			case 'WMV':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/avi_thumb.png';
+				break;
+			case 'pdf':
+			case 'doc':
+			case 'docx':
+			case 'xls':
+			case 'xlsx':
+			case 'ppt':
+			case 'pptx':
+			case 'PDF':
+			case 'DOC':
+			case 'DOCX':
+			case 'XLS':
+			case 'XLSX':
+			case 'PPT':
+			case 'PPTX':
+				img_path = '<?php echo $this->baseUrl(); ?>'+'/application/modules/Administrator/layouts/scripts/images/common/extImages/'+ext+'.png';
+				break;
+			default:
+				if(isImage(fileObj))
+				{				
+					img_path = "<?php echo $this->baseUrl().'/'; ?>"+serverData.file_path+'/'+fileObj.name; 
+				}
+				else
+				{	
+					img_path = "<?php echo $this->baseUrl().'/'; ?>application/modules/Administrator/layouts/scripts/images/common/all_file_thumb.png";
+				}	
+				break;
+		}
+		
+		var addToBox = '<div class="upload-img"><div class="file_box image-thumb">'+
+							'<a href="javascript:void(0);" rel="'+$('#upload_path').text()+','+fileObj.name+','+ext+',file" class="select_file_btn" title="'+fileObj.name+'" >'+
+													'<img src="'+img_path+'" width="70" height="60" border="0" />'+													
+													'</a>'+
+												'</div></div>';
+		$('#img_box').append(addToBox);		
+		allFunctions();		
+	}
+}
+
+function onComplete(e) {	
+	$('button[type="button"]').fadeOut();		
+}
+
+function onCancel(e) {
+	
+}
+
+function onProgress(e) {
+					
+}
+
+/***********************************************************************UPLOAD FUNCTIONS END********************************************************/
+
+
+
+
+function is_image(filename)
+{
+	var ext = getFileExtension(filename);
+	if(ext == 'jpg' || ext == 'JPG' || ext == 'png' || ext == 'PNG' || ext == 'bmp' || ext == 'BMP' || ext == 'gif' || ext == 'GIF')
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function getFileExtension(filename)
+{
+	return filename.replace(/^.*?\.([a-zA-Z0-9]+)$/, "$1");
+}
+/********************************Menu Tree Function*******************************************/
+function folderTreeGen()
+{
+	$('span.folder').click(function() {
+		var node_id = $(this).parents("tr")[0].id.substr(5);
+		var node_name = $(this).html();
+		var path = $(this).attr('rel');		
+		goIntoFolder(node_name,path);
+	});
+	
+	$(".example").treeTable({
+	  initialState: "expanded"
+	});
+	
+	// Drag & Drop Example Code
+	$("#dnd-example .file, #dnd-example .folder").draggable({
+	  helper: "clone",
+	  opacity: .75,
+	  refreshPositions: true,
+	  revert: "invalid",
+	  revertDuration: 300,
+	  scroll: true
+	});
+	
+	
+	$("#dnd-example .folder").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) { 
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.
+		  if($(ui.draggable).parents("tr")[0].id != this.id)
+		  {		 
+		  }
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	 $("#dnd-example .file").each(function() {
+	  $($(this).parents("tr")[0]).droppable({
+		accept: ".file, .folder",
+		drop: function(e, ui) { 
+		  $($(ui.draggable).parents("tr")[0]).appendBranchTo(this);
+		  
+		  // Issue a POST call to send the new location (this) of the 
+		  // node (ui.draggable) to the server.
+		  if($(ui.draggable).parents("tr")[0].id != this.id)
+		  {		  
+		  }
+		},
+		hoverClass: "accept",
+		over: function(e, ui) {
+		  if(this.id != $(ui.draggable.parents("tr.parent")[0]).id && !$(this).is(".expanded")) {
+			$(this).expand();
+		  }
+		}
+	  });
+	});
+	
+	// Make visible that a row is clicked
+	$("table#dnd-example tbody tr").mousedown(function() {
+	  $("tr.selected").removeClass("selected"); // Deselect currently selected rows
+	  $(this).addClass("selected");
+	});
+	
+	// Make sure row is selected when span is clicked
+	$("table#dnd-example tbody tr span").mousedown(function() {		
+		var node_id = $(this).parents("tr")[0].id.substr(5);
+		var node_name = $(this).html();
+		var path = $(this).attr('rel');
+		$('#file_name').val(path+','+node_name+',,folder');			
+		$($(this).parents("tr")[0]).trigger("mousedown");
+	  
+	});
+}
+
+/********************************Refresh Folder Tree*******************************************/
+function refreshFolderTree()
+{
+	var upload_path = $('#upload_path').html();		
+	$.ajax({
+		url: "<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'refreshfoldertree' ), 'adminrout',    true) ?>",
+		type: 'POST',
+		data: { upload_path: upload_path },
+		success: function(response){
+			//alert(response);				
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				var tree = '<table class="example" id="dnd-example">'+
+								'<tbody ><tr id="node-0">'+
+								 '<td>'+
+									'<span class="folder" rel="'+json_arr.rootPath+'">'+json_arr.rootFolder+'</span>'+
+								'</td>'+
+							'</tr>';
+					tree += json_arr.folder_tree+'</tbody></table>';
+				$('#folderTree').html(tree);
+				folderTreeGen();
+			}
+			else
+			{
+				var tree = '<table class="example" id="dnd-example">'+
+									'<tbody ><tr id="node-0">'+
+									 '<td>'+
+										'<span class="folder" rel="'+json_arr.rootPath+'">'+json_arr.rootFolder+'</span>'+
+									'</td>'+
+								'</tr>';
+						tree += '</tbody></table>';
+				$('#folderTree').html(tree);
+				folderTreeGen();
+			}					
+		}
+	});
+		
+}
+
+</script>
+<div id="container">
+<div class="title-container">
+	<div class="no-icon"><h1><?php echo $this->translator->translator('projects_file_manager_page_name'); ?></h1></div>
+    <div class="button-container">
+    	<?php if ($this->allow('createdir')) : ?>
+        <input type="text" id="dir_name" value="" />
+        <span class="button ui-widget-content-1" id="add_btn"><a href="javascript: void(0);" class="create_dir_btn"><span class="icon add"><?php echo $this->translator->translator('projects_file_manager_create_dir'); ?></span></a></span>
+        <?php endif; ?>
+        <?php if ($this->allow('delete')) : ?>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="delete_btn"><span class="icon delete"><?php echo $this->translator->translator('common_delete'); ?></span></a></span>
+        <?php endif; ?>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+        <?php if ($this->allow('privilege')) : ?>
+        <?php if($this->user_id){ ?>
+        <span class="button ui-widget-content-1"><a href="javascript:  void(0);" rel="<?php echo $this->user_id.','.$this->user_name; ?>" class="privilege_btn"><span class="icon save"><?php echo $this->translator->translator('projects_file_manager_set_priv'); ?></span></a></span>
+        <?php } ?>
+		<?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+	<form name="formUpload" id="formUpload" action="<?php echo $this->url( array('module' => 'Projects','controller' => 'Index', 'action'     => 'file'), 'adminrout',    true) ?>" method="post" enctype="multipart/form-data" >
+	<div class="left-float"><span class="label"><?php echo $this->translator->translator('projects_file_manager_upload_file'); ?></span>
+	<?php echo $this->translator->translator('projects_file_manager_path_title'); ?> <span id="upload_path" class="infoMess"><?php echo $this->upload_path.'/'.$this->upload_folder; ?></span></div>
+   	<div class="right-float label"><?php if($this->user_name){ echo $this->translator->translator('projects_file_manager_set_priv_for').$this->user_name; } ?></div>
+    <div class="clr"></div>
+	<div id="sidebar-inner">
+    	<div id="nav">
+    		<div class="nav-header"><div class="nav-title"><?php echo $this->translator->translator('projects_file_manager_folder_tree'); ?></div></div>
+    		<div id="folderTree" class="nav-body treebody">
+           		<?php echo '<table border="0" class="example" id="dnd-example">'.
+				'<tbody ><tr id="node-0">'.
+					 '<td '.$selected.'>'.
+						'<span class="folder" rel="'.$this->upload_path.'">'.$this->upload_folder.'</span>'.
+					'</td>'.
+				'</tr>'.$folder_tree.'</tbody></table>'; ?>
+            </div>
+       	</div>
+    </div>
+    
+    <div id="content-inner">
+   	<div id="actionMessage"></div>
+    <div class="warning"><?php echo $this->translator->translator('projects_file_manager_page_message',$FileInfo['file_type']); ?> <?php if($FileInfo['file_size_max'] == '0'){ echo "Infinity"; }else{ echo $FileInfo['file_size_max']; } ?></div>
+    	<div id="generalInfo">
+    	<input type="hidden" name="file_name" id="file_name" value="" />
+            <div id="img_box" class="form thumb-img-container">
+            <?php													
+                foreach($file_arr as $file)
+                {
+                    $src = $this->baseUrl().$file['thumb_path'];
+            ?>
+                <div class="upload-img">
+                <div class="file_box image-thumb">
+                    <a href="javascript:void(0);" rel="<?php echo $file['path'].','.$file['name'].','.$file['ext'].','.$file['type']; ?>" class="select_file_btn" title="<?php echo $file['name']; ?>" >
+                    <img src="<?php echo $src; ?>" width="70" height="60" border="0" /> 
+                    <?php if($file['type'] != 'file') { echo '<br />'.$file['name']; } ?>                   
+                    </a>
+                </div>
+                </div>
+            <?php
+                }
+          	?>
+                <div id="dialog_container" title="<?php echo $this->translator->translator('common_processing_language'); ?>"><div id="progressbar" style="height:22px;margin-top:30px;"></div></div> 
+           	</div>
+           	<div class="form clr">
+           		<?php if ($this->allow('privilege')) : ?>
+				<?php if($this->user_id){ ?>
+                <div class="form-row">
+                    <div class="label" style="width:15%;">
+                        <?php echo $this->uploadForm->file_type->getLabel(); ?><span class="required">*</span>
+                    </div>
+                    
+                    <div class="field" style="width:85%;">
+                    	<?php echo $this->uploadForm->file_type; ?>
+                        <div class="input-errors" id="file_type_err"></div>
+                    </div>
+              	</div>
+                
+                <div class="form-row">
+                    <div class="label" style="width:25%;">
+                        <?php echo $this->uploadForm->file_size_max->getLabel(); ?>
+                    </div>
+                    
+                    <div class="field" style="width:75%;">
+                    	<?php echo $this->uploadForm->file_size_max; ?>
+						<?php echo $this->translator->translator('zero_file_size'); ?>
+                        <div class="input-errors" id="file_size_max_err"></div>
+                    </div>
+              	</div>
+                <?php } ?>
+				<?php endif; ?>
+                
+                <div class="form-row">
+                    <div class="label" style="width:15%;">
+                        <?php echo $this->uploadForm->file_name_upload->getLabel(); ?><span class="required">*</span>
+                    </div>
+                    
+                    <div class="field" style="width:85%;">
+                    	<?php echo $this->uploadForm->file_name_upload; ?>
+						<?php echo $this->translator->translator('zero_file_size'); ?>
+                        <div class="input-errors" id="file_name_upload_err"></div>
+                    </div>
+              	</div>
+			</div>
+    	</div>			
+    </div>
+    </form>	
+</div>
+</div>
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg','Message'); ?>"></div> 

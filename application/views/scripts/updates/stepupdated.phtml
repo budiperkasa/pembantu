@@ -1,0 +1,58 @@
+<?php 
+$this->headTitle($this->translator->translator('install_step_installed_page_title'));
+?>
+
+<script language="javascript" type="text/javascript"> 
+	$(document).ready(function(){		
+		$('#gotoFrontend').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl(); ?>";
+		});
+		$('#gotoBackend').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/Administrator'; ?>";
+		});	
+		$('#refresh').click(function(){
+			document.location.href = "<?php echo $this->serverUrl().$this->baseUrl().'/upgrade.php/step4'; ?>";
+		});		
+	});
+	<!--
+	function setButtonState(button, state) {		
+		var b = $('#'+button);
+		if(b) 
+		{				
+			if(state)
+			{
+				b.removeClass('button');			
+				b.addClass('buttonDisabled');
+				b.attr('disabled','disabled');
+			}
+			else
+			{
+				b.removeClass('buttonDisabled');			
+				b.addClass('button');
+				b.removeAttr('disabled');
+			}	
+		}
+	}
+	
+	function setFocus(id) {
+		$('#'+id).focus();
+	}	
+	//-->
+	</script>
+    
+    <form id="step4frm" name="step4frm" method="post" action="<?php echo $this->baseUrl(); ?>">
+        <fieldset>
+            <legend><?php echo $this->translator->translator('install_step_installed_page_type'); ?></legend>
+            
+            <?php if($this->messageError){ ?>
+            <div id="errorBoxMessageDiv" class="warning installed">
+                <?php echo $this->translator->translator('install_step5_error_message'); ?>: <?php echo $this->messageError; ?>									
+            </div>
+            <?php } ?>
+            
+            <div class="button-container">
+                <div class="icon"><input type="button" name="gotoFrontend" id="gotoFrontend" value=" <?php echo $this->translator->translator('install_step6_go_to_frontend'); ?>" class="button-frontend" /></div>
+                <div class="icon"><input type="button" name="gotoBackend" id="gotoBackend" value="<?php echo $this->translator->translator('install_step6_go_to_backtend'); ?>" class="button-backend" /></div>
+            </div>
+        </fieldset>	
+    </form>

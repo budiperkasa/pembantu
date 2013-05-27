@@ -1,0 +1,793 @@
+<div id="container">
+<?php  if (!$this->allow('price')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : 
+$version = Zend_Registry::get('version');	
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+
+function state_truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+
+$edit_enable = $this->allow('edit','global','Settings');
+$delete_enable = $this->allow('delete','global','Settings'); 
+$add_enable = $this->allow('add','global','Settings');
+$report_enable = $this->allow('report','global','Settings');
+$commission_enable = (!empty($global_conf['price_margine_arr']) && ((!empty($global_conf['price_margine_arr'][0]) && !empty($global_conf['price_margine_arr'][0]['id']) && ($global_conf['price_margine_arr'][0]['id'] == '2')) || (!empty($global_conf['price_margine_arr'][1]) && !empty($global_conf['price_margine_arr'][1]['id']) && ($global_conf['price_margine_arr'][1]['id'] == '2')) )) ? true : false;
+
+
+?>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/****************************Sorting Table End*********************/
+		$('a.reset_btn').click(function() {			
+			 resetFields();	
+			 removeError();	
+		});
+		
+		function resetFields()
+		{
+			$( "#formState" )[ 0 ].reset();
+		}
+		
+		function removeError()
+		{
+			$('#actionMessage').html('');
+						
+			$.each($('form').serializeArray(), function(i, field) {				
+					$('#'+field.name).removeClass('ui-state-error');
+					$('input[name="'+field.name+'"]').removeClass('ui-state-error');
+					$('#'+field.name+'_err').html('');									
+			});				
+		}
+		
+		function addError(key,errMsg)
+		{
+			var err_id = key+'_err';
+			var field_name = key;
+			$('input[name="'+field_name+'"]').addClass('ui-state-error');
+			$('#'+err_id).append(errMsg);
+		}
+		
+		function openLoaderDialog()
+		{
+			$('#dialog_loader').dialog({
+						autoOpen: true,
+						modal: true,
+						show: 'fade',
+						resizable: 'false',				
+						open: function(event, ui)
+							 {
+								$("#progressbar").progressbar({
+									value:100
+					
+								});							
+							  }
+					});
+		}
+		
+		function closeLoaderDialog()
+		{
+			$('#dialog_loader').dialog('option','hide','explode').dialog('close');
+		}
+		
+		function getFormData()
+		{
+			var fieldObj = {};
+			$.each($('#formState').serializeArray(), function(i, field) {			
+								
+				fieldObj[field.name] = field.value;			
+										
+			});
+			return fieldObj;
+		}
+		
+		$("#add-state-form").dialog({
+			autoOpen: false,
+			width: 900,
+			height: 'auto',
+			show: 'fade',			
+			modal: true
+		});	
+		
+		$('a.add_new_dialog_btn').click(function() {
+				resetFields();
+			 	removeError();	
+				$('#add-state-form').dialog('open');				
+		});
+		
+		$('a.close_dialog_btn').click(function() {			
+			 resetFields();
+			 removeError();	
+			 $("#add-state-form").dialog('option','hide','explode').dialog('close');		
+		});		
+		
+		$('a.add_price_btn').click(function() 
+		{	
+			var formData = getFormData();		
+					
+			$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'add' ), 'adminrout',    true) ?>",
+					type: 'POST',
+					data: formData,
+					beforeSend: function(){						
+						removeError();
+						openLoaderDialog();					
+					 },
+					success: function(response){
+						//alert(response);					
+						var json_arr = eval("("+response+")");					
+						closeLoaderDialog();					
+						if(json_arr.status == 'ok')
+						{
+							generateNewRow(json_arr.datas,oTable);	
+							$('#actionMessage').attr('class','seccMess');
+							$('#actionMessage').html(json_arr.msg);	
+							resetFields();												
+						}
+						else if(json_arr.status == 'errV')
+						{
+							$('#actionMessage').attr('class','errMess');
+							$('#actionMessage').html("<?php echo $this->translator->translator('common_err'); ?>");
+													
+							for(var i= 0; i < json_arr.msg.length; i++)
+							{
+								addError(json_arr.msg[i].key,json_arr.msg[i].value);							
+							}
+						}
+						else
+						{
+							$('#actionMessage').attr('class','errMess');
+							$('#actionMessage').html(json_arr.msg);
+						}
+					}
+			});
+		});		
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('price_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					Cancel: function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('item_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	allFunctions();
+});
+
+function generateNewRow(datas,oTable)
+{
+	var commission_enable = 	'<?php echo $commission_enable; ?>';
+	var report_enable =    '<?php echo $report_enable; ?>';
+	var row =	'<ul>'+
+					'<li>'+
+							<?php if ($edit_enable) : ?>
+							'<a href="javascript:void(0);" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator("common_edit_title"); ?>" alt="<?php echo $this->translator->translator("common_edit_title"); ?>" border="0" /></a>'+
+							'<a href="javascript:void(0);" class="save_btn"  style="display:none;" rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.gif" alt="<?php echo $this->translator->translator("common_save_title"); ?>" title="<?php echo $this->translator->translator("common_save_title"); ?>"  border="0"/></a>&nbsp;&nbsp;<a href="javascript:void(0);" class="cancel_btn"  style="display:none;" rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/cancel.gif" alt="<?php echo $this->translator->translator("common_cancel_title"); ?>" title="<?php echo $this->translator->translator("common_cancel_title"); ?>" border="0"/></a>'+
+							<?php endif; ?>
+					'</li>'+													
+					'<li>'+
+							<?php if ($delete_enable) : ?>
+							'<a href="javascript:void(0);" class="delete_btn"  rel="'+datas.id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" alt="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" /></a>'+
+							<?php endif; ?>	
+					'</li>'+
+				'</ul>';
+				  
+		var amount_type_name = $("#formState select[name=amount_type] option[value='"+datas.amount_type+"']").text();
+		$("#formState select[name=amount_type] option[value='"+datas.amount_type+"']").attr("selected", 'selected');				
+		var group_object = $("#formState select[name=amount_type]");		
+		var amount_type = '<span>'+amount_type_name+'</span><select name="amount_type" id="amount_type'+datas.id+'" size="1" class="<?php echo $this->priceForm->amount_type->getAttrib("class"); ?>" title="<?php echo $this->priceForm->amount_type->getAttrib("title"); ?>" style="display:none;">'+group_object.html()+'</select><span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span>';	
+		var amount	=  '<span class="category_link_1">'+datas.amount+'</span><input type="text" name="amount" id="amount" value="'+datas.amount+'" size="50" title="<?php echo $this->priceForm->amount->getAttrib("title"); ?>" style="display:none;" /><span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span>';	
+		var report = (datas.id == '2' && commission_enable == true && report_enable == true) ? '&nbsp;<a href="<?php echo $this->url( array("module"=> "Settings", "controller" => "global", "action"     => "report", "id" => "" ), "adminrout",    true) ?>'+datas.id+'"><?php echo $this->translator->translator("settings_price_list_view_report"); ?></a>' : '';
+		var short_desc	=  '<span class="category_link_1">'+datas.short_desc+report+'</span><input type="text" name="short_desc" id="short_desc" value="'+datas.short_desc+'" size="50" title="<?php echo $this->priceForm->short_desc->getAttrib("title"); ?>" style="display:none;" /><span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span>';	
+		$("#formState select[name=amount_type] option[selected]").removeAttr("selected");	
+		oTable.fnAddData([
+					'<input type="checkbox" name="checkbtn" id="checkbtn" value="'+datas.id+'" class="check_btn" />',
+					datas.id,
+					short_desc,
+					amount,
+					amount_type,
+					row
+					 ]);
+		$('td', oTable.fnGetNodes()).hover( function() {		
+			$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+		}, function() {
+			$('td.highlighted').removeClass('highlighted');
+		} );
+		$("select#short_desc"+datas.id+" option[value='"+datas.short_desc+"']").attr("selected","selected");
+		allFunctions();
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_container').html(msg).dialog({
+		autoOpen: true,
+		modal: false,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+		 {
+			setTimeout(function() 
+			{									
+				if($('#' + event.target.id).dialog('isOpen'))
+				{
+					$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+				}
+			}, 10000);
+		  }
+	});
+}
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+function checkNonDeletedId(id,id_arr)
+{
+	var tmp = false;
+	for(var i = 0;i < id_arr.length;i++)
+	{
+		if(id_arr[i] == id)
+		{
+			tmp = true;
+			break;
+		}
+	}
+	return tmp;
+}
+
+function deleteThis(self)
+{
+	var arr = $(self).attr('rel').split('_');
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'delete' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: { id: arr[0]},
+		 beforeSend: function(){
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+				var oTables = $('#sortTable').dataTable();
+				var anSelected = fnGetSelected( oTables );
+				oTables.fnDeleteRow( anSelected[0] );
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);
+				$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator("common_delete_title"); ?>" border="0" />');
+			}
+		 },
+		error: function(xhr, status, error){
+			var msg = "Error! " + xhr.status + " " + error;
+			openMsgDialog(msg);
+		}
+	});
+}
+
+function deleteAll(self)
+{
+	var id_str = '';
+	for(var i=0;i < $('input.check_btn:checked').length;i++)
+	{
+		if(i == 0)
+		{
+			 id_str += $('input.check_btn:checked:eq('+i+')').val();
+		}
+		else
+		{
+			id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+		}
+	}
+	
+	$.ajax({
+			url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+			type: 'POST',
+			data: { id_st: id_str},
+			beforeSend: function(){
+				$(self).html('<span class="icon loader"></span>');
+			 },
+			success: function(response) 
+			{
+				//alert(response);
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+					{	
+						if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+						{							
+							$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');							
+						var oTabled = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTabled );
+						oTabled.fnDeleteRow( anSelected[0] );								
+						}
+					}
+					var oTabled = $('#sortTable').dataTable();
+					var anSelected = fnGetSelected( oTabled );
+					for(var k = 0; k < anSelected.length; k++)
+					{
+						oTabled.fnDeleteRow( anSelected[k] );
+					}
+				}
+				else
+				{							
+					openMsgDialog(json_arr.msg);
+				}	
+				$(self).html('<span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span>');
+			},
+			error: function(xhr, status, error){
+				var msg = "Error! " + xhr.status + " " + error;
+				openMsgDialog(msg);
+			}
+	});	
+}
+		
+function allFunctions()
+{
+	$('a.edit_btn').unbind('click');
+	$('a.edit_btn').click(function() {
+		var self = this;
+		
+		if($(self).is(":visible"))
+		{					
+			$(self).hide();	
+			$(self).parents("li:first").children("a:nth-child(2)").show();
+			$(self).parents("li:first").children("a:nth-child(3)").show();						
+			
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").hide();
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").show();
+						
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(1)").hide();
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("input:nth-child(2)").show();
+			
+						
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(1)").hide();
+			$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").show();	
+		}
+	});
+	
+	$('a.cancel_btn').unbind('click');
+	$('a.cancel_btn').click(function() {
+			var self = this;
+			if($(self).is(":visible"))
+			{
+				$(self).hide();	
+				$(self).parents("li:first").children("a:nth-child(2)").hide();
+				$(self).parents("li:first").children("a:nth-child(1)").show();				
+							
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").show();
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").hide();
+				
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(1)").show();
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("input:nth-child(2)").hide();
+				
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(1)").show();
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").hide();
+			}
+		});
+	
+	$('a.save_btn').unbind('click');	
+	$('a.save_btn').click(function() {
+			var self = this;
+			var rel = $(self).attr('rel');
+			var commission_enable = '<?php echo $commission_enable; ?>';
+			var report_enable =    '<?php echo $report_enable; ?>';
+			if($(self).is(":visible"))
+			{
+				var short_desc = $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").val();
+				
+				var amount_type   = $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").val();
+				var amount   = (amount_type == '0') ? 0 : $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("input:nth-child(2)").val();
+				var amount_type_name = $(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").children("option:selected").text();
+				var report = (rel == '2' && commission_enable == true && report_enable == true) ? '&nbsp;<a href="<?php echo $this->url( array("module"=> "Settings", "controller" => "global", "action"     => "report", "id" => "" ), "adminrout",    true) ?>'+rel+'"><?php echo $this->translator->translator("settings_price_list_view_report"); ?></a>' : ''; 
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'edit' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { id: rel, short_desc: short_desc, amount: amount, amount_type: amount_type},
+						beforeSend: function(){						
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").show();
+							
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(1)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("input:nth-child(2)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(3)").show();
+							
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(1)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").hide();
+							$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(3)").show();
+							
+							$(self).hide();	
+							$(self).parents("li:first").children("a:nth-child(3)").hide();
+							$(self).parents("li:first").children("a:nth-child(1)").show();					
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").html(short_desc+report);
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(1)").html(amount);
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(1)").html(amount_type_name);
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(1)").show();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(1)").show();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(1)").show();
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").hide();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(3)").hide();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(3)").hide();
+							}
+							else
+							{
+								$(self).show();	
+								$(self).parents("li:first").children("a:nth-child(3)").show();
+								$(self).parents("li:first").children("a:nth-child(1)").hide();
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("input:nth-child(2)").show();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("input:nth-child(2)").show();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("select:nth-child(2)").show();
+								
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(3)").children("span:nth-child(3)").hide();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(4)").children("span:nth-child(3)").hide();
+								$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").children("td:nth-child(5)").children("span:nth-child(3)").hide();
+								if(json_arr.status == 'errV')
+								{
+									var msg_data = '';
+									for(var i = 0; i < json_arr.msg.length; i++)
+									{
+											msg_data += json_arr.msg[i].key+': '+json_arr.msg[i].value+'<br />';
+									}
+									openMsgDialog(msg_data);
+								}
+								else
+								{
+									openMsgDialog(json_arr.msg);
+								}
+							}						
+						}
+					});
+			}
+		});
+			
+		
+	
+		$('a.delete_btn').unbind('click');	
+		$('a.delete_btn').click(function() {
+			var self = this;
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('price_list_delete_confirm')); ?>").dialog({
+				resizable: false,
+				width:400,
+				height:170,
+				modal: true,
+				show: 'fade',
+				hide: 'explode',
+				buttons: {
+						'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+						deleteThis(self);
+						$(this).dialog('close');
+					},
+				'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+						$(this).dialog('close');
+					}
+				}
+			});
+			
+		});		
+}
+</script>
+
+<style type="text/css">
+.tmp_short_desc{
+	display:none;
+}
+</style>
+<div id="button_top_bar"></div>
+<div class="title-container">
+	<div class="price-margin"><h1><?php echo $this->translator->translator('settings_price_list_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <?php if ($add_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0)" class="add_new_dialog_btn"><span class="icon add"><?php echo $this->translator->translator('settings_price_list_page_new'); ?></span></a></span>
+        <?php endif; ?>
+        
+		<?php if ($delete_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+    
+    <div class="pagination">
+		<?php echo $this->paginationControl($this->datas, 'Sliding', 'top_pagination.phtml'); ?>
+    </div>
+    
+    <div class="chart">
+    	<div class="data-table">
+        	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                <thead>
+                	<tr>
+                 		<th width="2%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                 		<th width="4%"><?php echo $this->translator->translator('settings_price_list_page_id'); ?></th>
+                  		<th width="49%"><?php echo $this->translator->translator('settings_price_list_short_desc'); ?> </th>
+                  		<th width="15%"><?php echo $this->translator->translator('settings_price_list_amount').' ('.$currency->getSymbol().')'; ?> </th>
+                  		<th width="19%"><?php echo $this->translator->translator('settings_price_list_amount_type'); ?> </th>
+                  		<th width="11%"><?php echo $this->translator->translator('common_action'); ?></th>
+                	</tr>
+             	</thead>
+                <tbody>
+                <?php 	
+                                                        
+                $j = 1;
+                foreach ($this->datas as $entry): 
+                    if($j % 2 == 0)
+                    {
+                        $onmouseout = "this.bgColor='#FFFFFF';";
+                        $background = '#FFFFFF';
+                    }
+                    else
+                    {
+                        $onmouseout = "this.bgColor='#F7F7F7';";
+                        $background = '#F7F7F7';
+                    }
+                    
+                ?>
+                	<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                 		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                  		<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                  		<td>
+                  			<?php 																			  					
+                        		echo '<span class="td_pad category_link_1">'.$this->escape($entry->short_desc);
+                			?>
+                        	<?php if($this->escape($entry->id) == '2' && $commission_enable == true && $report_enable){ ?><a href="<?php echo $this->url( array('module'=> 'Settings', 'controller' => 'global', 'action'     => 'report', 'id' => $this->escape($entry->id) ), 'adminrout',    true) ?>"><?php echo $this->translator->translator('settings_price_list_view_report'); ?></a><?php } ?>
+                			<?php
+								echo '</span>';
+								$this->priceForm->short_desc->setValue($this->escape($entry->short_desc));
+								$this->priceForm->short_desc->setAttribs(array('style' => 'display:none;'));
+								echo $this->priceForm->short_desc;																													
+                  			?>												  												  
+                  			<span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span></td>												  
+                  		<td>
+							<?php  echo '<span>'.$this->escape($entry->amount).'</span>'; 
+                        		$this->priceForm->amount->setValue($this->escape($entry->amount));
+                        		$this->priceForm->amount->setAttribs(array('style' => 'display:none;width:100px;'));
+                    			echo $this->priceForm->amount; ?><span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span></td>											  
+                  		<td>
+						<?php								
+							$this->priceForm->amount_type->setValue($this->escape($entry->amount_type));
+							$this->priceForm->amount_type->setAttribs(array('style' => 'display:none;width:150px;padding:3px;'));
+							echo '<span>'.$this->priceForm->amount_type->getMultiOption($this->escape($entry->amount_type)).'</span>';
+							if($entry->id == '2' || $entry->id == '5')
+							{
+                            $multipotions_arr = $this->priceForm->amount_type->getMultiOptions();
+                            echo '<select aria-describedby="ui-tooltip-7" title="Select Amount Type" name="amount_type" id="amount_type" size="1" class="ui-widget-content ui-corner-all" style="display: none;width:150px;padding:3px;">';
+                            foreach($multipotions_arr as $multipotions_key	=> $multipotions_value )
+                            {
+                                if($multipotions_key != '3' && $multipotions_key != '4')
+                                {
+                                    $selected = ($entry->amount_type == $multipotions_key) ? 'selected="selected"' : '';
+                                    echo '<option value="'.$multipotions_key.'" '.$selected.' label="'.$multipotions_value.'">'.$multipotions_value.'</option>';
+                                }
+                            }
+                            echo '</select>';
+                        }
+                        else
+                        {
+                            echo $this->priceForm->amount_type; 	
+                        }													
+                                                                    
+                    ?>
+                    <span style="display:none"><img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" /></span></td>	
+                  		<td class="tools-list">
+                       		<ul>
+                                <li>
+                                <?php if ($edit_enable) : ?>
+                                <a href="javascript:void(0);" class="edit_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                <a href="javascript:void(0);" class="save_btn"  style="display:none;" rel="<?php echo $this->escape($entry->id); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/save.gif" alt="<?php echo $this->translator->translator('common_save_title'); ?>" title="<?php echo $this->translator->translator('common_save_title'); ?>" border="0"/></a><a href="javascript:void(0);" class="cancel_btn"  style="display:none;" rel="<?php echo $this->escape($entry->id); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/cancel.gif" alt="<?php echo $this->translator->translator('common_cancel_title'); ?>" title="<?php echo $this->translator->translator('common_cancel_title'); ?>" border="0"/></a>
+                                <?php endif; ?>
+                                </li>
+                                
+                                <li>
+                                <?php if ($delete_enable) : ?>
+                                <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="<?php echo $this->translator->translator('common_delete_title'); ?>" border="0" /></a>
+                                <?php endif; ?>
+                                </li>
+                            </ul>
+                      	</td>														
+                	</tr>
+               	<?php 													
+                    $j++;
+                    endforeach;	
+                    
+               	?>
+               	</tbody>
+			</table>
+      	</div>
+	</div>
+          
+    <div class="pagination">
+		<?php echo $this->paginationControl($this->datas, 'Sliding', 'pagination.phtml'); ?>
+    </div>
+    
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('settings_price_list_page_name'); if($this->short_desc ){  echo " ( ".$country_name." ) "; } ?></h1>
+    
+    <div class="button-container">
+        <?php if ($add_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript:void(0)" class="add_new_dialog_btn"><span class="icon add"><?php echo $this->translator->translator('settings_price_list_page_new'); ?></span></a></span>
+        <?php endif; ?>
+        
+		<?php if ($delete_enable) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg','Price Margine Message'); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation', $this->translator->translator('common_delete')); ?>"></div>	
+<div id="dialog_loader" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>
+
+	<?php  if ($add_enable) : ?>
+	<div id="add-state-form" title="<?php echo $this->translator->translator('settings_price_add_page_info'); ?>">
+    	<div class="dialog-container">
+            <div class="title-container">
+                <div class="price-margin-add"><h1><?php echo $this->translator->translator('settings_price_add_page_info'); ?></h1></div>
+            
+                <div class="button-container">
+                    <span class="button  ui-widget-content-1"><a href="javascript:void(0);" class="close_dialog_btn"><span class="icon close"><?php echo $this->translator->translator('common_close'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1"><a href="javascript:  void(0);" class="reset_btn"><span class="icon reset"><?php echo $this->translator->translator('common_reset'); ?></span></a></span>
+                    <span class="button  ui-widget-content-1" id="add_btn"><a href="javascript: void(0);" class="add_price_btn"><span class="icon save"><?php echo $this->translator->translator('settings_price_add_page_save'); ?></span></a></span>
+                </div>
+            </div>
+        	<div class="clr"></div>
+            
+            <div class="content-container">
+                <div id="actionMessage"></div>
+                <div id="generalInfo">
+                    <fieldset class="fieldset">
+                        <legend class="legend"><?php echo $this->translator->translator('settings_price_add_page_info'); ?></legend>
+                        <form id="formState" name="formState" method="post">
+                            <div class="form">
+                                <div class="form-row">
+                                    <div class="label">
+                                        <?php echo $this->priceForm->short_desc->getLabel(); if($this->priceForm->short_desc->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                    </div>
+                                    
+                                    <div class="field">
+                                        <?php $this->priceForm->short_desc->setValue('');
+										$this->priceForm->short_desc->setAttribs(array('style' => 'display:inline;'));
+										echo $this->priceForm->short_desc;  ?>
+                                        <div class="input-errors" id="short_desc_err"></div>
+                                    </div>
+                            	</div>
+                                
+                                <div class="form-row">
+                                    <div class="label">
+                                        <?php echo $this->priceForm->amount->getLabel(); if($this->priceForm->amount->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                    </div>
+                                    
+                                    <div class="field">
+                                        <?php $this->priceForm->amount->setValue('');
+										$this->priceForm->amount->setAttribs(array('style' => 'display:inline;'));
+										echo $this->priceForm->amount; ?>
+                                        <div class="input-errors" id="amount_err"></div>
+                                    </div>
+                            	</div>
+                                
+                                <div class="form-row">
+                                    <div class="label">
+                                        <?php echo $this->priceForm->amount_type->getLabel(); if($this->priceForm->amount_type->isRequired()){ ?><span class="required">*</span><?php } ?>
+                                    </div>
+                                    
+                                    <div class="field">
+                                        <?php  $this->priceForm->amount_type->setValue('');
+										$this->priceForm->amount_type->setAttribs(array('style' => 'display:inline;'));
+										echo $this->priceForm->amount_type; ?>
+                                        <div class="input-errors" id="amount_type_err"></div>
+                                    </div>
+                            	</div>
+                         	</div>
+                     	</form>
+                 	</fieldset>
+             	</div>
+          	</div>
+     	</div>
+	</div>
+	<?php endif; ?>
+<?php endif; ?>
+</div>

@@ -1,0 +1,318 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+$version = Zend_Registry::get('version');
+$front_template = Zend_Registry::get('front_template');
+
+if(!empty($this->category['meta_keywords'])){ $this->headMeta()->setName('keywords',$this->category['meta_keywords']); }
+if(!empty($this->category['meta_desc'])) { $this->headMeta()->setName('description',$this->category['meta_desc']); }
+if(!empty($this->category['category_name'])) { $this->headTitle()->headTitle($this->escape($this->category['category_name']),'SET')->setSeparator(' - ')->headTitle($this->category['meta_title']); }
+
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	function openMsgDialogPoll(msg)
+	{
+		$('#dialog_msg_poll').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'fade',
+					resizable: 'false',				
+					buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{									
+								if($('#' + event.target.id).dialog('isOpen'))
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+								}
+							}, 10000);
+						  }
+				});
+	}
+		
+	$('a.vote_btn').click(function() {
+		var self = this;
+		var questionId = $(self).attr('rel');
+		var checked = $(self).parents('div:first').parents('div:first').children('ul').children('li').children('input.check_btn');
+		var checked_btn = $(self).parents('div:first').parents('div:first').children('ul').children('li').children('input.check_btn:checked');
+		var id_str = new Array();
+		if(checked_btn.length > 0)
+		{
+			$(checked_btn).each( function () {
+				id_str.push($(this).val());
+			});
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Poll', 'controller' => 'poll', 'action'     => 'vote','group_id' => $this->groupInfo['id'] ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str, question_id: questionId},
+					beforeSend: function(){
+						$(self).html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/poll-loader.gif" border="0" />');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						openMsgDialogPoll(json_arr.msg);	
+						
+						var votes = "&nbsp;<?php echo $this->translator->translator('poll_poll_vote_cast_many_title');?>";
+						for(var i=0;i < json_arr.answer_percentage.length;i++)
+						{	
+							if(parseInt(json_arr.answer_vote[i]) < 2)
+							{
+								var votes = "&nbsp;<?php echo $this->translator->translator('poll_poll_vote_cast_single_title');?>";
+							}
+							$('#result_of_mod_'+questionId).append('<tr height="5px"><td width="200" bgcolor="#F5F5F5">&nbsp;'+json_arr.answer_content[i]+' - <span style="color:#006633">'+json_arr.answer_vote[i]+votes+'</span></td><td width="300"><table cellpadding="0" cellspacing="0" width="100%" border="0"><tr bgcolor="#E7E7E7"><td width="'+parseInt(json_arr.answer_percentage[i])+'%" bgcolor="#FF9900"></td><td style="font-size:10px">&nbsp;'+json_arr.answer_percentage[i]+'%</td></tr></table></td></tr>');						
+							$('#result_of_mod_'+questionId).css('display', 'inline-table');
+						}
+						$('#answer_options_'+questionId).children().children().append('<tr><td colspan="2" width="100%" align="center" class="total"><?php echo $this->translator->translator("poll_total_vote_cast_title","'+json_arr.total_vote+'");?></td></tr>');
+						$(self).html('<span style="color:#006633;font-weight: bold;font-size:14px"><?php echo $this->translator->translator("poll_poll_list_result_title"); ?></span>');
+						$(self).parents('div:first').parents('div:first').css('display','none');	
+						$(self).removeAttr('href');
+						$(self).unbind('click');
+					}
+			});			
+		}
+		else
+		{
+			if($(checked).attr('type') == 'radio')
+			{
+				var msg = "<?php echo $this->translator->translator('poll_poll_vote_radio_selected_err'); ?>";
+			}
+			else
+			{
+				var msg = "<?php echo $this->translator->translator('poll_poll_vote_check_selected_err'); ?>";
+			}
+			openMsgDialogPoll(msg);
+		}
+	});
+	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": true,
+				"aLengthMenu" : [ 10, 20, 50, 100 ],
+				"sPaginationType": "full_numbers",
+				"bLengthChange": true,
+				"bSearchable": false,
+				"bFilter": true,
+				"bSort": false,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	/****************************Sorting Table End*********************/
+	
+});	
+</script>
+<style type="text/css">	
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * DataTables features
+	 */
+	
+	.dataTables_wrapper {
+		position: relative;
+		/*min-height: 302px;*/
+		clear: both;
+		_height: 302px;
+		zoom: 1; /* Feeling sorry for IE */
+	}
+	
+	.dataTables_processing {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 250px;
+		height: 30px;
+		margin-left: -125px;
+		margin-top: -15px;
+		padding: 14px 0 2px 0;
+		border: 1px solid #ddd;
+		text-align: center;
+		color: #999;
+		font-size: 14px;
+		background-color: white;
+	}
+	
+	.dataTables_length {
+		width: 40%;
+		float: right;
+		padding: 12px 4px;
+		text-align:right;
+	}
+	
+	.dataTables_length{
+		font-weight:bold;
+		color:#06C;
+	}
+	
+	.dataTables_filter {
+		padding: 12px 4px;
+		border:1px solid #CCC;
+		background-color:#F4F4F4;
+		margin: 0 0 20px 0;
+	}
+	
+	.dataTables_filter input{
+		border:1px solid #CCC;
+		padding:2px;
+	}
+	
+	.dataTables_filter label{
+		font-weight:bold;
+		color:#06C;
+	}
+	
+	.dataTables_info {
+		width: 60%;
+		float: left;
+	}
+	
+	.dataTables_paginate {
+		width: 44px;
+		* width: 50px;
+		float: right;
+		text-align: right;
+	}
+	
+	/* Pagination nested */
+	.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
+		height: 19px;
+		width: 19px;
+		margin-left: 3px;
+		float: left;
+	}
+	
+	.paginate_disabled_previous {
+		background-image: url('data/adminImages/commonImages/table-sorter/back_disabled.jpg');
+	}
+	
+	.paginate_enabled_previous {
+		background-image: url('data/adminImages/commonImages/table-sorter/back_enabled.jpg');
+	}
+	
+	.paginate_disabled_next {
+		background-image: url('data/adminImages/commonImages/table-sorter/forward_disabled.jpg');
+	}
+	
+	.paginate_enabled_next {
+		background-image: url('data/adminImages/commonImages/table-sorter/forward_enabled.jpg');
+	}
+	
+	.paging_full_numbers {
+		width: 400px;
+		height: 22px;
+		line-height: 22px;
+	}
+	
+	.paging_full_numbers span.paginate_button,
+		.paging_full_numbers span.paginate_active {
+		border: 1px solid #aaa;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		padding: 2px 5px;
+		margin: 0 3px;
+		cursor: pointer;
+		*cursor: hand;
+	}
+	
+	.paging_full_numbers span.paginate_button {
+		background-color: #ddd;
+	}
+	
+	.paging_full_numbers span.paginate_button:hover {
+		background-color: #ccc;
+	}
+	
+	.paging_full_numbers span.paginate_active {
+		background-color: #99B3FF;
+	}
+	
+	
+	span.vote {
+		color: #FF9900;
+		font-weight: bold;
+		font-size:14px;
+	}
+	tr.odd{
+	}
+
+	tr.even{
+		background-color:#FFFFFF;
+	}
+		
+</style>
+<div class="mod mod-polls">
+    <div class="poll-icon">
+        <h1><?php echo $this->translator->translator('poll_poll_list_page_name'). ' - ';?><?php echo $this->category['category_name'];?></h1>
+    </div>
+	<div class="clear">&nbsp;</div>
+	<?php if($this->category['active'] == '1') :?>
+                                           
+    <?php
+        $answer_db = new Poll_Model_DbTable_PollAnswer();
+        $poll_info = new Poll_Model_DbTable_PollQuestion();
+        $poll_datas = $poll_info->getAllPollByCategory($this->category['id']);
+    ?>
+    <table id="sortTable" width="100%" border="0" cellpadding="0" cellspacing="0" align="center" class="clear">
+        <?php 
+        $j = 1;
+        foreach ($poll_datas as $entry): 
+            if($j % 2 == 0)
+            {
+                $background = '#FFFFFF';
+            }
+            else
+            {
+                $background = '#FFFFFF';
+            }													
+        ?>
+        <tr>
+            <td>
+                <div class="polls-bg"><h6 class="poll-title"><?php echo $this->escape($entry->question);?></h6></div>
+                <div id="answer_options_<?php echo $this->escape($entry->id);?>">
+                    <div class="mod-container">
+                        <?php
+                            $answers = $answer_db->getAnswerByQuestion($this->escape($entry->id));
+                            echo '<ul>';
+                            $type = ($this->escape($entry->multiple_option)) ? 'checkbox' : 'radio'; 
+                            foreach ($answers as $answer)
+                            {
+                                if($answer->active)
+                                {
+                                    echo '<li style="list-style:none">';					
+                                    echo '<input type="'.$type.'" name="poll_answer_'.$this->escape($entry->id).'[]" class="check_btn" value="'.$this->escape($answer->id).'" />&nbsp;'.$answer->content.'</li>';
+                                }
+                            }
+                            echo '</ul>';
+                        ?>
+                        <div class="btn"><a href="javascript: void(0)" rel="<?php echo $this->escape($entry->id); ?>" class="vote_btn"><?php echo $this->translator->translator('poll_poll_list_vote_title'); ?></a></div>
+                    </div>			 	
+                    
+                    <table width="100%" border="0" cellspacing="0" cellpadding="2" id="result_of_mod_<?php echo $this->escape($entry->id); ?>" class="result-block" style="display:none;">
+                        <tr><td colspan="2"><h6><?php echo $this->translator->translator("partial_poll_list_result_title"); ?></h6></td></tr>
+                    </table>
+                </div>
+            </td>
+        </tr>									
+        <?php 													
+            $j++;
+            endforeach;	
+            
+            else :
+            echo $this->translator->translator('poll_category_unpublished_page_title');
+            endelseif;
+            
+            endif;
+          ?>
+    </table>
+</div>
+<div id="dialog_msg_poll" title="<?php echo $this->translator->translator('common_dialog_msg', $this->translator->translator('poll_poll_list_page_name')); ?>"></div>

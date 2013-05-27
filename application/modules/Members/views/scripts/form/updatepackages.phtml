@@ -1,0 +1,806 @@
+<?php 
+$version = Zend_Registry::get('version');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+$members_role = new Members_Model_DbTable_Role(); 
+$packageObj = new Members_Controller_Helper_Packages();
+$package_list = $packageObj->getFormDatas('member_package');
+$auth = Zend_Auth::getInstance ();
+if ($auth->hasIdentity ())
+{
+	$globalIdentity = $auth->getIdentity ();
+	$s_role_id = $globalIdentity->role_id;
+}	
+$permission_arr = array('userlist_enable' => $this->allow('userlist','rule','Administrator'), 'change_enable' => $this->allow('change','password','Members'), 'edit_enable' => $this->allow('edit','index','Members'), 'publish_enable' => $this->allow('ajaxactivedeactiveusers','index','Members'), 'delete_enable' => $this->allow('ajaxdeleteusers','index','Members'));	
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+			
+	$('input.user_search_btn').click(function() {	
+		var page = $(this).attr('rel');					
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'Index', 'action'     => 'ajaxsearchusers' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { role_id: $('#role_id').val(),search_by: $('#search_by').val(),searchKey: $('#SearchKey').val(),search_year: $('#search_year').val(),search_month: $('#search_month').val(),search_day: $('#search_day').val(),page: page },
+				beforeSend: function(){
+					openLoaderDialog();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{	
+						putAjaxPagination(json_arr.page_object);						
+						putSearchedUsers(json_arr.json_data);																	
+					}					
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$("#member_list").html(json_arr.msg);
+						$("#bottom_pagination_field").html('');
+					}
+				}
+		});
+	});
+	
+	allAction();
+	
+	function checkNonDeletedId(id,id_arr)
+	{
+		var tmp = false;
+		for(var i = 0;i < id_arr.length;i++)
+		{
+			if(id_arr[i] == id)
+			{
+				tmp = true;
+				break;
+			}
+		}
+		return tmp;
+	}	
+	
+	function deleteAll(self)
+	{
+		var id_str = '';
+		for(var i=0;i < $('input.check_btn:checked').length;i++)
+		{
+			if(i == 0)
+			{
+				 id_str += $('input.check_btn:checked:eq('+i+')').val();
+			}
+			else
+			{
+				id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+			}
+		}
+		
+		$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'index', 'action'     => 'deleteall' ), 'adminrout',    true) ?>",
+				type: 'POST',
+				data: { id_st: id_str},
+				beforeSend: function(){
+					$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+				 },
+				success: function(response) 
+				{
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+						{
+							if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+							{								
+								$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").addClass('row_selected');		
+							}						
+						}
+						var oTabled = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTabled );
+						for(var k = 0; k < anSelected.length; k++)
+						{
+							oTabled.fnDeleteRow( anSelected[k] );
+						}
+						lastClassAdd(oTabled);
+					}
+					else
+					{							
+						openMsgDialog(json_arr.msg);
+					}	
+					$(self).html('<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>');
+				}
+		});	
+	}
+	
+	$('a.publish_all').click(function() {
+		var self = this;
+		var bigrel = $(self).attr('rel');
+		if($('input.check_btn:checked').length > 0)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'index', 'action'     => 'publishall' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str, paction: bigrel},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							if(bigrel=='publish')
+							{
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{			
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_unpublish';
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/user-active.gif" border="0" title="<?php echo addslashes($this->translator->translator("common_unpublish_title")); ?>" />');								
+								}
+							}
+							else
+							{
+								for(var i=0;i < $('input.check_btn:checked').length;i++)
+								{	
+									var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").attr('rel');
+									var rel_arr = rel.split('_');
+									var new_rel = rel_arr[0]+'_'+rel_arr[1]+'_publish';									
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").attr('rel',new_rel);
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(8)").children("ul:nth-child(1)").children("li:nth-child(5)").children("a:nth-child(1)").html('<img src="application/modules/Administrator/layouts/scripts/images/tools/user-deactivate.gif" border="0" title="<?php echo addslashes($this->translator->translator("common_publish_title")); ?>" />');								
+								}	
+							}
+						}
+						else
+						{
+							openMsgDialog(json_arr.msg);
+						}	
+						if(bigrel=='publish')
+						{	
+							$(self).html('<span class="icon publish"><?php echo $this->translator->translator("common_publish_selected"); ?></span>');
+						}
+						else
+						{
+							$(self).html('<span class="icon unpublish"><?php echo $this->translator->translator("common_unpublish_selected"); ?></span>');
+						}
+					}
+			});			
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('member_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});
+	
+	$('a.delete_all').click(function() {
+		var self = this;
+		if($('input.check_btn:checked').length > 0)
+		{
+			$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('member_list_delete_confirm')); ?>").dialog({
+					resizable: false,
+					width:400,
+					height:170,
+					modal: true,
+					show: 'fade',
+					hide: 'explode',
+					buttons: {
+							'<?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							deleteAll(self);
+							$(this).dialog('close');
+						},
+					'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+							$(this).dialog('close');
+						}
+					}
+				});		
+		}
+		else
+		{
+			var msg = "<?php echo $this->translator->translator('member_selected_err'); ?>";
+			openMsgDialog(msg);
+		}
+	});	
+	
+});
+
+
+
+function putSearchedUsers(json_data)
+	{		
+		var htmlData = '<table id="sortTable" class="tablesorter" width="100%" cellpadding="0" cellspacing="0">'+
+							'<thead> <tr>'+
+								'<th class="center" width="2%"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>'+
+								'<th width="4%" class="center">'+
+									'<?php echo $this->translator->translator("Member_list_page_user_id"); ?>		</th>'+
+								'<th width="25%">'+
+									'<?php echo $this->translator->translator("Member_list_page_username"); ?>		</th>'+
+								'<th width="13%">'+
+									'<?php echo $this->translator->translator("Member_list_page_user_first_name"); ?>'+
+								'</th>'+
+								'<th width="12%">'+
+									'<?php echo $this->translator->translator("Member_list_page_user_last_name"); ?>'+
+								'</th>'+
+								'<th width="12%">'+
+									'<?php echo $this->translator->translator("Member_list_page_user_conpany"); ?>'+
+								'</th>'+		
+								'<th width="22%" class="center">'+
+									'<?php echo $this->translator->translator("Member_list_page_user_register_date"); ?>'+
+								'</th>'+
+								'<th width="10%">'+	
+									'<?php echo $this->translator->translator("Member_list_page_user_action"); ?>'+
+								'</th>'+			
+							'</tr></thead> <tbody> '; 
+						
+							var j = 1;
+							for (var i = 0;i < json_data.length; i++)
+							{ 
+								if(j % 2 == 0)
+								{
+									var onmouseout = "this.bgColor='#FFFFFF';";
+									var background = '#FFFFFF';
+								}
+								else
+								{
+									var onmouseout = "this.bgColor='#F7F7F7';";
+									var background = '#F7F7F7';
+								}
+					if(((json_data[i].role_lock == '1') || (json_data[i].role_id != '100')) || <?php echo $s_role_id; ?> == '100')		
+					{		
+					htmlData +='<tr  bgcolor="'+background+'" onmouseover="this.bgColor=\'#FCF5DD\';" onmouseout="'+onmouseout+'" >'+
+							'<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="'+json_data[i].user_id+'" class="check_btn" /></td>'+
+							'<td>'+json_data[i].user_id+'</td>'+
+							'<td>'+json_data[i].username+'</td>'+
+							'<td>'+json_data[i].firstName+'</td>'+
+							'<td>'+json_data[i].lastName+'</td>'+
+							'<td>'+json_data[i].companyName+'</td>'+
+							'<td>'+json_data[i].register_date+'</td>'+
+							'<td class="tools-list"><ul>'+
+								'<li>';
+									<?php if ($permission_arr['edit_enable']) : ?>
+									htmlData +='<a href="Members/index/edit/user_id/'+json_data[i].user_id+'" title="Edit"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" alt="Edit" border="0" /></a>';
+									<?php endif; ?>
+								htmlData +='</li>'+
+								'<li>';
+									<?php if ($permission_arr['change_enable']) : ?>
+									if(json_data[i].role_lock == '1')
+									{
+										htmlData +='<a href="Members/password/change/user_id/'+json_data[i].user_id+'" title="Change Password"><img src="application/modules/Administrator/layouts/scripts/images/tools/user-password.gif" alt="Change Password" border="0" /></a>';
+									}
+									<?php endif; ?>
+								htmlData +='</li>'+
+								'<li>';					
+									<?php if ($permission_arr['userlist_enable']) : ?>
+									if(json_data[i].role_lock == '1')
+									{
+										htmlData +='<a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'rule', 'action'  => 'userlist','user_id' => '' ), 'adminrout',    true) ?>'+json_data[i].user_id+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/permission.png" alt="Permission" title="Permission" border="0" /></a>';
+									}
+									<?php endif; ?>
+								htmlData +='</li>'+
+								'<li>';
+									<?php if ($permission_arr['delete_enable']) : ?>
+									if(json_data[i].role_lock == '1')
+									{
+										htmlData +='<a href="javascript:void(0);" class="delete_btn"  rel="'+json_data[i].user_id+'_'+json_data[i].username+'"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png"  alt="Delete" border="0" title="Click to delete this user." /></a>';
+									}
+									<?php endif; ?>
+								htmlData +='</li>'+
+								'<li id="put_sub'+json_data[i].user_id+'">';								
+								<?php if ($permission_arr['publish_enable']) : ?>
+								htmlData +='<a href="javascript:void(0);" class="publish_btn" rel="'+json_data[i].user_id+'_'+json_data[i].username+'_'; if (json_data[i].status == '1'){ htmlData +='unpublish';  }else{ htmlData +='publish'; } htmlData +='">';
+								if (json_data[i].status == '1'){ htmlData +='<img src="application/modules/Administrator/layouts/scripts/images/tools/user-deactivate.gif" border="0" title="Click To Deactive" />'; }else{ htmlData +='<img src="application/modules/Administrator/layouts/scripts/images/tools/user-active.gif" border="0" title="Click To Active" />'; } htmlData +='</a>';							
+								<?php endif; ?>								
+							htmlData +='</li>'+
+							'</ul></td></tr>';	
+							}						 
+							j++;
+						}						
+						htmlData +='</tbody></table>';
+					$("#member_list").html(htmlData);
+					allAction();
+	}
+	function putAjaxPagination(page_object)
+	{
+		var htmlOption = '';
+		var htmlData = '<table width="100%" border="0" cellspacing="0" cellpadding="0">'+
+						  '<tr>'+
+							'<td width="80%">&nbsp; Results '+page_object.currentItemCount+' - '+page_object.current+' of '+page_object.last+'</td>'+
+							'<td width="20%" align="right">';
+							if (page_object.previous){ htmlData += '<a href="javascript: void(0);" class="user_search_btn" rel="'+page_object.previous+'"><</a>'; }else{ htmlData += '<'; }
+							for(var i=page_object.firstPageInRange; i<= page_object.lastPageInRange; i++)
+							{
+								if (page_object.pagesInRange[i] != page_object.current)
+								{
+									htmlData += ' <a href="javascript: void(0);" class="user_search_btn" rel="'+page_object.pagesInRange[i]+'">['+page_object.pagesInRange[i]+']</a> ';
+									htmlOption += '<option value="'+page_object.pagesInRange[i]+'">'+page_object.pagesInRange[i]+'</option>';
+								}
+								else
+								{
+									htmlOption += '<option value="'+page_object.pagesInRange[i]+'" selected="selected">'+page_object.pagesInRange[i]+'</option>';
+									htmlData += ' '+page_object.pagesInRange[i]+' ';
+								}
+							}
+							if (page_object.next){ htmlData += '<a href="javascript: void(0);" class="user_search_btn" rel="'+page_object.next+'">></a>'; }else{ htmlData += '>'; }
+				htmlData += '&nbsp;</td>'+
+						  '</tr>'+
+						'</table>';
+				$("#bottom_pagination_field").html(htmlData);
+				
+				var total_top = 'Total '+page_object.totalItemCount+' records found &nbsp; | &nbsp; Page '+page_object.current+' of '+page_object.last;
+				$("#total_top").html(total_top);
+				$("#jump_top").html('Jump to the page : <select name="PageNum" id="PageNum" class="user_search_btn">'+htmlOption+'</select>');
+				paginationAjax();
+	}
+
+
+function paginationAjax()
+{
+	$('a.user_search_btn').click(function() {	
+		var page = $(this).attr('rel');					
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'Index', 'action'     => 'ajaxsearchusers' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { role_id: $('#role_id').val(),search_by: $('#search_by').val(),searchKey: $('#SearchKey').val(),search_year: $('#search_year').val(),search_month: $('#search_month').val(),search_day: $('#search_day').val(),page: page },
+				beforeSend: function(){
+					openLoaderDialog();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{	
+						putAjaxPagination(json_arr.page_object);						
+						putSearchedUsers(json_arr.json_data);																	
+					}					
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$("#member_list").html(json_arr.msg);
+						$("#bottom_pagination_field").html('');
+					}
+				}
+		});
+	});
+	
+	$('select.user_search_btn').change(function() {	
+		var page = $(this).val();					
+		$.ajax({
+			url: "<?php echo $this->url( array('module' => 'Members','controller' => 'Index', 'action'     => 'ajaxsearchusers' ), 'adminrout',    true) ?>",
+			  	type: 'POST',
+			  	data: { role_id: $('#role_id').val(),search_by: $('#search_by').val(),searchKey: $('#SearchKey').val(),search_year: $('#search_year').val(),search_month: $('#search_month').val(),search_day: $('#search_day').val(),page: page },
+				beforeSend: function(){
+					openLoaderDialog();
+				 },
+				success: function(response){
+					//alert(response);					
+					var json_arr = eval("("+response+")");					
+					closeLoaderDialog();					
+					if(json_arr.status == 'ok')
+					{	
+						putAjaxPagination(json_arr.page_object);						
+						putSearchedUsers(json_arr.json_data);																	
+					}					
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$("#member_list").html(json_arr.msg);
+						$("#bottom_pagination_field").html('');
+					}
+				}
+		});
+	});
+}
+
+function openMsgDialog(msg)
+{
+	$('#dialog_msg').html(msg).dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'fade',
+		resizable: 'false',				
+		buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+		open: function(event, ui)
+			 {
+				setTimeout(function() 
+				{									
+					if($('#' + event.target.id).dialog('isOpen'))
+					{
+						$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+					}
+				}, 10000);
+			  }
+	});
+}
+	
+function openLoaderDialog()
+{
+	$('#dialog_container').dialog({
+		autoOpen: true,
+		modal: true,
+		show: 'fade',
+		resizable: 'false',				
+		open: function(event, ui)
+			 {
+				$("#progressbar").progressbar({
+					value:100
+	
+				});							
+			  }
+	});
+}
+	
+function closeLoaderDialog()
+{
+	$('#dialog_container').dialog('option','hide','explode').dialog('close');
+}
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+function deleteThis(self)
+{
+	var arr = $(self).attr('rel').split('_');
+	$.ajax({
+		 url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'index', 'action'     => 'ajaxdeleteusers' ), 'adminrout',    true) ?>",
+		 type: 'POST',
+		 data: { user_id: arr[0], username: arr[1]},
+		 beforeSend: function(){
+				$(self).html('<span class="icon loader"></span>');
+			 },
+		 success: function(response) 
+		 {
+			//alert(response);
+			var json_arr = eval("("+response+")");
+			if(json_arr.status == 'ok')
+			{
+				$(self).parents("li:first").parents("ul:first").parents("td:first").parents("tr:first").addClass('row_selected');
+						var oTables = $('#sortTable').dataTable();
+						var anSelected = fnGetSelected( oTables );
+						oTables.fnDeleteRow( anSelected[0] );
+						lastClassAdd(oTables);
+			}
+			else
+			{
+				openMsgDialog(json_arr.msg);
+			}
+		 }
+	});
+}
+
+function allAction()
+{
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "asc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			});
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	lastClassAdd(oTable);
+	$('input.checkAll_btn').unbind('click');	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	$('a.publish_btn').unbind('click');	
+	$('a.publish_btn').click(function() {
+		var self = this;
+		$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="20" border="0" />');
+		var arr = $(self).attr('rel').split('_');
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'index', 'action'     => 'ajaxactivedeactiveusers' ), 'adminrout',    true) ?>",
+			 type: 'POST',
+			 data: { user_id: arr[0], username: arr[1], paction: arr[2]},
+			 success: function(response) 
+			 {
+			 	//alert(response);
+			 	var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					if(json_arr.active == '1')
+					{
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/user-active.gif" border="0" title="<?php echo addslashes($this->translator->translator("common_unpublish_title")); ?>" />').attr('rel',arr[0]+"_"+arr[1]+"_unpublish");
+					}
+					else
+					{
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/user-deactivate.gif"  border="0" title="<?php echo addslashes($this->translator->translator("common_publish_title")); ?>" />').attr('rel',arr[0]+"_"+arr[1]+"_publish");
+					}
+			 	}
+				else
+				{
+					openMsgDialog(json_arr.msg);
+				}
+			 }
+		});
+	});	
+	
+	$('a.delete_btn').unbind('click');	
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('member_list_delete_confirm')); ?>").dialog({
+			resizable: true,
+			width:400,
+			height:170,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'<?php echo html_entity_decode($this->translator->translator("common_delete"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					deleteThis(self);
+					$(this).dialog('close');
+				},
+			'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+					$(this).dialog('close');
+				}
+			}
+		});		
+	});
+	
+	$('a.update_btn').click(function() {
+		var self = this;
+		var rel = $(self).attr('rel');
+		var	rel_arr = rel.split(',');
+		var inputHtml = inputDialog();
+			$("#package-confirm").html(inputHtml).dialog({
+				resizable: true,
+				width:370,
+				height:150,
+				modal: true,
+				show: 'fade',
+				hide: 'explode',
+				buttons: {
+						'<?php echo $this->translator->translator("common_save"); ?>': function() {
+							$(this).dialog('close');
+							$.ajax({
+								 url: "<?php echo $this->url( array('module'=> 'Members', 'controller' => 'form', 'action'     => 'doupdate' ), 'adminrout',    true) ?>",
+								 type: 'POST',
+								 data: { user_id: rel_arr[0], package_id: $('#package_id').val(), field_name: rel_arr[2]},
+								 beforeSend: function(){						
+									$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');													
+								 },
+								 success: function(response) 
+								 {
+									//alert(response);
+									var new_package = $("select[name='package_id'] option[value='"+$('#package_id').val()+"']").text();
+									
+									var json_arr = eval("("+response+")");
+									if(json_arr.status == 'ok')
+									{
+										$(self).parents("td:first").children('span:nth-child(1)').text(new_package);
+										$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/upgrade-pkg.gif" border="0" title="<?php echo $this->translator->translator("Member_update_package_title"); ?>" />');
+									}
+									else
+									{
+										openMsgDialog(json_arr.msg);
+									}
+								 }
+							});	
+					},
+				'<?php echo html_entity_decode($this->translator->translator("common_cancel"), ENT_QUOTES, "UTF-8"); ?>': function() {
+						$(this).dialog('close');
+					}
+				}
+			});
+			$('#package_id').val(rel_arr[1]);
+	});
+}
+
+function inputDialog()
+{	
+	var input = '<table width="100%" border="0" cellpadding="0" cellspacing="0">'+
+					'<tr>'+
+					  '<td class="label"><?php echo $this->translator->translator("Member_select_package"); ?></td>'+
+					  '<td>'+
+					  '<select name="package_id" id="package_id">';
+					  <?php 
+					  	if($package_list)
+						{				
+							foreach($package_list as $package_list_data)
+							{								
+						?>
+							input += '<option value="<?php echo $package_list_data["id"]; ?>"><?php echo $this->escape($package_list_data["name"])." (".$this->escape($package_list_data["price"]).$this->escape($package_list_data["currency"]).")"; ?></option>';
+					   <?php
+							}
+						} 
+					  ?>
+					  input += '</select>'+				  
+					  '</td>'+
+					'</tr>'+					
+				  '</table>';
+	return input;
+}
+</script>
+
+<div id="container">
+<?php if (!$this->allow('updatepackages')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="pkg-up-down"><h1><?php echo $this->translator->translator('admin_menu_package_update'); ?></h1></div>
+    
+    <div class="button-container">
+    	<?php if ($permission_arr['publish_enable']) : ?>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" rel="publish" class="publish_all"><span class="icon publish"><?php echo $this->translator->translator('common_publish_selected'); ?></span></a></span>
+        <?php endif; ?>
+        <?php if ($permission_arr['publish_enable']) : ?>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" rel="unpublish" class="publish_all"><span class="icon unpublish"><?php echo $this->translator->translator('common_unpublish_selected'); ?></span></a></span>
+        <?php endif; ?>
+        <?php if ($permission_arr['delete_enable'] && $roleInfo['role_lock'] == '1') : ?>
+        <span class="button ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('form/package_menu.phtml');  ?>
+    </div>
+    <div id="content-inner">
+        <div id="top_pagination_field" class="pagination">
+            <?php echo $this->paginationControl($this->member_datas, 'Sliding', 'index/top_pagination.phtml'); ?>
+        </div>
+    
+        <div class="chart">
+            <div id="member_list" class="data-table">
+                <table id="sortTable" width="100%" cellpadding="0" cellspacing="0">
+                	<thead> 
+                  		<tr>
+                    		<th width="2%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                            <th width="4%"><?php echo $this->translator->translator('Member_list_page_user_id'); ?></th>
+                            <th width="25%"><?php echo $this->translator->translator('Member_list_page_username'); ?></th>
+                  			<th width="13%"><?php echo $this->translator->translator('Member_list_page_user_first_name'); ?></th>
+                            <th width="12%"><?php echo $this->translator->translator('Member_list_page_user_last_name'); ?></th>				
+                            <th width="12%"><?php echo $this->translator->translator('Member_list_page_user_register_date'); ?></th>
+                            <th width="22%"><?php echo $this->translator->translator('Member_list_page_user_package'); ?></th>
+                            <th width="10%"><?php echo $this->translator->translator('Member_list_page_user_action'); ?></th>
+                  		</tr>
+                  	</thead>
+                  	
+                    <tbody>
+                  		<?php 			  				
+							$j = 1;
+							foreach ($this->member_datas as $entry): 
+								if($j % 2 == 0)
+								{
+									$onmouseout = "this.bgColor='#FFFFFF';";
+									$background = '#FFFFFF';
+								}
+								else
+								{
+									$onmouseout = "this.bgColor='#F7F7F7';";
+									$background = '#F7F7F7';
+								}
+								
+								$roleInfo = $members_role->getRoleInfo($entry->role_id);
+							
+							if((($roleInfo['role_lock'] == '1') || ($entry->role_id != '100')) || $s_role_id == '100'):
+						?>
+                  		<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                    		<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry['user_id']); ?>" class="check_btn" /></td>
+                            <td class="center" id="u_id<?php echo $this->escape($entry['user_id']); ?>"><?php echo $this->escape($entry['user_id']); ?></td>
+                            <td id="u_username<?php echo $this->escape($entry['user_id']); ?>"><?php echo $this->escape($entry['username']); ?></td>
+                            <td id="u_firstname<?php echo $this->escape($entry['user_id']); ?>"><?php echo $this->escape($entry['firstName']); ?></td>
+                            <td id="u_lastname<?php echo $this->escape($entry['user_id']); ?>"><?php echo $this->escape($entry['lastName']); ?></td>
+                            <td class="center" id="u_emailAddress<?php echo $this->escape($entry['user_id']); ?>"><?php echo $this->escape($entry['register_date']); ?></td>
+                            <td id="u_company<?php echo $this->escape($entry['user_id']); ?>">
+							<?php 
+                                $package_id = $this->escape($entry['member_package']);						
+                                if($package_list)
+                                {				
+                                    foreach($package_list as $package_list_data)
+                                    {
+                                        if($package_list_data['id'] == $package_id) {  echo '<span>'.$this->escape($package_list_data['name']).' ('.$this->escape($package_list_data['price']).$this->escape($package_list_data['currency']).')</span>';  }
+                                    }
+                                }
+                            ?>
+                            <a href="javascript:void(0);" class="update_btn" rel="<?php echo $this->escape($entry['user_id']).','.$package_id.',member_package'; ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/upgrade-pkg.gif" alt="<?php echo $this->translator->translator('Member_update_package_title'); ?>" title="<?php echo $this->translator->translator('Member_update_package_title'); ?>" border="0" /></a>
+                    		</td>				
+                            <td id="u_delete<?php echo $this->escape($entry['user_id']); ?>" class="tools-list">
+                            	<ul>
+                                	<li>
+                                	<?php if ($permission_arr['edit_enable']) : ?>
+                                		<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'index', 'action'  => 'edit','user_id' => $this->escape($entry['user_id']) ), 'adminrout',    true) ?>" title="<?php echo $this->translator->translator('common_edit_title'); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/user-edit.gif" alt="<?php echo $this->translator->translator('common_edit_title'); ?>" border="0" /></a>
+                                    <?php endif; ?>
+                                    </li>
+                                    <li>
+                                    <?php if ($permission_arr['change_enable']) : if($roleInfo['role_lock'] == '1'): ?>
+                                    	<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'password', 'action'  => 'change','user_id' => $this->escape($entry['user_id']) ), 'adminrout',    true) ?>" title="<?php echo $this->translator->translator('common_change_pass_title'); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/user-password.gif" alt="<?php echo $this->translator->translator('common_change_pass_title'); ?>" border="0" /></a>
+                                    <?php  endif; endif; ?>
+                                    </li>
+                                    <li>
+                                    <?php if ($permission_arr['userlist_enable']) : if($roleInfo['role_lock'] == '1'): ?>
+                                    	<a href="<?php echo $this->url( array('module' => 'Administrator','controller' => 'rule', 'action'  => 'userlist','user_id' => $this->escape($entry['user_id']) ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/user-permission.gif" alt="<?php echo $this->translator->translator('common_permission_title'); ?>" title="<?php echo $this->translator->translator('common_permission_title'); ?>" border="0" /></a>
+                                    <?php endif; endif; ?>
+                                    </li>
+                                    <li>
+                                    <?php if ($permission_arr['delete_enable']) : if($roleInfo['role_lock'] == '1'): ?>
+                                    	<a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry['user_id']); ?>_<?php echo $this->escape($entry['username']); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png"  alt="<?php echo $this->translator->translator('common_delete_title'); ?>"  border="0" title="<?php echo $this->translator->translator('common_delete_title'); ?>" /></a>
+                                    <?php endif; endif; ?>
+                                    </li>
+                                    <li>
+                                    <?php if ($permission_arr['publish_enable']) : ?>
+                                    	<a href="javascript:void(0);" class="publish_btn" rel="<?php echo $this->escape($entry['user_id']); ?>_<?php echo $this->escape($entry['username']); ?>_<?php if($this->escape($entry['status']) == '1'){ ?>unpublish<?php }else{ ?>publish<?php } ?>"><?php if($this->escape($entry['status']) == '1'){ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/user-active.gif" border="0" title="<?php echo $this->translator->translator('common_unpublish_title'); ?>" /><?php }else{ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/user-deactivate.gif" border="0" title="<?php echo $this->translator->translator('common_publish_title'); ?>" /><?php } ?></a>
+                                    <?php endif; ?>	
+                                    </li>
+								</ul>
+                            </td>
+                  		</tr>
+						<?php 
+                            endif;  
+                            $j++;
+                           	endforeach;	
+                       	?>
+                  </tbody>
+                </table>
+            </div>
+        </div>
+    
+        <div id="bottom_pagination_field" class="pagination">
+            <?php echo $this->paginationControl($this->member_datas, 'Sliding', 'index/pagination.phtml') ;?>
+        </div>
+	</div>
+</div>
+
+<div id="dialog_container" style="display:none" title="<?php echo $this->translator->translator('common_processing_language'); ?>">
+	<div id="progressbar" ></div>	
+</div>	
+<div id="dialog_msg" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('Member_list_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>	
+<div id="package-confirm" title="<?php echo $this->translator->translator('admin_menu_package_update'); ?>"></div>
+<?php endif; ?>
+</div>

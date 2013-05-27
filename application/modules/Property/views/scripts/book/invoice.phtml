@@ -1,0 +1,268 @@
+<?php
+$this->headMeta()->setName('keywords',$this->translator->translator('property_list_page_invoice_details_title'));
+$this->headMeta()->setName('description',$this->translator->translator('property_list_page_invoice_details_title'));
+$this->headTitle()->headTitle($this->translator->translator('property_list_page_invoice_details_title'),'SET');
+
+$front_template = Zend_Registry::get('front_template');
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$currencySymbol = $currency->getSymbol(); 
+$currencyShortName = $currency->getShortName();
+
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('a.remove_btn').click(function() {
+			var self = this;			
+				var cart_arr = $(self).attr('rel');	
+				
+				$.ajax({
+					 url: "<?php echo $this->url( array('module'=> 'Property', 'controller' => 'book', 'action'     => 'remove' ), 'adminrout',    true) ?>",
+					 type: 'POST',
+					 data: { cart_id: cart_arr },
+					 beforeSend: function(){						
+						$(self).html('<img src="application/layouts/scripts/<?php echo $front_template['theme_folder']; ?>/images/loader/mod-loader.gif" border="0" height="17" />');				
+					 },
+					 success: function(response) 
+					 {
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							document.location.href = '<?php echo $this->url(); ?>';
+						}
+						else
+						{
+							openMsgDialog(json_arr.msg);
+						}
+					 }
+				});				
+		});	
+		function openMsgDialog(msg)
+		{
+		$('#dialog_container').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'explode',
+					resizable: true,				
+					buttons: [{ text: "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>", click: function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } } ],
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{									
+								if($('#' + event.target.id).dialog('isOpen'))
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+								}
+							}, 10000);
+						  }
+				});
+		}
+
+});
+</script>
+<?php
+if($global_conf['payment_system'] != 'On')
+{	
+?>
+<div class="mod">
+    <div class="cart-icon">
+        <h1><?php echo $this->translator->translator('property_invoice_cart_details_title'); ?></h1>
+    </div>
+    
+    <div class="clear"></div>
+    <?php
+        echo '<div class="infoMess">'.$this->translator->translator('common_payment_system_disable').'</div>';
+    ?>
+</div>
+<?php
+}
+else
+{
+	if($this->invoice_arr['status'] == 'ok' && !empty($this->invoice_arr))
+	{
+	?>
+	<div class="mod">
+			<div class="cart-icon">
+				<h1><?php echo $this->translator->translator('property_invoice_cart_details_title'); ?></h1>
+			</div>
+			<div class="clear"></div>
+			<?php
+			if($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_ITEM_OBJECT])
+			{
+			?>
+				<div id="invoiceitemstable" class="invoice-container">
+					<div class="invoice">
+						<div class="invoice-chart">
+							<div class="div-head">
+								<div id="invoiceitemsheading" class="div-vr-1">
+									<?php echo $this->translator->translator("property_invoice_desc_title"); ?>
+								</div>
+								<div id="invoiceitemsheading" class="div-vr-2">
+									<?php echo $this->translator->translator("property_invoice_amount_title"); ?>
+								</div>
+							</div>
+						</div>
+						
+						<?php
+						if($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_ITEM_OBJECT])
+						{						
+							foreach($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_ITEM_OBJECT] as $object_key => $dataInfo)
+							{												
+						?>
+								<div class="item-title">
+									<?php echo $this->escape($dataInfo['inv']['property_name']); ?>
+								</div>  
+								<?php
+									$sub_total = $this->price($dataInfo['inv']['property_price']) * $dataInfo['inv']['total_night'];
+								?>
+								<div class="invoice-chart">
+									<div class="div-hr">
+										<div id="invoiceitemsrow" class="div-vr-1">
+											<img src="<?php echo $this->serverUrl().$this->baseUrl(); ?>/data/frontImages/property/property_image/<?php echo $this->escape($dataInfo['inv']['property_primary_image']); ?>" height="60" title="<?php echo $this->escape($dataInfo['inv']['property_name']); ?>" class="thumb"/>
+											<span class="product-title">
+												<?php 
+													if(!empty($dataInfo['inv']['feature_room_no']))	{ 	echo (int)stripslashes($dataInfo['inv']['feature_room_no']).' '. $this->translator->translator('property_front_page_room'); } 
+													if(!empty($dataInfo['inv']['feature_bathroom'])){ 	echo  ' , ' . (int)stripslashes($dataInfo['inv']['feature_bathroom']).' '.$this->translator->translator('property_front_page_bathroom' ); } 
+													if(!empty($dataInfo['inv']['feature_bedroom']))	{ 	echo   ' , ' . (int)stripslashes($dataInfo['inv']['feature_bedroom']).' '.$this->translator->translator('property_front_page_bedroom'); }
+												?>
+											</span>
+											<br />
+											<span class="mod-title"><?php echo $this->translator->translator("property_invoice_check_in"); ?> : </span> <?php echo $dataInfo['inv'][Eicra_File_Constants::VACATION_CHECK_IN]; ?>
+											<br />
+											<span class="mod-title"><?php echo $this->translator->translator("property_invoice_check_out"); ?> : </span> <?php echo $dataInfo['inv'][Eicra_File_Constants::VACATION_CHECK_OUT]; ?>
+											<a href="javascript:void(0);" class="remove_btn remove-btn" rel="<?php echo $this->escape($dataInfo['inv']['session_key']); ?>"><?php echo $this->translator->translator("property_invoice_room_remove"); ?></a>
+										</div>
+										<div id="invoiceitemsrow" class="div-vr-2">
+											<span class="amount-label"><?php echo $this->translator->translator("property_invoice_total_night"); ?> : </span> <?php echo $this->escape($dataInfo['inv']['total_night']); ?><br />										
+											<span class="amount-label"><?php echo $this->translator->translator("property_invoice_room_cost"); ?> : </span> <?php echo $currencySymbol.' '.number_format($this->escape($sub_total), 2, '.', ',').' '.$currencyShortName; ?><br />
+											<?php
+												if(Settings_Service_Price::is_exists('3', $global_conf, $sub_total))
+												{
+											?>
+													<div>
+														<span class="amount-label"><?php echo $this->translator->translator("property_invoice_booking_fee"); ?> : </span> <?php echo $this->escape($dataInfo['inv'][Eicra_File_Constants::INVOICE_BOOK_FEE_SHOW]); ?><br />
+														<span class="amount-label"><?php echo $this->translator->translator("property_invoice_total_title"); ?> : </span> <span class="amount-total"><?php echo $currencySymbol.' '.number_format($dataInfo['inv']['sub_total'], 2, '.', ',').' '.$currencyShortName	; ?></span>
+													</div>
+											<?php
+												}
+											?>
+										</div>
+									</div>
+								</div>					
+						<?php
+							}
+						}
+						?>				
+						
+					</div>
+					
+					<div class="invoice">
+						<div id="invoiceitemsheading" class="invoice-chart">
+							<div class="div-hr amount-hr">
+								<div class="div-vr-1">
+									<span class="mod-title"><?php echo $this->translator->translator("property_invoice_total_title").'&nbsp;'; ?></span>
+								</div>
+								
+								<div class="div-vr-2">
+									<span class="amount-label"><?php echo "$currencySymbol ".number_format($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT], 2, '.', ',')." $currencyShortName"; ?></span>
+								</div>
+							</div>						
+							<?php							
+								if(Settings_Service_Price::is_exists('4', $global_conf, $this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]))
+								{	
+									$services_charge_margine = Settings_Service_Price::getMargine('4');
+									$services_charge_margine_show	=	(preg_match("/%/i", $services_charge_margine)) ? $currencySymbol.' '.number_format($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_SERVICE_CHARGE], 2, '.', ',').' '.$services_charge_margine : $services_charge_margine;								
+							?>                
+									<div class="div-hr amount-hr">
+										<div class="div-vr-1">
+											<span class="mod-title"><?php echo $this->translator->translator("property_invoice_service_charge").'&nbsp;'; ?></span>
+										</div>
+										
+										<div class="div-vr-2">
+											<span class="amount-label"><?php echo $services_charge_margine_show; ?></span>
+										</div>
+									</div>
+							<?php
+								}
+								if(Settings_Service_Price::is_exists('5', $global_conf, $this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]))
+								{
+							?>
+									<div class="div-hr amount-hr">
+										<div class="div-vr-1">
+											<span class="mod-title"><?php echo $this->translator->translator("property_invoice_deposit_charge", Settings_Service_Price::getMargine('5')).'&nbsp;'; ?></span>
+										</div>
+										
+										<div class="div-vr-2">
+											<span class="amount-label"><?php echo $currencySymbol.' '.$this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_DEPOSIT_CHARGE].' '.$currencyShortName; ?></span>
+										</div>
+									</div>
+									
+									<div class="div-hr amount-hr">
+										<div class="div-vr-1 advance">
+											<?php echo $this->translator->translator("property_invoice_deposit_payable").'&nbsp;'; ?>
+										</div>
+										
+										<div class="div-vr-2 advance">
+											<span class="amount-label"><?php echo $currencySymbol.' '.number_format($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_NOW_PAYABLE], 2, '.', ',').' '.$currencyShortName; ?></span>
+										</div>
+									</div>
+							<?php
+								}							
+								if(Settings_Service_Price::is_exists('4', $global_conf, $this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]))
+								{								
+							?>                
+									<div class="div-hr amount-hr">
+										<div class="div-vr-1">
+											<span class="mod-title"><?php echo $this->translator->translator("property_invoice_grand_total").'&nbsp;'; ?></span>
+										</div>
+										
+										<div class="div-vr-2">
+											<span class="amount-label"><?php echo $currencySymbol.' '.number_format(($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]+$this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_SERVICE_CHARGE]), 2, '.', ',').' '.$currencyShortName; ?></span>
+										</div>
+									</div>                
+							<?php
+								}
+							?>						
+						</div>					
+						<?php
+							if(Settings_Service_Price::is_exists('5', $global_conf, $this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]) && !empty($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_NOW_PAYABLE]))
+							{
+						?>            
+						<div class="due-balance">
+							<?php echo $this->translator->translator("property_invoice_later_payable", $currencySymbol.' '.number_format((($this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_TOTAL_AMOUNT]+$this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_SERVICE_CHARGE]) - $this->invoice_arr['invoice_arr'][Eicra_File_Constants::INVOICE_NOW_PAYABLE]), 2, '.', ',').' '.$currencyShortName); ?>
+						</div>
+						<?php
+							}
+						?>					
+					</div>
+				</div>
+			<?php
+			}
+			?>
+		
+		<div class="clear btn-container">
+			<span class="form-button ui-widget-content-1"><a href="Search-Items"><?php echo $this->translator->translator('property_continue_cart'); ?></a></span>
+			<span class="form-button ui-widget-content-1"><a href="Property-Invoice-Confirm"><?php echo $this->translator->translator('invoice_payment', '', 'Invoice'); ?></a></span>
+		</div>
+	</div>
+	<?php
+	}
+	else
+	{
+	?>
+	<div class="mod">
+		<div class="cart-icon">
+			<h1><?php echo $this->translator->translator('property_invoice_cart_details_title'); ?></h1>
+		</div>
+		
+		<div class="clear">&nbsp;</div>
+		<?php
+			echo '<div class="infoMess">'.$this->translator->translator('property_invoice_cart_empty').'</div>';
+		?>
+	</div>
+<?php
+	}
+}
+?>
+<div id="dialog_container"></div>

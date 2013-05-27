@@ -1,0 +1,88 @@
+<div class="login">
+	<h4><?php echo $this->translator->translator('administrator_login_page_title'); ?></h4>
+    <?php echo $this->logindetails->getDescription(); ?>
+    <div class="login-img"></div>
+    <div class="login-form">
+    <form id="AdminLogin" name="AdminLogin" method="post" action="<?php echo $this->url( array('module'=> 'Administrator', 'controller' => 'login', 'action'     => 'auth' ), 'adminrout',    true); ?>">
+    	<div class="login-label"><?php  echo $this->logindetails->username->getLabel(); ?></div>
+        
+        <?php  echo $this->logindetails->username; 
+		  if(!empty($errMsg) && is_array($errMsg))
+		  {
+			if($errMsg['username'])
+			{
+				echo '<div class="errors">';
+				 foreach($errMsg['username'] as $value)
+				 {
+					echo $value;
+				 }
+				 echo '</div>';							 	
+			 }
+		 }
+		 ?>
+         
+        <div class="login-label"> <?php  echo $this->logindetails->password->getLabel(); ?></div>
+       	<?php  echo $this->logindetails->password; 
+				if(!empty($errMsg) &&is_array($errMsg))
+				{
+					 if($errMsg['password'])
+					 {
+					 echo '<div class="errors">';
+						foreach($errMsg['password'] as $value)
+						 {
+							echo $value;
+						 }
+					 echo '</div>';	
+					 }
+				}
+		?>
+       
+        <?php
+		if($this->logindetails->login_captcha)
+		{
+		?>
+        	<div class="login-label"><?php  echo $this->logindetails->login_captcha->getLabel();?></div>
+            <div class="captcha">
+			<?php
+                echo ''.$this->logindetails->login_captcha.''; 
+            ?>
+            <div class="ui-widget ui-helper-clearfix info"><div class="ui-widget-header ui-corner-all" title="<?php echo $this->escape($this->logindetails->login_captcha->getAttrib('info')); ?>"><p><span class="ui-icon ui-icon-info"></span></p></div></div>
+           	</div>
+        <?php
+                if(is_array($errMsg))
+                {
+                     if(!empty($errMsg['login_captcha']))
+                     {
+                     echo '<div class="input-errors">';
+                        foreach($errMsg['login_captcha'] as $value)
+                         {
+                            echo $value;
+                         }
+                     echo '</div>';	
+                     }
+                }
+		}
+		?>
+        
+        <?php 
+				if(!empty($errMsg) &&is_array($errMsg))
+				{
+					if($errMsg['token'])
+					 {
+						echo '<div class="errors">';
+						foreach($errMsg['token'] as $value)
+						 {
+							echo $value;
+						 }
+						echo '</div>';	
+					}
+				}
+		?>
+        <div>
+        	<?php echo $this->logindetails->token; ?>
+        	<input type="submit" name="login" value="<?php echo $this->translator->translator('administrator_login_button'); ?>" class="login-btn"/>
+            <div class="forget"><a href="<?php echo $this->url(array('module'=>'Password','controller'=>'Backend','action' =>'send'),'adminrout',true); ?>"><?php echo $this->translator->translator('administrator_forget_password'); ?></a></div>
+        </div>
+    </form>
+    </div>
+</div>

@@ -1,0 +1,371 @@
+<?php
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 1, "desc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+	
+	/****************************Sorting Table End*********************/
+	
+		function openMsgDialog(msg)
+		{
+			$('#dialog_container').html(msg).dialog({
+						autoOpen: true,
+						modal: false,
+						show: 'fade',
+						resizable: 'false',				
+						buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, 'UTF-8'); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+						open: function(event, ui)
+							 {
+								setTimeout(function() 
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');
+								}, 10000);
+							  }
+					});
+		}
+		
+		function deleteThis(self)
+		{
+			var arr = $(self).attr('rel').split('_');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'backendjquery', 'action'     => 'deletegrp' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[0], Theme_name: arr[1] },
+				 beforeSend: function(){
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="16" border="0" />');
+					 },
+				 success: function(response) 
+				 {
+					//alert(response);
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{
+						$(self).parents("td:first").parents("tr:first").parents("table:first").parents("td:first").parents("tr:first").remove();
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="Delete" border="0" />');
+					}
+				 }
+			});
+		}
+		
+		function deleteAll(self)
+		{
+			var id_str = '';
+			for(var i=0;i < $('input.check_btn:checked').length;i++)
+			{
+				if(i == 0)
+				{
+					 id_str += $('input.check_btn:checked:eq('+i+')').val();
+				}
+				else
+				{
+					id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+				}
+			}
+			
+			$.ajax({
+					url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'backendjquery', 'action'     => 'deleteallgrp' ), 'adminrout',    true) ?>",
+				 	type: 'POST',
+				 	data: { id_st: id_str},
+					beforeSend: function(){
+						$(self).html('<span class="icon loader"></span>');
+					 },
+					success: function(response) 
+				 	{
+						//alert(response);
+						var json_arr = eval("("+response+")");
+						if(json_arr.status == 'ok')
+						{
+							for(var i= ($('input.check_btn:checked').length-1);i >= 0;i--)
+							{	
+								if(!checkNonDeletedId($('input.check_btn:checked:eq('+i+')').val(),json_arr.non_del_arr))
+								{							
+									$('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").remove();							
+								}
+							}
+
+						}
+						else
+						{							
+							openMsgDialog(json_arr.msg);
+						}	
+						$(self).html('Delete All');
+					},
+					error: function(xhr, status, error){						
+						var msg = "Error! " + xhr.status + " " + error;
+						$('#actionMessage').html(errMsgDesign(msg));
+					}
+			});	
+		}
+	
+	$('a.delete_btn').click(function() {
+		var self = this;
+		$("#dialog-confirm").html("<?php echo addslashes($this->translator->translator('Theme_list_delete_confirm')); ?>").dialog({
+			resizable: false,
+			height:140,
+			modal: true,
+			show: 'fade',
+			hide: 'explode',
+			buttons: {
+					'Delete Theme Group': function() {
+					deleteThis(self);
+					$(this).dialog('close');
+				},
+			Cancel: function() {
+					$(this).dialog('close');
+				}
+			}
+		});
+		
+	});
+	
+	$('a.dafault_btn').click(function() {
+		var self = this;				
+		var arr = $(self).attr('rel').split('_');
+		var hrf = $(self).attr('href');
+		if(hrf != null)
+		{
+			$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/loader/ajax_loader.gif" height="19" border="0" />');
+			$.ajax({
+				 url: "<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'backendjquery', 'action'     => 'primary' ), 'adminrout',    true) ?>",
+				 type: 'POST',
+				 data: { id: arr[0], theme_name: arr[1]},
+				 success: function(response) 
+				 {
+					var json_arr = eval("("+response+")");
+					if(json_arr.status == 'ok')
+					{						
+						$('a.dafault_btn').html('<img src="application/modules/Administrator/layouts/scripts/images/tools/undefault.gif"  border="0" title="<?php echo $this->translator->translator("theme_do_default"); ?>" />');
+						$('a.dafault_btn').attr('href','javascript: void(0)');						
+						
+						$(self).html('<img src="application/modules/Administrator/layouts/scripts/images/tools/default.gif"  border="0" title="<?php echo $this->translator->translator("theme_default"); ?>" />');
+						$(self).removeAttr("href");					
+					}
+					else
+					{
+						openMsgDialog(json_arr.msg);
+					}
+				 },
+				error: function(xhr, status, error){					
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(errMsgDesign(msg));
+				}		
+			});
+		}
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+	
+	function checkNonDeletedId(id,id_arr)
+	{
+		var tmp = false;
+		for(var i = 0;i < id_arr;i++)
+		{
+			if(id_arr[i] == id)
+			{
+				tmp = true;
+				break;
+			}
+		}
+		return tmp;
+	}
+	
+	/************************************************IMAGE THUMBNIL************************************************/
+	$("span.thumb").hover(function() {
+		$(this).css({'z-index' : '10'}); /*Add a higher z-index value so this image stays on top*/ 
+		$(this).find('img').addClass("hover").stop() /* Add class of "hover", then stop animation queue buildup*/
+			.animate({
+				marginTop: '-90px', /* The next 4 lines will vertically align this image */ 
+				marginLeft: '-10px',
+				top: '50%',
+				left: '50%',
+				width: '90px', /* Set new width */
+				height: '80px', /* Set new height */
+				padding: '10px'
+			}, 200); /* this value of "200" is the speed of how fast/slow this hover animates */
+	
+		} , function() {
+		$(this).css({'z-index' : '0'}); /* Set z-index back to 0 */
+		$(this).find('img').removeClass("hover").stop()  /* Remove the "hover" class , then stop animation queue buildup*/
+			.animate({
+				marginTop: '-4px', /* Set alignment back to default */
+				marginLeft: '0',
+				top: '0',
+				left: '0',
+				width: '30px', /* Set width back to default */
+				height: '20px', /* Set height back to default */
+				padding: '5px'
+			}, 400);
+	});
+	
+});
+</script>
+
+<div id="container">
+<?php if (!$this->allow('list')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="theme-list"><h1><?php echo $this->translator->translator('theme_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+       	<?php  if ($this->allow('deletegrp','backendjquery','Theme')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" class="delete_all"><span class="icon delete"><?php echo html_entity_decode($this->translator->translator("common_delete_selected"), ENT_QUOTES, "UTF-8"); ?></span></a></span>
+        <?php endif; ?>
+        
+        <?php if ($this->allow('addgrp','backendjquery','Theme')) : ?>
+		<span class="button  ui-widget-content-1"><a href="<?php echo $this->url(array('module'=> 'Theme','controller'=>'backendjquery', 'action'=>'addgrp'));?>"><span class="icon add">Add New Group</span></a></span>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('backendjquery/nav_menu.phtml');  ?>
+    </div>
+    <div id="button_top_bar"></div>
+    
+    <div id="content-inner">
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->theme_jquery_datas, 'Sliding', 'backendjquery/top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+            <div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                        	<th width="3%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                            <th width="5%"><?php echo $this->translator->translator('theme_page_id'); ?></th>
+                            <th width="5%"><?php echo $this->translator->translator('theme_page_thumb'); ?> </th>
+                            <th width="23%"><?php echo $this->translator->translator('theme_page_theme_name'); ?></th>
+                           	<th width="40%"><?php echo $this->translator->translator('theme_page_desc'); ?></th>   
+                            <th width="12%"><?php echo $this->translator->translator('common_date'); ?></th> 
+                            <th width="8%"><?php echo $this->translator->translator('common_action'); ?></th>
+                        </tr>
+                   	</thead>
+                    <tbody>
+                    <?php 
+                    $j = 1;
+                    foreach ($this->theme_jquery_datas as $entry): 
+                        if($j % 2 == 0)
+                        {
+                            $onmouseout = "this.bgColor='#FFFFFF';";
+                            $background = '#FFFFFF';
+                        }
+                        else
+                        {
+                            $onmouseout = "this.bgColor='#F7F7F7';";
+                            $background = '#F7F7F7';
+                        }
+                    ?>
+                   	<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                    	<td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                      	<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                      	<td class="center"><span class="thumb"><img src="data/adminImages/themeImage/jquery_themb/<?php echo $this->escape($entry->theme_thumb); ?>" width="25" height="20" /></span></td>
+                      	<td><?php echo $this->escape($entry->theme_name); ?></td>
+                      	<td><?php echo $this->escape($entry->theme_desc); ?></td>
+                      	<td class="center"><?php echo $this->escape($entry->theme_date); ?></td>
+                      	<td class="center">
+                        	<ul>
+                               	<li>
+								<?php if ($this->allow('editgrp','backendjquery','Theme')) : ?>
+                                <a href="<?php echo $this->url( array('module'=> 'Theme', 'controller' => 'backendjquery', 'action'     => 'editgrp', 'id' => $this->escape($entry->id) ), 'adminrout',    true) ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/edit.png" title="Edit" border="0" /></a>
+                                <?php endif; ?>
+                                </li>
+                                
+                                <li>
+                                <?php if ($this->allow('deletegrp','backendjquery','Theme')) : ?>
+                                <a href="javascript:void(0);" class="delete_btn"  rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->Theme_name); ?>"><img src="application/modules/Administrator/layouts/scripts/images/tools/delete.png" title="Delete" border="0" /></a>
+                                <?php endif; ?>
+                                </li>
+
+                                <?php if ($this->allow('primary','backendjquery','Theme')) : ?>
+                                <li>
+                                <?php if($this->escape($entry->theme_default) == '1'){ ?>
+                                <a rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->theme_name); ?>" class="dafault_btn"><img src="application/modules/Administrator/layouts/scripts/images/tools/default.gif" border="0" title="<?php echo $this->translator->translator('theme_default'); ?>" /></a>
+                                <?php }else{ ?>
+                                <a href="javascript:void(0);" rel="<?php echo $this->escape($entry->id); ?>_<?php echo $this->escape($entry->theme_name); ?>" class="dafault_btn" ><img src="application/modules/Administrator/layouts/scripts/images/tools/undefault.gif"  border="0" title="<?php echo $this->translator->translator('theme_do_default'); ?>" /></a>
+                                <?php } ?>
+                                </li>
+                                <?php endif; ?>
+                             </ul>
+                       	</td>
+                    </tr>
+                    <?php 													
+                        $j++;
+                        endforeach;	
+                   	?>
+                   	</tbody>
+				</table>
+           	</div>
+		</div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->theme_jquery_datas, 'Sliding', 'backendjquery/pagination.phtml'); ?>
+        </div>
+    </div>
+</div>
+
+<?php endif; ?>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('theme_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+</div>

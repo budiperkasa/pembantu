@@ -1,0 +1,149 @@
+<?php
+$version = Zend_Registry::get('version');	
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+
+$mem_db = new Members_Model_DbTable_MemberList();
+$global_conf = Zend_Registry::get('global_conf');
+$currency = new Zend_Currency($global_conf['default_locale']);
+$currencySymbol = $currency->getSymbol();
+$currencyShort = $currency->getShortName();
+?>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+		
+	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bDestroy":true,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 3, "desc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 5 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	});	
+	
+	/****************************Sorting Table End*********************/
+	
+		function stripslashes(str) 
+		{
+			str=str.replace(/\\'/g,'\'');
+			str=str.replace(/\\"/g,'"');
+			str=str.replace(/\\0/g,'\0');
+			str=str.replace(/\\\\/g,'\\');
+			return str;
+		}
+		
+});
+
+
+/* Get the rows which are currently selected */
+function fnGetSelected( oTableLocal )
+{
+	var aReturn = new Array();
+	var aTrs = oTableLocal.fnGetNodes();
+	
+	for ( var i=0 ; i<aTrs.length ; i++ )
+	{
+		if ( $(aTrs[i]).hasClass('row_selected') )
+		{
+			aReturn.push( aTrs[i] );
+		}
+	}
+	return aReturn;
+}
+
+</script>
+
+<div id="container">
+<?php if (!$this->allow('report')) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+
+<div class="title-container">
+	<div class="report"><h1><?php echo $this->translator->translator('settings_price_commission_list_page_name'); ?></h1></div>
+</div>
+
+<div class="content-container">
+	<div class="chart">
+    	<div class="data-table">
+			<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                <thead>
+                	<tr>
+               		  <th width="7%" class="center"><?php echo $this->translator->translator('invoice_list_invoice_id', '', 'Invoice'); ?></th>
+                 		<th width="26%"><?php echo $this->translator->translator('invoice_list_client_name', '', 'Invoice'); ?> </th>
+               		  	<th width="14%"><?php echo $this->translator->translator('invoice_list_invoice_date', '', 'Invoice'); ?> </th>
+                   		<th width="16%"><?php echo $this->translator->translator('invoice_list_invoice_total', '', 'Invoice'); ?> </th>
+           		    	<th width="14%"><?php echo $this->translator->translator('invoice_list_invoice_payment', '', 'Invoice'); ?></th>
+           		  	  <th width="10%"><?php echo $this->translator->translator('payment_status', '', 'Invoice'); ?></th>
+                  		<th width="13%"><?php echo $this->translator->translator('settings_price_list_commission'); ?></th>
+                	</tr>
+               	</thead>
+                <tbody>
+                <?php								
+                $j = 1;	
+                $amount_total = 0;											
+                foreach ($this->datas as $entry): 
+                    $member_info = $mem_db->getMemberInfo($entry->user_id);
+                    if($j % 2 == 0)
+                    {
+                        $onmouseout = "this.bgColor='#FFFFFF';";
+                        $background = '#FFFFFF';
+                    }
+                    else
+                    {
+                        $onmouseout = "this.bgColor='#F7F7F7';";
+                        $background = '#F7F7F7';
+                    }
+                ?>
+               		<tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                  		<td class="center"><?php echo $this->escape($entry->id); ?></td>
+                  		<td><a href="<?php echo $this->url( array('module'=> 'Invoice', 'controller' => 'backend', 'action'     => 'details', 'invoice_id' => $this->escape($entry->id) ), 'adminrout',    true) ?>"><?php echo $this->escape($member_info['title']).' '.$this->escape($member_info['firstName']).' '.$this->escape($member_info['lastName']); ?></a></td>
+                  		<td class="center" title="<?php echo $this->escape($entry->invoice_create_date); ?>"><?php echo $this->escape($entry->invoice_create_date); ?></td>
+                  		<td><?php echo $currencySymbol.$this->escape($entry->total).$currencyShort; ?></td>
+                   		<td class="center"><?php echo $this->escape($entry->payment_method); ?></td>
+                  		<td class="center"><?php if($this->escape($entry->status) == '1'){ echo $this->translator->translator('common_paid_language', '', 'Invoice'); }else if($this->escape($entry->status) == '2'){ echo $this->translator->translator('common_unpaid_language', '', 'Invoice'); }else if($this->escape($entry->status) == '0'){ echo $this->translator->translator('common_cancelled_language', '', 'Invoice'); }  ?></td>
+                  		<td>&nbsp; <?php  $amount = ($this->priceInfo['amount_type'] == '2') ? $entry->total * ($this->priceInfo['amount'] / 100 ) :  $this->priceInfo['amount']; echo $currencySymbol.round($amount, 2); $amount_total += $amount; ?></td>
+                	</tr>
+                <?php 													
+                    $j++;
+                    endforeach;	
+              	?>
+               	</tbody>
+			</table>
+            
+            <table width="100%" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+      <td width="87%" class="right">
+                    	<?php echo $this->translator->translator('settings_price_list_total_commission'); ?>
+                    </td>
+                    <td width="13%" class="label">
+                    	&nbsp; <?php  echo $currencySymbol. $amount_total; ?>
+                    </td>
+              </tr>
+            </table>
+		</div>
+	</div>
+</div>
+<?php endif; ?>
+</div>

@@ -1,0 +1,34 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator');
+?>
+
+<div id="nav">
+	<div class="nav-header"><div class="nav-title"><?php echo $translator->translator('theme_menu_name'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	
+            <?php if ($this->allow('edit','template','Theme')) : ?>
+			<li <?php if($getAction == 'edit' && strtolower($getController) == 'template'){ ?> class="theme-editor selected"<?php }else{ ?>class="theme-editor"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Theme','controller'=>'template', 'action'=>'edit'),'adminrout',true);?>" ><?php echo $translator->translator('theme_menu3'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','template','Theme')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'template'){ ?> class="template selected"<?php }else{ ?>class="template"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Theme','controller'=>'template', 'action'=>'list'),'adminrout',true);?>" ><?php echo $translator->translator('theme_menu2'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendjquery','Theme')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendjquery'){ ?> class="theme selected last"<?php }else{ ?>class="theme last"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Theme','controller'=>'backendjquery', 'action'=>'list'),'adminrout',true);?>" ><?php echo $translator->translator('theme_menu1'); ?></a>
+			</li>
+			<?php endif; ?>
+            
+            
+        </ul>
+  	</div>
+</div>

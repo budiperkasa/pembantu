@@ -1,0 +1,393 @@
+<?php
+echo $this->headLink()->setStylesheet($this->baseUrl().'/application/modules/Vote/css/admin.css');
+echo $this->headScript()->setFile($this->baseUrl().'/js/jquery/table-sorter/jquery.dataTables.js');
+echo $this->headScript()->setFile($this->baseUrl().'/application/modules/Vote/js/jquery.tipsy.js');
+
+function truncate($phrase,$start_words, $max_words)
+{
+   $phrase_array = explode(' ',$phrase);
+   if(count($phrase_array) > $max_words && $max_words > 0)
+	  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+   return $phrase;
+}
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	floatingbar('#floatingbar',"#button_top_bar",null);	
+	$(".pollpercent").tipsy({gravity:'south'});
+	$(".weight").each(function(){
+		interval = 3000; // the time (in ms) to animate the results
+		lp = $(this).attr("data-lp");
+		$(this).css({width:"0%"}).animate({width:lp+"%"}, interval);
+	});	
+	/****************************Sorting Table Start*********************/
+	var oTable = $("#sortTable").dataTable({
+				"bPaginate": false,
+				"bLengthChange": true,
+				"bSearchable": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": false,
+				"bAutoWidth": true,
+				"bProcessing": false,
+				"bSortClasses": true,
+				"bStateSave": false,
+				"bServerSide": false,
+				"aaSorting": [[ 3, "desc" ]],				
+				"aoColumnDefs": [ 
+						{ "bSortable": false, "bSortClasses": false,  "aTargets": [ 0 ] }
+					],
+				"oLanguage" : { "sSearch": "<?php echo $this->translator->translator('jquery_filter'); ?>" }
+			}); 	
+	
+	$('td', oTable.fnGetNodes()).hover( function() {		
+		$(this).parents("tr:first").children('td').addClass( 'highlighted' );
+	}, function() {
+		$('td.highlighted').removeClass('highlighted');
+	} );
+	
+	/* Get the rows which are currently selected */
+	function fnGetSelected( oTableLocal )
+	{
+		var aReturn = new Array();
+		var aTrs = oTableLocal.fnGetNodes();
+		
+		for ( var i=0 ; i<aTrs.length ; i++ )
+		{
+			if ( $(aTrs[i]).hasClass('row_selected') )
+			{
+				aReturn.push( aTrs[i] );
+			}
+		}
+		return aReturn;
+	}
+	
+	/****************************Sorting Table End*********************/
+	
+	function openMsgDialog(msg)
+	{
+		$('#dialog_container').html(msg).dialog({
+					autoOpen: true,
+					modal: false,
+					show: 'fade',
+					resizable: 'false',				
+					buttons: { "<?php echo html_entity_decode($this->translator->translator('common_ok'), ENT_QUOTES, "UTF-8"); ?>": function() { $(this).dialog('option', 'hide', 'explode').dialog("close"); } },
+					open: function(event, ui)
+						 {
+							setTimeout(function() 
+							{									
+								if($('#' + event.target.id).dialog('isOpen'))
+								{
+									$('#' + event.target.id).dialog('option', 'hide', 'explode').dialog('close');										
+								}
+							}, 10000);
+						  }
+				});
+	}
+		
+	function closeLoaderDialog()
+	{
+		$('#dialog_container').dialog('option','hide','explode').dialog('close');
+	}
+	
+	$('a.enable_all').click(function() {
+		var self = this;
+		<?php if ($this->allow('changestatus','backendvote','Vote')){ ?>
+			var bigrel = $(self).attr('rel');
+			if($('input.check_btn:checked').length > 0)
+			{
+				var id_str = '';
+				var table_names = '';
+				var table_ids = '';
+										
+				for(var i=0;i < $('input.check_btn:checked').length;i++)
+				{
+					var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").children("a:nth-child(1)").attr('rel');
+					var rel_arr = rel.split('-');
+					if(i == 0)
+					{
+						 id_str += $('input.check_btn:checked:eq('+i+')').val();						 
+						 table_names +=  rel_arr[1];
+						 table_ids +=  rel_arr[2];
+					}
+					else
+					{
+						id_str += ','+$('input.check_btn:checked:eq('+i+')').val();
+						table_names +=  ','+rel_arr[1];
+						table_ids +=  ','+rel_arr[2];
+					}
+				}
+				
+				$.ajax({
+						url: "<?php echo $this->url( array('module'=> 'Vote', 'controller' => 'backendvote', 'action'     => 'changestatusall' ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { id_st: id_str, table_name_arr : table_names, table_id_arr : table_ids, paction: bigrel},
+						beforeSend: function(){
+							$(self).html('<span class="icon loader"></span>');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'ok')
+							{
+								if(bigrel=='enable')
+								{
+									for(var i=0;i < $('input.check_btn:checked').length;i++)
+									{								
+										var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").children("a:nth-child(1)").attr('rel');
+										var rel_arr = rel.split('-');
+										var new_rel = 'disable-'+rel_arr[1]+'-'+rel_arr[2];
+										var new_image = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").children("a:nth-child(1)");
+										new_image.attr('rel',new_rel);
+										new_image.html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("vote_disable_title"); ?>" />');										
+									}
+								}
+								else
+								{
+									for(var i=0;i < $('input.check_btn:checked').length;i++)
+									{								
+										var rel = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").children("a:nth-child(1)").attr('rel');
+										var rel_arr = rel.split('-');
+										var new_rel = 'enable-'+rel_arr[1]+'-'+rel_arr[2];
+										var new_image = $('input.check_btn:checked:eq('+i+')').parents("td:first").parents("tr:first").children("td:nth-child(6)").children("a:nth-child(1)");
+										new_image.attr('rel',new_rel);
+										new_image.html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("vote_enable_title"); ?>" />');
+									}	
+								}
+							}
+							else
+							{
+								openMsgDialog(json_arr.msg);
+							}	
+							if(bigrel=='enable')
+							{	
+								$(self).html('<span class="icon publish"><?php echo $this->translator->translator("vote_setting_enable_title_all"); ?></span>');
+							}
+							else
+							{
+								$(self).html('<span class="icon unpublish"><?php echo $this->translator->translator("vote_setting_disable_title_all"); ?></span>');
+							}
+						},
+						error: function(xhr, status, error){
+							var msg = "Error! " + xhr.status + " " + error;
+							openMsgDialog(msg);						
+						}
+					});			
+			}
+			else
+			{
+				var msg = "<?php echo $this->translator->translator('vote_setting_selected_err'); ?>";
+				openMsgDialog(msg);
+			}
+		
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});
+	
+	$('input.checkAll_btn').click(function() {
+		var self = this;
+		if($(self).is(':checked'))
+		{		
+			$('input.check_btn').attr('checked', true);
+		}
+		else
+		{
+			$('input.check_btn').attr('checked', false);
+		}
+	});
+		
+	$(".action.vote_status").live('click', function(){
+		$this = $(this);
+		<?php if ($this->allow('changestatus','backendvote','Vote')){ ?>
+			$this.after("<span class='spinner'><?php echo $this->translator->translator('vote_banned_remove_wait'); ?></span>");
+			$this.hide();
+			var arr = $this.attr('rel').split('-');
+			if(arr[0] == 'enable')
+			{
+				dir = 'enable';
+			}
+			else
+			{
+				dir = 'disable';
+			}
+			
+			$.ajax({
+				url: "<?php echo $this->url( array('module'=> 'Vote', 'controller' => 'backendvote', 'action'     => 'changestatus' ), 'adminrout',    true) ?>",
+				type: "post",
+				data: {dir : dir, table_name : arr[1], table_id: arr[2] },
+				success: function(obj){
+					$this.next("span.spinner").remove();
+					var json_arr = eval("("+obj+")");					
+					if(json_arr.status == 'error'){
+						switch(json_arr.type){
+							case "parameters_missing":
+								openMsgDialog("<?php echo $this->translator->translator('vote_banned_no_ip_found'); ?>");
+								$this.show();								
+							case "database_error":
+								openMsgDialog("<?php echo $this->translator->translator('vote_banned_db_error'); ?>");
+								$this.show();
+						}
+					} 
+					else if(json_arr.type == 'status_changed')
+					{
+						if(dir=='enable'){
+							$this.removeClass('enable').addClass('disable');
+							$this.html('<img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator("vote_disable_title"); ?>" />');
+							var new_rel = 'disable-'+arr[1]+'-'+arr[2];
+							$this.attr('rel',new_rel);									
+							$this.show();
+						} 
+						else if(dir=='disable')
+						{
+							$this.removeClass('disable').addClass('enable');
+							$this.html('<img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator("vote_enable_title"); ?>" />');
+							var new_rel = 'enable-'+arr[1]+'-'+arr[2];
+							$this.attr('rel',new_rel);
+							$this.show();
+						}
+					}
+				},
+				error: function(xhr, status, error){
+					$this.next("span.spinner").remove();
+					var msg = "Error! " + xhr.status + " " + error;
+					openMsgDialog(msg);
+				}
+			});
+		<?php }else{ ?>
+			var msg = "<?php echo $this->translator->translator('common_publish_perm'); ?>";
+				openMsgDialog(msg);
+		<?php } ?>
+	});	
+});
+</script>
+
+<div id="container">
+<?php if (!$this->allow()) : ?>
+	<div class="grid_12 t_a_bottom">
+		<?php echo $this->translator->translator('Member_Access_deny_desc'); ?>
+	</div>
+<?php else : ?>
+<div id="button_top_bar"></div>
+<div class="title-container">
+	<div class="vote-list"><h1><?php echo $this->translator->translator('vote_setting_list_page_name'); ?></h1></div>
+    
+    <div class="button-container">
+        <?php if ($this->allow('changestatus','backendvote','Vote')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" rel="enable" class="enable_all"><span class="icon publish"><?php echo $this->translator->translator('vote_setting_enable_title_all'); ?></span></a></span>
+        <?php endif; ?>
+        
+		<?php if ($this->allow('changestatus','backendvote','Vote')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" rel="disable" class="enable_all"><span class="icon unpublish"><?php echo $this->translator->translator('vote_setting_disable_title_all'); ?></span></a></span>
+        <?php endif; ?>
+	</div>
+</div>
+
+<div class="content-container">
+	<div id="sidebar-inner">
+    	<?php echo $this->partial('backendvote/nav_menu.phtml');  ?>
+    </div>
+    
+    
+    <div id="content-inner">
+    	<div class="pagination">
+        	<?php echo $this->paginationControl($this->datas, 'Sliding', 'top_pagination.phtml'); ?>
+        </div>
+        
+        <div class="chart">
+			<div class="data-table">
+            	<table id="sortTable" width="100%" align="center" cellpadding="0" cellspacing="0">
+                    <thead>
+                    	<tr>
+                      		<th width="4%" class="center"><input type="checkbox" name="checkAll" id="checkAll" class="checkAll_btn" /></th>
+                      		<th width="34%"><?php echo $this->translator->translator('vote_setting_list_page_title'); ?></th>
+                      		<th width="17%"><?php echo $this->translator->translator('vote_setting_list_page_module'); ?> </th>
+                   		  	<th width="12%"><?php echo $this->translator->translator('vote_setting_list_user_interactions'); ?></th>
+                       		<th width="20%"><?php echo $this->translator->translator('vote_setting_list_percent'); ?></th>
+                     		<th width="13%"><?php echo $this->translator->translator('vote_status'); ?></th>
+                    	</tr>
+                 	</thead>
+                    <tbody>
+						<?php 
+                        $j = 1;
+                        foreach ($this->datas as $entry): 
+                            if($j % 2 == 0)
+                            {
+                                $onmouseout = "this.bgColor='#FFFFFF';";
+                                $background = '#FFFFFF';
+                            }
+                            else
+                            {
+                                $onmouseout = "this.bgColor='#F7F7F7';";
+                                $background = '#F7F7F7';
+                            }
+                        ?>
+                            <tr bgcolor="<?php echo $background; ?>" onmouseover="this.bgColor='#FCF5DD';" onmouseout="<?php echo $onmouseout; ?>">
+                                <td class="center checkbox"><input type="checkbox" name="checkbtn" id="checkbtn" value="<?php echo $this->escape($entry->id); ?>" class="check_btn" /></td>
+                                <td title="<?php echo $this->escape($entry->article_title); ?>"><?php echo truncate($this->escape($entry->article_title),0, 6) ?></td>
+                                <td class="center">
+                                    <?php 	
+                                        $moduleName = explode('_',$this->escape($entry->table_name));
+                                        echo ucfirst($moduleName[0]);
+                                    ?>												  
+                              	</td>
+                                <td class="center">
+                                    <?php 
+                                        $voteDbTable = new Vote_Model_DbTable_Vote();
+                                        echo $voteDbTable->userInteractions($this->escape($entry->table_name), $this->escape($entry->table_id));
+                                    ?>												  
+                               	</td>												  
+                                <td class="center">
+                                    <?php
+                                        //prepare the title of the .weight div
+                                        $title = $voteDbTable->countUpvotes($this->escape($entry->table_name), $this->escape($entry->table_id)).' '.$this->translator->translator('vote_upvotes_and_title').' '.$voteDbTable->countDownvotes($this->escape($entry->table_name), $this->escape($entry->table_id)).' '.$this->translator->translator('vote_downvotes_title');
+                                    ?>
+                                    <div class="pollpercent" title='<?php echo $title; ?>'>
+                                        <div class='weight' data-lp='<?php echo $voteDbTable->likePercent($this->escape($entry->table_name), $this->escape($entry->table_id)); ?>'></div>
+                                    </div>												  
+                                </td>
+                                <?php
+                                    $closedVote = new Vote_Model_DbTable_ClosedVote();
+                                    $closed = $closedVote->isClosed($this->escape($entry->table_name), $this->escape($entry->table_id));												  
+                                ?>
+                                <td class="center">
+                                    <?php if ($this->allow('changestatus','backendvote','Vote')) : ?>
+                                        <a href="javascript:void(0);" class="action vote_status" rel="<?php if($closed){ ?>enable<?php }else{ ?>disable<?php } echo '-'.$this->escape($entry->table_name).'-'.$this->escape($entry->table_id); ?>"><?php if($closed){ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/unpublished.gif" border="0" title="<?php echo $this->translator->translator('vote_enable_title'); ?>" /><?php }else{ ?><img src="application/modules/Administrator/layouts/scripts/images/tools/published.gif" border="0" title="<?php echo $this->translator->translator('vote_disable_title'); ?>" /><?php } ?></a>
+                                    <?php endif; ?>												  
+                                </td>
+                            </tr>
+                        <?php 													
+                            $j++;
+                            endforeach;
+                        ?>
+                  	</tbody>
+				</table>
+            </div>
+		</div>
+        
+        <div class="pagination">
+        	<?php echo $this->paginationControl($this->datas, 'Sliding', 'pagination.phtml'); ?>
+        </div>
+  	</div>
+</div>
+
+<div id="floatingbar">
+	<h1><?php echo $this->translator->translator('vote_setting_list_page_name'); ?></h1>
+    
+    <div class="button-container">
+        <?php if ($this->allow('changestatus','backendvote','Vote')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" rel="enable" class="enable_all"><span class="icon publish"><?php echo $this->translator->translator('vote_setting_enable_title_all'); ?></span></a></span>
+        <?php endif; ?>
+        
+		<?php if ($this->allow('changestatus','backendvote','Vote')) : ?>
+        <span class="button  ui-widget-content-1"><a href="javascript: void(0);" rel="disable" class="enable_all"><span class="icon unpublish"><?php echo $this->translator->translator('vote_setting_disable_title_all'); ?></span></a></span>
+        <?php endif; ?>
+	</div>
+</div>
+
+<?php endif; ?>
+<div id="dialog_container" title="<?php echo $this->translator->translator('common_dialog_msg',$this->translator->translator('vote_setting_list_page_name')); ?>"></div>
+<div id="dialog-confirm" title="<?php echo $this->translator->translator('common_confirmation',$this->translator->translator('common_delete')); ?>"></div>
+</div>

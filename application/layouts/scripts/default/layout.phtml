@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<?php $front_template = Zend_Registry::get('front_template'); $is_frontend = new Eicra_Model_DbTable_Frontend(); $license = new Zend_Session_Namespace('License'); $validation_data = $license->license_data;
+$locale = Eicra_Global_Variable::getSession()->sess_lang;
+$locale_arr = explode('_', $locale);
+$locale_direction = Eicra_Global_Variable::getSession()->site_direction;
+?> 
+<html dir="<?php echo $locale_direction; ?>" lang="<?php echo $locale_arr[0]; ?>"> 
+<head>
+<meta charset="utf-8">
+<base href="<?php echo $this->serverUrl().$this->baseUrl(); ?>/" /> 
+
+<link rel="shortcut icon" href="<?php $global_conf = Zend_Registry::get('global_conf'); echo $global_conf['frontend_favicon']; ?>" />
+
+<?php  echo $this->headMeta(); ?>
+
+<?php echo html_entity_decode($this->headTitle(), ENT_QUOTES ,"UTF-8"); ?>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<?php
+$version = new Eicra_License_Version();
+echo $this->partial('head/headscript.phtml');
+$auth = Zend_Auth::getInstance ();
+$frontController = Zend_Controller_Front::getInstance();
+$moduleName = strtolower($frontController->getRequest()->getModuleName());	
+$controllerName = strtolower($frontController->getRequest()->getControllerName());
+$actionName = strtolower($frontController->getRequest()->getActionName());
+$acount_link = ($auth->hasIdentity ()) ? 'Dashboard' : 'Frontend-Login';
+$my_account = ($auth->hasIdentity ()) ? 'Members-Login' : 'Frontend-Login' ;
+$add_url = ($auth->hasIdentity ()) ? $this->url(array('module'=> 'Autos','controller'=>'Backendpro', 'action'=>'add'), 'adminrout', true)  : $this->serverUrl().$this->baseUrl().'/Frontend-Login';
+?>
+
+<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+<div id="wrapper">
+	<!-- Top Bar Start -->
+	<div id="top-bar">
+        <div class="container">
+            <div class="user-link">
+           		<span class="welcome"><?php echo $this->translator->translator('front_topbar_welcome','', '', $front_template['theme_folder']).' '.$global_conf['site_name']; ?> | <a href="Frontend-Login"><?php echo $this->translator->translator('front_topbar_signin','', '', $front_template['theme_folder']); ?></a> | <a href="Registration/104"><?php echo $this->translator->translator('front_topbar_register','', '', $front_template['theme_folder']); ?></a></span>
+            </div>
+                
+            <div class="quick-access">
+                <div class="flags">
+                    <?php echo $this->partial('blocks/header_language.phtml'); ?>
+                </div>
+        
+                <div class="top-links">
+                    <ul>
+                        <li class="first"><a href="<?php echo $my_account; ?>"><?php echo $this->translator->translator('front_topbar_myaccount','', '', $front_template['theme_folder']); ?></a></li>                               
+                        <li><a href="Register"><?php echo $this->translator->translator('front_topbar_registration','', '', $front_template['theme_folder']); ?></a></li>
+                        <li><a href="Feedback"><?php echo $this->translator->translator('front_topbar_feedback','', '', $front_template['theme_folder']); ?></a></li>
+                        <li><a href="Site-Map"><?php echo $this->translator->translator('front_topbar_sitemap','', '', $front_template['theme_folder']); ?></a></li>
+                        <li><a href="Contact-Us"><?php echo $this->translator->translator('front_topbar_contact','', '', $front_template['theme_folder']); ?></a></li>
+                    </ul>
+                 </div>
+            </div>       
+        </div>
+	</div>
+    <span class="top-bar-border"></span>
+	<!-- Top Bar End -->
+    
+    <!-- Header Start -->
+	<?php echo $this->layout()->render('header'); ?>
+    <!-- Header End -->
+    
+    <!-- Middle Bar Start-->
+    <div id="middle-bar">
+    	<div class="container">
+        	<div class="bookmark">
+            	<a href="<?php echo $this->url(); ?>" class="jQueryBookmark" title="<?php echo strip_tags($this->headTitle()); ?>">
+            		<div class="icon"><span></span></div><div class="text-wrap"><?php echo $this->translator->translator('front_bookmark_btn','', '', $front_template['theme_folder']); ?></div>
+                </a>
+			</div>
+        	<?php echo $this->partial('blocks/breadcrumb.phtml'); ?>
+            <?php echo $this->partial('blocks/search_mini.phtml'); ?>
+        </div>
+    </div>
+    <!-- Middle Bar End -->
+    
+    <!-- Main Body Start -->
+    <section id="main-container">
+    	<?php
+			$body_content_style = '';
+			if(!empty($moduleName) && $moduleName = 'gallery' && $actionName != 'productdetails')
+			{				
+				$body_content_style = '';
+		?>
+    	<!-- Sidebar Start -->
+        <aside id="sidebar">
+        	<div class="container">
+        		<?php echo $this->partial('blocks/menu_sidebar_accordion.phtml'); ?>                    
+				<?php echo $this->partial('blocks/members_sidebar_login.phtml'); ?>
+            	<?php echo $this->partial('blocks/newsletter_sidebar.phtml'); ?>
+            	<?php echo $this->partial('blocks/poll_sidebar_recent.phtml'); ?>
+            </div>
+        </aside>
+        <!-- Sidebar End -->
+       	<?php
+			}
+			else
+			{
+				$body_content_style = 'style="width:100%"';
+			}
+		?>
+        <!-- Content Start -->
+        <article id="content" <?php echo $body_content_style; ?>>
+        	<?php echo $this->layout()->content ?>
+            <?php
+			   	if($is_frontend->isFrontend())
+				{
+			?>
+        	<!-- Featured Tab Start -->
+            <div id="usual" class="usual">
+				<ul>
+               		<li><a class="selected" href="#tab1"><?php echo $this->translator->translator('front_tab_recent','', '', $front_template['theme_folder']); ?></a></li>
+                  	<li><a class="" href="#tab2"><?php echo $this->translator->translator('front_tab_reatured','', '', $front_template['theme_folder']); ?></a></li>
+                  	<li><a class="" href="#tab3"><?php echo $this->translator->translator('front_tab_article','', '', $front_template['theme_folder']); ?></a></li>
+                  	<li><a class="" href="#tab4"><?php echo $this->translator->translator('front_tab_upcoming','', '', $front_template['theme_folder']); ?></a></li>
+              	</ul>
+			</div>
+          	<div class="usual-content">
+                <div style="display:block;" id="tab1"><?php echo $this->partial('blocks/gallery_home_content_recentProduct_scroll.phtml'); ?></div>
+                <div style="display: none;" id="tab2"><?php echo $this->partial('blocks/gallery_home_content_featuredProduct.phtml'); ?></div>
+                <div style="display: none;" id="tab3"><?php echo $this->partial('blocks/article_home_content_byId.phtml'); ?></div>
+                <div style="display: none;" id="tab4"><?php echo $this->partial('blocks/news_home_content_upcomingEvent.phtml'); ?></div>
+          	</div>
+				
+		  	<script type="text/javascript">
+            	$("#usual ul").idTabs();
+          	</script>	
+            <!-- Featured Tab End -->
+            
+            <?php echo $this->partial('blocks/news_home_content_latest.phtml'); ?>
+            <?php echo $this->partial('blocks/review_home_content_clientsReview.phtml'); ?>
+            <div class="clear"><?php echo $this->partial('blocks/ad_home_content_scrolling.phtml'); ?></div>
+            <?php
+				}
+			?>
+        </article>
+        <!-- Content End -->
+   	</section>
+    <!-- Main Body End -->
+    
+    <!-- Footer Start -->
+    <?php echo $this->layout()->render('footer'); ?>
+    <!-- Footer End -->
+</div>
+<div class="go-top"><a href="#top" id="scroll-top"><?php echo $this->translator->translator('footer_top','', '', $front_template['theme_folder']); ?></a></div>
+<?php echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/vendor/scripts/js/scroll.js'); ?>
+</body>
+</html><?php echo $this->escape($global_conf['analytics_code']); ?>

@@ -1,0 +1,29 @@
+<?php  echo $this->doctype('XHTML1_TRANSITIONAL'); $front_template = Zend_Registry::get('front_template');?> 
+<html> 
+<head>
+  <base href="<?php echo $this->serverUrl().$this->baseUrl(); ?>/" /> 
+  <link rel="shortcut icon" href="<?php try{ $global_conf = Zend_Registry::get('global_conf'); echo $global_conf['frontend_favicon']; }catch(Exception $e){ } ?>" />
+  <?php echo $this->headMeta(); ?>
+  <?php $this->headTitle()->headTitle('404','SET'); echo $this->headTitle(); ?>
+   <?php 
+	$version = Zend_Registry::get('version');
+	echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/js/jquery/jui-1.7.1/'.$front_template['theme_folder'].'/jquery-1.7.1.min.js');
+	echo $this->headScript()->setFile('application/layouts/scripts/'.$front_template['theme_folder'].'/js/jquery/jui-1.7.1/'.$front_template['theme_folder'].'/jquery-ui-1.8.18.custom.min.js');
+	echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/template.css');
+	echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/general.css');
+	echo $this->headLink()->setStylesheet('application/layouts/scripts/'.$front_template['theme_folder'].'/css/pagination.css');
+?>
+</head> 
+<body class="error-page">
+<div class="container">
+	<span class="label"></span>
+    <div class="error-content">
+    	<div class="title">OOOPS!
+        	<p>The site encountered an error! Check below error or <span class="btn"><a href="#" class="icon">Back To Home Page</a></span></p>
+      	</div>
+        <hr/>
+		<?php echo $this->layout()->content ?>
+    </div>
+</div>
+</body>
+</html>

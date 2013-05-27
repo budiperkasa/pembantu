@@ -1,0 +1,32 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$form_id	=	$frontController->getRequest()->getParam('form_id');
+$translator = Zend_Registry::get('translator'); 
+?>
+
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('Member_list_package_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('values','form','Members')) : ?>
+       		<li <?php if($getAction == 'values' && strtolower($getController) == 'form' && $form_id == '9'){ ?> class="pkg selected"<?php }else{ ?>class="pkg"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'values', 'form_id' => '9' ), 'adminrout',    true) ?>"><?php echo $translator->translator('admin_menu_package'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('updatepackages','form','Members')) : ?>
+            <li <?php if($getAction == 'updatepackages' && strtolower($getController) == 'form'){ ?> class="pkg-upgrade selected"<?php }else{ ?>class="pkg-upgrade"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'updatepackages'), 'adminrout',    true) ?>"><?php echo $translator->translator('admin_menu_package_update'); ?></a>
+            </li>
+            <?php endif; ?>
+            
+            <?php if ($this->allow('values','form','Members')) : ?>
+            <li <?php if($getAction == 'values' && strtolower($getController) == 'form' && $form_id == '10'){ ?> class="default-pic selected last"<?php }else{ ?>class="default-pic last"<?php } ?>>
+            	<a href="<?php echo $this->url( array('module' => 'Members','controller' => 'form', 'action'     => 'values', 'form_id' => '10' ), 'adminrout',    true) ?>"><?php echo $translator->translator('admin_menu_default_picture'); ?></a>
+            </li>
+            <?php endif; ?>	
+        </ul>
+  	</div>
+</div>

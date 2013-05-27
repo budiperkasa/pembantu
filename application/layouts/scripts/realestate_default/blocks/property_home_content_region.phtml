@@ -1,0 +1,101 @@
+<?php
+class property_home_content_region_wise
+{
+	protected	$_group = 1;
+	protected	$_limit = 20;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');			
+		$selectGP = $this->_DBconn->select()
+						->from(array('ct' => Zend_Registry::get('dbPrefix').'cities'), array('city_id' => 'ct.city_id', 'city' => 'ct.city'))					   						   
+					   	->order('ct.city ASC')
+					   	->joinLeft(array('pp' => Zend_Registry::get('dbPrefix').'property_page'), 'pp.area_id = ct.city_id')
+						->where('pp.group_id = ?',$this->_group)
+					   	->limit($this->_limit);
+		
+		$property_info =  $selectGP->query()->fetchAll();
+	
+?>
+
+<div class="block">
+	<div class="block-heading">
+    	<div class="symbol"><?php echo $translator->translator('block_region_title','','', $this->_front_template['theme_folder']); ?></div>
+	</div>
+    
+    <div class="block-body">
+    	<div class="list">
+			<ul>
+				<?php	
+                    $DBconn = Zend_Registry::get('msqli_connection');
+                    $DBconn->getConnection();
+                    $selectGP = $DBconn->select()
+                                    ->from(array('hp' => Zend_Registry::get('dbPrefix').'cities'), array('DISTINCT(hp.city_id)'))
+                                    ->where('vv.active = ?','1')										
+                                    ->order('hp.city ASC')
+                                    ->joinLeft(array('vv' => Zend_Registry::get('dbPrefix').'property_page'), 'vv.area_id = hp.city_id',array('city_id' => 'hp.city_id', 'city' => 'hp.city', 'state_id' => 'hp.state_id'))
+                                    ->limit($this->_limit);
+                    $city_info =  $selectGP->query()->fetchAll();	
+                    
+                    if(count($city_info) > 0)	
+                    {
+                        $l = 1;							
+                        foreach($city_info as $entry)
+                        {								
+                            $selectCount = $DBconn->select()
+                                ->from(array('vv' => Zend_Registry::get('dbPrefix').'property_page'), array('count' => 'COUNT(*)'))
+                                ->where('vv.active = ?','1')
+                                ->where('vv.area_id = ?',$entry['city_id']);
+                            $count_info =  $selectCount->query()->fetchAll();	
+                            if(count($city_info) > 0)	
+                            {	
+                ?>					
+                <li><a href="<?php echo $this->_view->url(array('module' => 'Property','controller' =>'regionlist', 'action' => 'viewcity','city' => $this->_view->escape($entry['city']),'city_id' => $this->_view->escape($entry['city_id']) ),'Property-list-city/:city/:city_id',true); ?>" title="<?php echo $this->_view->escape($entry['city']); ?>" class="preview" link=""><?php echo $this->truncate($this->_view->escape($entry['city']), 0, 3).' ('.$count_info[0]['count'].')'; ?></a></li>													
+				<?php
+                
+                            }
+                            if($l++ % 5 == 0)
+                            {
+                                echo '</ul></div><div class="list"><ul>';
+                            }
+                        }							
+                    }
+                ?>
+			</ul>			
+		</div> 
+	</div>
+</div>
+
+<?php
+	}
+}
+try
+{
+	$property_home_content_region_wise_class = new property_home_content_region_wise($this);
+	$property_home_content_region_wise_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

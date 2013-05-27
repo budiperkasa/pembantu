@@ -1,0 +1,205 @@
+<?php 
+class poll_box
+{
+	protected	$_group_id = 1;
+	protected	$_category_id = 1;
+	protected 	$_sort = 'poll_order'; 
+	protected	$_order = 'ASC'; // For random 'RANDOM'
+	protected	$_poll_id = ''; // For particular Question, write ID/IDs (comma separated) such as 2,5,7
+	protected	$_limit = 4;
+	protected	$_DBconn;
+	protected	$_front_template;
+	protected	$_view;
+	
+	public function __construct($view) 
+	{
+		$this->_front_template = Zend_Registry::get('front_template'); 
+		$this->_view =	$view;
+		//DB Connection
+		$this->_DBconn = Zend_Registry::get('msqli_connection');
+		$this->_DBconn->getConnection();
+	}
+	
+	public function truncate($phrase,$start_words, $max_words)
+	{
+	   $phrase_array = explode(' ',$phrase);
+	   if(count($phrase_array) > $max_words && $max_words > 0)
+		  $phrase = implode(' ',array_slice($phrase_array, $start_words, $max_words)).'...';  
+	   return $phrase;
+	}
+	
+	public function class_body()
+	{
+		$translator = Zend_Registry::get('translator');
+		$version = Zend_Registry::get('version');
+?>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		
+		$('a.vote_btn_partial').click(function() {
+			var self = this;
+			var questionId = $(self).attr('rel');
+			var mesg = $('#actionMessagePoll_'+questionId);
+			var checked = $(self).parents('div:first').children('ul').children('li').children('input.check_btn');
+			
+			var checked_btn = $(self).parents('div:first').children('ul').children('li').children('input.check_btn:checked');
+			//alert(checked_btn.length);
+			var id_str = new Array();
+			if(checked_btn.length > 0)
+			{
+				$(checked_btn).each( function () {
+					id_str.push($(this).val());
+				});
+				$.ajax({
+						url: "<?php echo $this->_view->url( array('module'=> 'Poll', 'controller' => 'poll', 'action'     => 'vote', 'group_id' => $this->_group_id ), 'adminrout',    true) ?>",
+						type: 'POST',
+						data: { id_st: id_str, question_id: questionId},
+						beforeSend: function(){
+							$(self).html('<img src="application/layouts/scripts/<?php echo $this->_front_template['theme_folder']; ?>/images/loader/poll-loader.gif" border="0" />');
+						 },
+						success: function(response) 
+						{
+							//alert(response);
+							var json_arr = eval("("+response+")");
+							if(json_arr.status == 'err')
+							{
+								$(mesg).html(json_arr.msg);	
+								$(mesg).addClass('poll_vote_error');
+							}
+							else if(json_arr.status == 'ok')
+							{
+								$(mesg).html(json_arr.msg);	
+								$(mesg).addClass('poll_vote_success');
+							}
+							else
+							{
+								$(mesg).html(json_arr.msg);	
+								$(mesg).addClass('poll_vote_error');
+							}
+							//Removing questions
+							$(self).parents('div:first').remove();						
+							
+							var votes = "&nbsp;<?php echo $translator->translator('partial_poll_vote_cast_many_title','','', $this->_front_template['theme_folder']);?>";
+							var result_of_poll = '<table width="100%" cellpadding="1" cellspacing="0" class="result-block">';
+							result_of_poll += '<tr><td colspan="2" align="center"><h4><?php echo $translator->translator("partial_poll_list_result_title",'','', $this->_front_template['theme_folder']); ?></h4></td></tr>';
+							for(var i=0;i < json_arr.answer_percentage.length;i++)
+							{	
+								if(parseInt(json_arr.answer_vote[i]) < 2)
+								{
+									var votes = "&nbsp;<?php echo $translator->translator('partial_poll_vote_cast_single_title','','', $this->_front_template['theme_folder']);?>";
+								}
+								var percentage = '<?php echo "'+parseFloat(json_arr.answer_percentage[i])+'";?>';
+								
+								result_of_poll += '<tr><td bgcolor="#F5F5F5" colspan="2"><span class="answers">'+json_arr.answer_content[i]+'</span> - <span style="color:#006633">'+json_arr.answer_vote[i]+votes+'</span></td><tr><tr><td bgcolor="#F5F5F5" colspan="2"><table cellpadding="0" cellspacing="0" width="100%" border="0"><tr bgcolor="#cccccc"><td width="'+parseInt(json_arr.answer_percentage[i])+'%" bgcolor="#FF9900"></td><td style="font-size:10px">&nbsp;'+percentage+'%</td></tr></table></td></tr>';						
+							}
+							result_of_poll += '<tr><td width="100%" align="center" class="total"><?php echo $translator->translator("poll_total_vote_cast_title","'+json_arr.total_vote+'",'', $this->_front_template['theme_folder']);?></td></tr></table>';
+							$('#result_of_poll_partial_'+questionId).append(result_of_poll);										
+							
+							// Removing self td
+							$(self).parents('div:first').parents('td:first').remove();
+							$(self).removeAttr('href');
+							$(self).unbind('click');
+						}
+				});			
+			}
+			else
+			{
+				if($(checked).attr('type') == 'radio')
+				{
+					var msg = "<?php echo $translator->translator('partial_poll_vote_radio_selected_err','','', $this->_front_template['theme_folder']); ?>";
+				}
+				else
+				{
+					var msg = "<?php echo $translator->translator('partial_poll_vote_check_selected_err','','', $this->_front_template['theme_folder']); ?>";
+				}
+				$(mesg).html(msg);
+			}
+		});
+	});	
+</script>
+            
+<div class="block block-polls">
+	<div class="block-heading">
+		<div class="symbol"><?php echo $translator->translator('block_poll_title','','', $this->_front_template['theme_folder']); ?></div>
+	</div>
+            
+    <div class="block-body">
+		<?php
+            $pollGroup = new Poll_Model_DbTable_PollGroup();
+            $answer_db = new Poll_Model_DbTable_PollAnswer();
+            
+            $pollGroupInfo = $pollGroup->getInfo($this->_group_id);
+            $pages = new Poll_Model_PollMapper();	
+            if($pollGroupInfo)
+            {
+                $poll_datas =  $pages->fetchAllPollPartial($this->_poll_id,$pollGroupInfo,$this->_category_id,$this->_sort,$this->_order,$this->_limit);	
+                if(count($poll_datas)>0)
+                {
+                    foreach($poll_datas as $entry)
+                    {
+                        //print_r($entry);						
+            ?>
+    
+            <div id="actionMessagePoll_<?php echo $this->_view->escape($entry->id);?>" class="poll-err"></div>
+            <?php 
+                    if(($entry->never_end == '1') || (date('Y-m-d') < $entry->end_date) || ($entry->end_date == '0000-00-00'))
+                    {
+                ?>			  
+            <div class="block-title"><?php echo $this->_view->escape($entry->question); ?></div>
+            
+            <div class="block-content">
+                <?php 
+                        $answers = $answer_db->getAnswerByQuestion($this->_view->escape($entry->id));
+                        echo '<ul>';
+                        $type = ($this->_view->escape($entry->multiple_option)) ? 'checkbox' : 'radio'; 
+                        foreach ($answers as $answer)
+                        {
+                            if($answer->active)
+                            {
+                                echo '<li style="list-style:none">';					
+                                echo '<input type="'.$type.'" name="poll_answer_'.$this->_view->escape($entry->id).'[]" class="check_btn" value="'.$this->_view->escape($answer->id).'" />&nbsp;'.$answer->content.'</li>';
+                            }
+                        }
+                        echo '</ul>';
+                ?>
+            
+                <span class="link-btn"><a href="javascript: void(0)" rel="<?php echo $this->_view->escape($entry->id); ?>" class="vote_btn_partial"><?php echo $translator->translator('block_poll_btn','','', $this->_front_template['theme_folder']); ?></a></span>
+            </div>
+            
+            <div id="result_of_poll_partial_<?php echo $this->_view->escape($entry->id); ?>"></div>
+            <hr />
+            <?php
+                        }
+                    }
+                }
+                else
+                {
+                    echo $translator->translator('partial_poll_no_poll_found_error','','', $this->_front_template['theme_folder']);
+                }
+            
+            }
+            else
+            {
+                echo $translator->translator('partial_poll_no_poll_found_error','','', $this->_front_template['theme_folder']);
+            }
+            ?>
+            
+            <div class="more"><a href="All-Poll/<?php echo $this->_group_id;?>"><?php echo $translator->translator('block_poll_all','','', $this->_front_template['theme_folder']); ?></a></div>  
+    </div>
+</div>
+            
+<?php
+    }
+}
+
+try
+{
+	$box_class = new poll_box($this);
+	$box_class->class_body();
+}
+catch(Exception $e)
+{
+	echo $e->getMessage();
+}
+?>

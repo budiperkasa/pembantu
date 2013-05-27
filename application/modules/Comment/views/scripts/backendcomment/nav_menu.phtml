@@ -1,0 +1,52 @@
+<?php
+$frontController = Zend_Controller_Front::getInstance();	
+$getController = $frontController->getRequest()->getControllerName();
+$getAction = $frontController->getRequest()->getActionName();
+$translator = Zend_Registry::get('translator');
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	$('a.add_module_to_setting').click(function() {
+		$.ajax({
+			 url: "<?php echo $this->url( array('module'=> 'Comment', 'controller' => 'backendsetting', 'action'     => 'addmodule' ), 'adminrout',    true) ?>",
+			 success: function(response) 
+			 {
+				//alert(response);
+				var json_arr = eval("("+response+")");
+				if(json_arr.status == 'ok')
+				{
+					open("<?php echo $this->url(array('module' => 'Comment','controller'=>'backendsetting', 'action'=>'list'),'adminrout',true);?>","_parent");
+				}
+			 }			
+		}); 
+	});	
+});
+</script>
+<div id="nav">
+    <div class="nav-header"><div class="nav-title"><?php echo $translator->translator('comment_menu_title'); ?></div></div>
+    <div class="nav-body">
+    	<ul>
+        	<?php if ($this->allow('list','backendsetting','Comment')) : ?>
+			<li <?php if($getAction == 'list' && strtolower($getController) == 'backendsetting'){ ?> class="comment-setting selected"<?php }else{ ?>class="comment-setting"<?php } ?>>
+			<a href="javascript: void(0)" class="add_module_to_setting"><?php echo $translator->translator('comment_menu3'); ?></a>
+            </li>
+			<?php endif; ?> 
+        	
+            
+            <?php if ($this->allow('add','backendcomment','Comment')) : ?>
+			<li <?php if($getAction == 'add' && strtolower($getController) == 'backendcomment'){ ?> class="comment-add selected"<?php }else{ ?>class="comment-add"<?php } ?>>
+			<a href="<?php echo $this->url(array('module' => 'Comment','controller'=>'backendcomment', 'action'=>'add'),'adminrout',true);?>" ><?php echo $translator->translator('comment_menu2'); ?></a>
+            </li>
+			<?php endif; ?>
+            
+            <?php if ($this->allow('list','backendcomment','Comment')) : ?>
+          	<li <?php if($getAction == 'list' && strtolower($getController) == 'backendcomment'){ ?> class="comment selected last"<?php }else{ ?>class="comment last"<?php } ?>>
+           	<a href="<?php echo $this->url(array('module' => 'Comment','controller'=>'backendcomment', 'action'=>'list'),'adminrout',true);?>" ><?php echo $translator->translator('comment_menu1'); ?></a>
+            </li>
+          	<?php endif; ?>
+            
+                       
+        </ul>
+	</div>
+</div>
