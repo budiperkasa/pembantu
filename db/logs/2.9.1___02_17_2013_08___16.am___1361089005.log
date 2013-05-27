@@ -1,0 +1,42 @@
+
+___________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+
+File Name & Location =>   db/update/update-291.sql
+
+Mysqli statement execute error : Duplicate entry 'watermark_enabled' for key 'field_name'
+
+SQL Statement =>   
+insert into `eicra_global_setting` values 
+('','watermark_enabled','0'),
+('','watermark_on_edit','0'),
+('','watermark_place_inside','true'),
+('','watermark_background_color','F4F4F4'),
+('','watermark_background_transparency','80'),
+('','watermark_height','50'),
+('','watermark_position','bottom'),
+('','watermark_icons_show','yes'),
+('','watermark_icons_files','heart.png,reg.png'),
+('','watermark_icons_max_height_percentage','100'),
+('','watermark_icons_align','right'),
+('','watermark_icons_vertical_align','center'),
+('','watermark_icons_offset_x','9'),
+('','watermark_icons_offset_y','4'),
+('','watermark_icons_spacing','9'),
+('','watermark_icons_jpeg_quality','80'),
+('','watermark_text_show','yes'),
+('','watermark_text_value','Test'),
+('','watermark_text_align','left'),
+('','watermark_text_offset_x','9'),
+('','watermark_text_offset_y','9'),
+('','watermark_text_spacing','9'),
+('','watermark_text_fonts_directory','data/frontImages/portfolio/watermark/fonts/'),
+('','watermark_text_font','Designosaur-Regular.ttf'),
+('','watermark_text_size','30'),
+('','watermark_text_color','4A4A4A'),
+('','image_renaming_prefix','eicra_'),
+('','file_mime_type','All'),
+('','file_archive_type','zip,gz'),
+('','file_archive_not_supported_file_type','php,php3,php4,asp,jsp,pl,py,htm,shtml,sh,aspx,pjpg,bat,bin,class,cmd,cnm,com,cpl,dev,ocx,sys,vbe,vbs,vbx,wmf,msg,nws,scr,shs,smm,pcx,pgm,drv,eml,exe,hlp') ;
+
